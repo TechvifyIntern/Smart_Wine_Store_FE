@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom color palette for wine store */
+:root {
+  --primary-1: #f7f0e8; /* Very light cream */
+  --primary-2: #FFF3E2; /* Light cream */
+  --primary-3: #FFE5CA; /* Peach */
+  --primary-4: #FA9884; /* Coral */
+  --primary-5: #E74646; /* Red-orange */
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;
