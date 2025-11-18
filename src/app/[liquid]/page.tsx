@@ -1,5 +1,3 @@
-import { Header } from "@/components/header";
-
 export default async function Page({
   params,
 }: {
@@ -8,10 +6,5 @@ export default async function Page({
   const { liquid } = await params;
   console.log("this is " + liquid);
 
-  return (
-    <main className="bg-background">
-      <Header />
-      {liquid} Page
-    </main>
-  );
+  return <main className="bg-background">{liquid} Page</main>;
 }

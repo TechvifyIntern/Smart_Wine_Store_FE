@@ -1,4 +1,3 @@
-import { Header } from "@/components/header";
 import { Hero } from "@/components/hero";
 import { Heritage } from "@/components/heritage";
 import { Featured } from "@/components/featured";
@@ -8,7 +7,8 @@ import { Events } from "@/components/events";
 import { Statistics } from "@/components/statistics";
 import { Testimonial } from "@/components/testimonial";
 import { Newsletter } from "@/components/newsletter";
-import { Footer } from "@/components/footer";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (

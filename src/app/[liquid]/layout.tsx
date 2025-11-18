@@ -1,4 +1,4 @@
-import { Header } from "@/components/header";
+import { Header } from "@/components/Header";
 import "./../globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -8,9 +8,18 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <div>
+    <html lang="en" suppressHydrationWarning>
       <Header />
-      {children}
-    </div>
+      <body className={`font-sans antialiased`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
+      </body>
+    </html>
   );
 }
