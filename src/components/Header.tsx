@@ -1,122 +1,174 @@
 "use client";
 
-import { Search, ShoppingCart } from "lucide-react";
+import { useState } from "react";
+import { Menu, X, ShoppingCart, Search, LogOut, Moon, Sun } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { AuthDialog } from "@/components/auth-dialog";
+import { navigationLinks } from "@/data/navigation";
+import { useTheme } from "next-themes";
+import Link from "next/link";
 
-export default function Header() {
+export function Header() {
+  const { theme, setTheme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const handleSignOut = () => {
+    setIsAuthenticated(false);
+  };
+
+  const handleAuthModeChange = (mode: "signin" | "signup") => {
+    setAuthMode(mode);
+  };
+
   return (
-    <header className="bg-black text-white shadow-lg">
-      <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        {/* Logo */}
-        <div className="flex items-center space-x-2">
-          <div className="text-2xl font-bold text-amber-400">🍷 Wine Store</div>
-        </div>
+    <>
+      <header className="fixed w-full top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <div className="shrink-0 flex items-center">
+              <Link href="/">
+                <div className="text-2xl font-serif text-primary">V</div>
+              </Link>
+            </div>
 
-        {/* Navigation */}
-        <nav>
-          <ul className="hidden md:flex space-x-8">
-            <li>
-              <a href="#" className="hover:text-amber-400 transition-colors">
-                Home
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-amber-400 transition-colors">
-                Wines
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-amber-400 transition-colors">
-                Categories
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-amber-400 transition-colors">
-                About
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:text-amber-400 transition-colors">
-                Contact
-              </a>
-            </li>
-          </ul>
-        </nav>
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-8">
+              {navigationLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
 
-        {/* Search Bar */}
-        <div className="flex-1 max-w-md mx-8">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search for wines..."
-              className="w-full px-4 py-2 pl-10 text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-400"
-            />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 w-4 h-4" />
+            {/* Right Icons & Auth Buttons */}
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                className="p-2 hover:bg-muted rounded-lg transition"
+                title="Toggle theme"
+                suppressHydrationWarning={true}
+              >
+                {theme === "dark" ? (
+                  <Sun className="w-5 h-5 text-muted-foreground" />
+                ) : (
+                  <Moon className="w-5 h-5 text-muted-foreground" />
+                )}
+              </button>
+              <button className="p-2 hover:bg-muted rounded-lg transition">
+                <Search className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <button className="p-2 hover:bg-muted rounded-lg transition">
+                <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+              </button>
+
+              {!isAuthenticated ? (
+                <div className="hidden sm:flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setAuthMode("signin");
+                      setAuthOpen(true);
+                    }}
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => {
+                      setAuthMode("signup");
+                      setAuthOpen(true);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              ) : (
+                <button
+                  onClick={handleSignOut}
+                  className="p-2 hover:bg-muted rounded-lg transition"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-5 h-5 text-muted-foreground" />
+                </button>
+              )}
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="md:hidden p-2 hover:bg-muted rounded-lg transition"
+              >
+                {isOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Cart and Auth */}
-        <div className="flex items-center space-x-4">
-          <button className="flex items-center space-x-2 hover:text-amber-400 transition-colors">
-            <ShoppingCart className="w-5 h-5" />
-            <span className="hidden sm:inline">Cart</span>
-            <span className="bg-amber-400 text-black rounded-full px-2 py-1 text-xs">
-              0
-            </span>
-          </button>
-          {/* Login/Sign Up - Placeholder */}
-          <div className="flex items-center space-x-2">
-            <button className="text-white hover:text-amber-400 transition-colors text-sm font-medium">
-              Login
-            </button>
-            <span className="text-white">/</span>
-            <button className="text-amber-400 hover:text-amber-300 transition-colors text-sm font-medium">
-              Sign Up
-            </button>
-          </div>
-          {/* If logged in, show avatar */}
-          {/* <div className="w-8 h-8 rounded-full bg-gray-400 overflow-hidden">
-            <img src="https://via.placeholder.com/32x32" alt="Avatar" className="w-full h-full object-cover" />
-          </div> */}
+          {/* Mobile Navigation */}
+          {isOpen && (
+            <nav className="md:hidden pb-4 flex flex-col gap-2">
+              {navigationLinks.map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="text-sm text-muted-foreground hover:text-foreground transition py-2"
+                >
+                  {link.label}
+                </a>
+              ))}
+              {!isAuthenticated && (
+                <div className="flex flex-col gap-2 pt-2 border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setAuthMode("signin");
+                      setAuthOpen(true);
+                      setIsOpen(false);
+                    }}
+                    className="justify-start"
+                  >
+                    Sign In
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => {
+                      setAuthMode("signup");
+                      setAuthOpen(true);
+                      setIsOpen(false);
+                    }}
+                  >
+                    Sign Up
+                  </Button>
+                </div>
+              )}
+            </nav>
+          )}
         </div>
-      </div>
+      </header>
 
-      {/* Mobile Navigation */}
-      <nav className="md:hidden">
-        <ul className="flex justify-center space-x-4 py-2">
-          <li>
-            <a
-              href="#"
-              className="hover:text-amber-400 transition-colors text-sm"
-            >
-              Home
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-amber-400 transition-colors text-sm"
-            >
-              Wines
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-amber-400 transition-colors text-sm"
-            >
-              Categories
-            </a>
-          </li>
-          <li>
-            <a
-              href="#"
-              className="hover:text-amber-400 transition-colors text-sm"
-            >
-              About
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </header>
+      <AuthDialog
+        open={authOpen}
+        onOpenChange={(open) => {
+          setAuthOpen(open);
+          if (!open) setIsOpen(false);
+        }}
+        mode={authMode}
+        onModeChange={handleAuthModeChange}
+      />
+    </>
   );
 }
