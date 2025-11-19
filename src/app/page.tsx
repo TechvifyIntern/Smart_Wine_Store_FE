@@ -1,11 +1,7 @@
-import { Hero } from "@/components/hero";
-import { Heritage } from "@/components/heritage";
-import { Featured } from "@/components/featured";
-import { Collections } from "@/components/collections";
-import { Experience } from "@/components/experience";
-import { Events } from "@/components/events";
-import { Statistics } from "@/components/statistics";
-import { Testimonial } from "@/components/testimonial";
+import { Hero } from "@/components/homepage/hero";
+import { Collections } from "@/components/homepage/collections";
+import { Statistics } from "@/components/homepage/statistics";
+import { Testimonial } from "@/components/homepage/testimonial";
 import { Newsletter } from "@/components/newsletter";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,12 +11,8 @@ export default function Home() {
     <main className="bg-background">
       <Header />
       <Hero />
-      {/* <Heritage /> */}
-      {/* <Featured /> */}
       <Collections />
       <Statistics />
-      {/* <Experience /> */}
-      {/* <Events /> */}
       <Testimonial />
       <Newsletter />
       <Footer />

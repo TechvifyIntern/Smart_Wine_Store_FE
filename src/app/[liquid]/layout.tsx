@@ -1,6 +1,7 @@
-import { Header } from "@/components/Header";
+import { Newsletter } from "@/components/newsletter";
 import "./../globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 
 export default function Layout({
   children,
@@ -8,18 +9,11 @@ export default function Layout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <>
       <Header />
-      <body className={`font-sans antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {children}
-        </ThemeProvider>
-      </body>
-    </html>
+      {children}
+      <Newsletter />
+      <Footer />
+    </>
   );
 }

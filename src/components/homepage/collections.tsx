@@ -9,7 +9,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Package, Activity, MapPin, Tag, ShoppingCart } from "lucide-react";
+import {
+  Package,
+  Activity,
+  MapPin,
+  Tag,
+  ShoppingCart,
+  BottleWine,
+} from "lucide-react";
 
 export function Collections() {
   const carouselRefs = useRef<HTMLDivElement[]>([]);
@@ -38,7 +45,7 @@ export function Collections() {
     <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-card">
       <div className="max-w-7xl mx-auto space-y-20">
         {collections.map((collection, idx) => (
-          <div key={collection.categoryID} className="space-y-8">
+          <div key={collection.categoryId} className="space-y-8">
             {/* Category header */}
             <div className="text-center">
               <p className="text-sm tracking-widest text-primary uppercase">
@@ -62,14 +69,14 @@ export function Collections() {
                 <CarouselContent className="-ml-4 overflow-visible">
                   {collection.products.map((product) => (
                     <CarouselItem
-                      key={product.id}
+                      key={product.productId}
                       className="pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 overflow-visible relative"
                     >
                       <div className="group relative cursor-pointer hover:z-50 hover:drop-shadow-lg z-10 hover:border-2 hover:border-primary hover:rounded-xl">
                         <div className="relative h-60 rounded-xl">
                           <img
-                            src={product.imageURL}
-                            alt={product.name}
+                            src={product.imageUrl}
+                            alt={product.productName}
                             className="w-full h-full object-cover rounded-xl"
                           />
                           <div className="absolute inset-0 bg-black/20 transition-colors group-hover:bg-black/40 rounded-xl" />
@@ -77,34 +84,34 @@ export function Collections() {
 
                         <div className="p-4 space-y-2 bg-white rounded-b-xl shadow-md border border-transparent hover:shadow-xl hover:border-primary">
                           <h3 className="text-lg font-semibold text-black">
-                            {product.name}
+                            {product.productName}
                           </h3>
 
                           {/* Price */}
                           <div className="flex items-center space-x-2 text-sm text-primary font-bold">
                             <Tag className="w-4 h-4" />
-                            <span>{product.Price}</span>
+                            <span>{product.salePrice}</span>
                           </div>
 
                           {/* Size & ABV */}
-                          <div className="flex justify-between text-sm text-muted-foreground mt-1">
+                          <div className="flex justify-between text-sm text-muted-foreground my-1">
                             <div className="flex items-center space-x-2">
-                              <Package className="w-4 h-4" />
-                              <span>{product.product_detail.Size}</span>
+                              <BottleWine className="w-4 h-4" />
+                              <span>{product.productDetail.size}</span>
                             </div>
                             <div className="flex items-center space-x-2 mr-16">
                               <Activity className="w-4 h-4" />
-                              <span>{product.product_detail.ABV}</span>
+                              <span>{product.productDetail.abv}</span>
                             </div>
                           </div>
 
                           {/* Origin & Add to Cart */}
-                          <div className="flex justify-between items-center mt-2">
+                          <div className="flex justify-between items-center">
                             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                               <MapPin className="w-4 h-4" />
-                              <span>{product.product_detail.Origin}</span>
+                              <span>{product.productDetail.origin}</span>
                             </div>
-                            <button className="flex items-center space-x-1 px-3 py-1 text-sm font-semibold text-white bg-primary rounded hover:bg-primary/90 transition">
+                            <button className="flex items-center space-x-1 px-3 py-1 text-sm font-semibold text-white bg-primary rounded hover:bg-primary/90 transition hover:cursor-pointer">
                               <ShoppingCart className="w-4 h-4" />
                               <span>Add to Cart</span>
                             </button>
