@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Jost } from 'next/font/google';
 
 export const metadata: Metadata = {
   title: "Ville Noir - Premium Wine Collection",
@@ -26,6 +27,10 @@ export const metadata: Metadata = {
   //   apple: "/apple-icon.png",
   // },
 };
+const jost = Jost({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'], // choose what you need
+});
 
 export default function RootLayout({
   children,
@@ -33,7 +38,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={jost.className}>
       <body>
         <ThemeProvider
           attribute="class"
