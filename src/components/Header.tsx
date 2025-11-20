@@ -12,7 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AuthDialog } from "@/components/auth-dialog";
+import { AuthDialog } from "@/components/auth/auth-dialog";
 import {
   navigationLinks,
   wineChildrenCates,
