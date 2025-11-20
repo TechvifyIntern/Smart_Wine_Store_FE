@@ -22,38 +22,38 @@ export default function EventsTable({
     emptyMessage = "No events found",
 }: EventsTableProps) {
     return (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden">
+        <div className="dark:bg-slate-900/50 dark:backdrop-blur-sm border border-[#F2F2F2] dark:border-slate-800/50 rounded-2xl ">
             <div className="overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-[#FFFFFF] border-b border-gray-200">
+                    <thead className="dark:bg-slate-800/50 dark:border-b dark:border-slate-700/50 border-b border-[#F2F2F2]">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                ID
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
+                                Id
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Event Name
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Description
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
                                 Discount
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Start Date
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 End Date
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Status
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
                                 Actions
                             </th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-[#F2F2F2] dark:divide-slate-800/50">
                         {events.length > 0 ? (
                             events.map((event) => {
                                 const status = getEventStatus(
@@ -73,7 +73,7 @@ export default function EventsTable({
                             })
                         ) : (
                             <tr>
-                            <NotFoundEvent message={emptyMessage} />
+                                <NotFoundEvent message={emptyMessage} />
                             </tr>
                         )}
                     </tbody>

@@ -55,7 +55,7 @@ export default function Dashboard() {
                 {stats.map((stat, index) => (
                     <div
                         key={index}
-                        className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition-shadow"
+                        className="rounded-lg shadow-md p-6  hover:shadow-lg transition-shadow"
                     >
                         <div className="flex items-center justify-between mb-4">
                             <div className={`${stat.color} p-3 rounded-lg`}>
