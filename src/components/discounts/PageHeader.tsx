@@ -9,12 +9,12 @@ interface PageHeaderProps {
 export default function PageHeader({
     title,
     icon: Icon,
-    iconColor = "text-blue-600",
+    iconColor = "text-black",
 }: PageHeaderProps) {
     return (
         <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 flex items-center">
-                <Icon className={`w-8 h-8 mr-3 ${iconColor}`} />
+            <h2 className="text-3xl font-bold flex items-center">
+                <Icon className={`w-8 h-7 mr-3 ${iconColor} dark:text-white`} />
                 {title}
             </h2>
         </div>

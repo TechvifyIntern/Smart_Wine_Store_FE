@@ -2,16 +2,23 @@
 
 import { useState, useMemo } from "react";
 import { Calendar } from "lucide-react";
-import { discountEvents } from "@/data/discount_event";
+import { discountEvents, DiscountEvent } from "@/data/discount_event";
 import PageHeader from "@/components/discounts/PageHeader";
-import SearchBar from "@/components/discounts/SearchBar";
 import EventsTable from "@/components/discounts/EventsTable";
-import Pagination from "@/components/discounts/Pagination";
+import Pagination from "@/components/admin/pagination/Pagination";
+import EventsToolbar from "@/components/discounts/EventsToolbar";
+import { CreateDiscountEvent } from "@/components/discounts/(modal)/CreateDiscountEvent";
+import { DeleteConfirmDialog } from "@/components/discounts/(modal)/DeleteConfirmDialog";
 
 export default function EventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<DiscountEvent | null>(null);
+    const [selectedEventStatus, setSelectedEventStatus] = useState<string>("");
+    const [eventToDelete, setEventToDelete] = useState<DiscountEvent | null>(null);
 
     // Get status based on dates
     const getEventStatus = (timeStart: string, timeEnd: string) => {
@@ -24,7 +31,6 @@ export default function EventsPage() {
         return "Active";
     };
 
-
     // Format date
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -35,12 +41,21 @@ export default function EventsPage() {
         });
     };
 
-    // Filter events based on search term
+    // Filter events based on search term (EventName only)
     const filteredEvents = useMemo(() => {
-        return discountEvents.filter(
-            (event) =>
-                event.EventName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                event.Description.toLowerCase().includes(searchTerm.toLowerCase())
+        if (!searchTerm.trim()) {
+            return discountEvents;
+        }
+
+        const lowerSearchTerm = searchTerm.toLowerCase().trim();
+
+        // TODO: Replace with API call when ready
+        // Example:
+        // const response = await fetch(`/api/discount-events/search?name=${encodeURIComponent(searchTerm)}`);
+        // return await response.json();
+
+        return discountEvents.filter((event) =>
+            event.EventName.toLowerCase().includes(lowerSearchTerm)
         );
     }, [searchTerm]);
 
@@ -57,23 +72,65 @@ export default function EventsPage() {
     };
 
     const handleEdit = (id: number) => {
-        console.log("Edit event:", id);
-        // TODO: Implement edit logic
+        const event = discountEvents.find((e) => e.DiscountEventID === id);
+        if (event) {
+            const status = getEventStatus(event.TimeStart, event.TimeEnd);
+
+            // Only allow edit for Scheduled and Active events
+            if (status === "Expired") {
+                alert("Cannot edit expired events!");
+                return;
+            }
+
+            setSelectedEvent(event);
+            setSelectedEventStatus(status);
+            setIsEditModalOpen(true);
+        }
     };
 
     const handleDelete = (id: number) => {
-        console.log("Delete event:", id);
-        // TODO: Implement delete logic
+        const event = discountEvents.find((e) => e.DiscountEventID === id);
+        if (event) {
+            const status = getEventStatus(event.TimeStart, event.TimeEnd);
+
+            // Prevent deletion of Active events
+            if (status === "Active") {
+                alert("Cannot delete active events! Please wait until the event expires or edit the end date.");
+                return;
+            }
+
+            // Prevent deletion of Expired events
+            if (status === "Expired") {
+                alert("Cannot delete expired events!");
+                return;
+            }
+
+            // Only Scheduled events can be deleted - show confirmation dialog
+            if (status === "Scheduled") {
+                setEventToDelete(event);
+                setIsDeleteDialogOpen(true);
+            }
+        }
     };
 
-    const handleCreate = () => {
-        console.log("Create new event");
-        // TODO: Implement create logic
+    const handleConfirmDelete = () => {
+        if (eventToDelete) {
+            console.log("Delete event:", eventToDelete.DiscountEventID);
+            // TODO: Implement API call to delete event
+            // Example:
+            // await fetch(`/api/discount-events/${eventToDelete.DiscountEventID}`, {
+            //   method: 'DELETE',
+            // });
+
+            alert(`Event "${eventToDelete.EventName}" deleted successfully!`);
+            setIsDeleteDialogOpen(false);
+            setEventToDelete(null);
+        }
     };
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        setCurrentPage(1);
+        setCurrentPage(1); // Reset to first page when searching
     };
 
     const handleItemsPerPageChange = (items: number) => {
@@ -81,20 +138,47 @@ export default function EventsPage() {
         setCurrentPage(1);
     };
 
+    const handleCreateEvent = async (data: Omit<DiscountEvent, "DiscountEventID" | "CreatedAt" | "UpdatedAt">) => {
+        console.log("Creating new event:", data);
+        // TODO: Implement API call to create event
+        // Example:
+        // await fetch('/api/discount-events', {
+        //   method: 'POST',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(data),
+        // });
+
+        alert("Event created successfully!");
+    };
+
+    const handleUpdateEvent = async (id: number, data: Omit<DiscountEvent, "DiscountEventID" | "CreatedAt" | "UpdatedAt">) => {
+        console.log(`Updating event ${id}:`, data);
+        // TODO: Implement API call to update event
+        // Example:
+        // await fetch(`/api/discount-events/${id}`, {
+        //   method: 'PUT',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify(data),
+        // });
+
+        alert(`Event ${id} updated successfully!`);
+    };
+
     return (
         <div>
             <PageHeader
                 title="Discount Events"
                 icon={Calendar}
-                iconColor="text-blue-600"
+                iconColor="text-black"
             />
 
-            <SearchBar
+            {/* Toolbar with Search and Create Button */}
+            <EventsToolbar
                 searchTerm={searchTerm}
                 onSearchChange={handleSearchChange}
-                onCreateClick={handleCreate}
-                placeholder="Search events by event name..."
-                createButtonText="Create Event"
+                searchPlaceholder="Search by event name..."
+                onCreateEvent={handleCreateEvent}
+                createButtonLabel="Create Event"
             />
 
             {/* Events Table */}
@@ -105,7 +189,7 @@ export default function EventsPage() {
                 onDelete={handleDelete}
                 getEventStatus={getEventStatus}
                 formatDate={formatDate}
-                emptyMessage="No events found"
+                emptyMessage={searchTerm ? `No events found matching "${searchTerm}"` : "No events found"}
             />
 
             {/* Pagination */}
@@ -116,6 +200,24 @@ export default function EventsPage() {
                 itemsPerPage={itemsPerPage}
                 onPageChange={setCurrentPage}
                 onItemsPerPageChange={handleItemsPerPageChange}
+            />
+
+            {/* Edit Event Modal */}
+            <CreateDiscountEvent
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                mode="edit"
+                event={selectedEvent}
+                eventStatus={selectedEventStatus}
+                onUpdate={handleUpdateEvent}
+            />
+
+            {/* Delete Confirmation Dialog */}
+            <DeleteConfirmDialog
+                open={isDeleteDialogOpen}
+                onOpenChange={setIsDeleteDialogOpen}
+                event={eventToDelete}
+                onConfirm={handleConfirmDelete}
             />
         </div>
     );

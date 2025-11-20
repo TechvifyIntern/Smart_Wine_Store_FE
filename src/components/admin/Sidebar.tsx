@@ -120,7 +120,7 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
     };
 
     const SidebarContent = ({ isMobile = false }: { isMobile?: boolean }) => (
-        <div className="flex flex-col h-full bg-white">
+        <div className="flex flex-col h-full">
             {/* Navigation Menu */}
             <nav className="flex-1 overflow-y-auto px-3 py-4">
                 <ul className="space-y-1">
@@ -132,8 +132,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     <button
                                         onClick={item.isDiscountMenu ? toggleDiscountDropdown : toggleProductDropdown}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${isParentActive(item.subItems)
-                                            ? "bg-[#eb883b] text-white shadow-md"
-                                            : "text-gray-700 hover:bg-gray-100"
+                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
+                                            : "text-[#020202] dark:text-white "
                                             }`}
                                     >
                                         <div className="flex items-center">
@@ -155,8 +155,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                                         href={subItem.href}
                                                         onClick={onClose}
                                                         className={`flex items-center px-4 py-2.5 rounded-lg transition-all ${isActive(subItem.href)
-                                                            ? "bg-[#eb883b] text-white shadow-md"
-                                                            : "text-gray-600 hover:bg-gray-100"
+                                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
+                                                            : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                                                             }`}
                                                     >
                                                         <subItem.icon className="w-4 h-4 mr-3" />
@@ -173,8 +173,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     href={item.href!}
                                     onClick={onClose}
                                     className={`flex items-center px-4 py-3 rounded-lg transition-all ${isActive(item.href)
-                                        ? "bg-[#eb883b] text-white shadow-md"
-                                        : "text-gray-700 hover:bg-gray-100"
+                                        ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
+                                        : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                                         }`}
                                 >
                                     <item.icon className="w-5 h-5 mr-3" />
@@ -187,8 +187,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
             </nav>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200">
-                <div className="text-xs text-gray-500 text-center">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="text-xs text-center">
                     Wine Store Admin v1.0
                 </div>
             </div>
@@ -207,14 +207,14 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
 
             {/* Sidebar - Desktop */}
             <aside
-                className={`hidden md:block w-60 bg-white border-r border-gray-200 sticky top-0 h-[calc(100vh-73px)] overflow-y-auto ${className}`}
+                className={`hidden md:block w-60 border-r sticky top-0 h-[100vh] overflow-y-auto ${className}`}
             >
                 <SidebarContent isMobile={false} />
             </aside>
 
             {/* Sidebar - Mobile */}
             <aside
-                className={`md:hidden fixed top-[73px] left-0 w-60 bg-white border-r border-gray-200 h-[calc(100vh-73px)] z-40 transform transition-transform duration-300 overflow-y-auto ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                className={`md:hidden fixed top-[73px] left-0 w-60 border-r h-[calc(100vh-73px)] z-40 transform transition-transform duration-300 overflow-y-auto ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
                     } ${className}`}
             >
                 <SidebarContent isMobile={true} />

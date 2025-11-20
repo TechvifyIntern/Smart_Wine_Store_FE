@@ -16,7 +16,7 @@ export default function AdminLayout({
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen">
             {/* Admin Header - Full width at top */}
             <Header onMenuClick={toggleMobileSidebar} />
 
