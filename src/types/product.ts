@@ -1,0 +1,31 @@
+export interface ProductDetail {
+  ProductDetailID: string | number;
+  ProductID?: string | number;
+  Size: number;
+  ABV: number;
+  Producer: string;
+  Origin: string;
+  Varietal: string;
+  DescriptionTitle: string;
+  DescriptionContents: string;
+}
+
+export interface Product {
+  ProductID: number;
+  ProductName:string;
+  CategoryID: string | number;
+  ImageURL?: string;
+  CostPrice: string | number;
+  SalePrice: number;
+  isActive?: boolean;
+  Product_Detail?: ProductDetail;
+}
+
+export interface Review {
+  id: string;
+  author: string;
+  rating: number;
+  date: string;
+  comment: string;
+  helpful: number;
+}

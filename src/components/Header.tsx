@@ -29,14 +29,17 @@ export function Header() {
   const [isOpen, setIsOpen] = useState(false); // mobile menu
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "signup">("signin");
+  const [authMode, setAuthMode] = useState<"signin" | "signup" | "forgot">(
+    "signin"
+  );
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
   const handleSignOut = () => setIsAuthenticated(false);
 
-  const handleAuthModeChange = (mode: "signin" | "signup") => setAuthMode(mode);
+  const handleAuthModeChange = (mode: "signin" | "signup" | "forgot") =>
+    setAuthMode(mode);
 
   return (
     <>
@@ -83,7 +86,7 @@ export function Header() {
                         {children.map((cat) => (
                           <Link
                             key={cat.CategoryID}
-                            href={`${link.label}/${cat.CategoryID}`}
+                            href={`/${link.label}?category=${cat.CategoryID}`}
                             className="block px-3 py-2 hover:bg-muted rounded text-sm"
                           >
                             {cat.CategoryName}
@@ -116,7 +119,7 @@ export function Header() {
                       });
                       setIsSearchOpen(false);
                     }}
-                    className="absolute right-full ml-2 flex items-center"
+                    className="absolute right-full flex items-center border border-primary rounded-lg shadow-lg"
                   >
                     <input
                       type="text"
@@ -128,9 +131,11 @@ export function Header() {
               </div>
 
               {/* Cart icon */}
-              <button className="p-2 hover:bg-muted rounded-lg transition">
-                <ShoppingCart className="w-5 h-5 text-muted-foreground" />
-              </button>
+              <Link href="/cart">
+                <button className="p-2 hover:bg-muted rounded-lg transition">
+                  <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </Link>
 
               {/* Auth buttons */}
               {!isAuthenticated ? (

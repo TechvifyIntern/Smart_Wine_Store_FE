@@ -114,3 +114,23 @@
 .animate-scroll-left-to-right {
   animation: scroll-left-to-right 20s linear infinite;
 }
+
+
+.scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+@layer utilities {
+  /* Dành cho Chrome, Safari, Edge, Opera */
+  .no-spinner::-webkit-outer-spin-button,
+  .no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Dành cho Firefox */
+  .no-spinner {
+    -moz-appearance: textfield;
+  }
+}
