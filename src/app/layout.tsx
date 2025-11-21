@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { Jost } from 'next/font/google';
 
 export const metadata: Metadata = {
-  title: "Ville Noir - Premium Wine Collection",
+  title: "WINEICY",
   description:
     "Discover refined wines with exceptional craftsmanship and taste",
   generator: "v0.app",
