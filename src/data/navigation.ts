@@ -1,6 +1,6 @@
 export const navigationLinks = [
-  { label: 'Wine', href: 'Wine' },
-  { label: 'Whisky', href: 'Whisky' },
+  { label: 'Wine', href: '/Wine' },
+  { label: 'Whisky', href: '/Whisky' },
   { label: 'About', href: '#about' },
   { label: 'Collections', href: '#collections' },
   { label: 'Events', href: '#events' },

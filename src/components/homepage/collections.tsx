@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { collections } from "@/data/collections";
 import {
   Carousel,
@@ -9,42 +8,14 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import {
-  Package,
-  Activity,
-  MapPin,
-  Tag,
-  ShoppingCart,
-  BottleWine,
-} from "lucide-react";
+import { Activity, MapPin, Tag, ShoppingCart, BottleWine } from "lucide-react";
+import Link from "next/link";
 
 export function Collections() {
-  const carouselRefs = useRef<HTMLDivElement[]>([]);
-
-  useEffect(() => {
-    const intervals = carouselRefs.current.map((carousel) => {
-      if (!carousel) return null;
-      const content = carousel.querySelector("[role='list']");
-      if (!content) return null;
-      let scrollAmount = 0;
-      const step = carousel.clientWidth / 3; // slide 1/3 width
-      return setInterval(() => {
-        if (content) {
-          scrollAmount += step;
-          if (scrollAmount > content.scrollWidth - carousel.clientWidth) {
-            scrollAmount = 0;
-          }
-          content.scrollTo({ left: scrollAmount, behavior: "smooth" });
-        }
-      }, 3000);
-    });
-    return () => intervals.forEach((i) => i && clearInterval(i));
-  }, []);
-
   return (
     <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-card">
       <div className="max-w-7xl mx-auto space-y-20">
-        {collections.map((collection, idx) => (
+        {collections.map((collection) => (
           <div key={collection.categoryId} className="space-y-8">
             {/* Category header */}
             <div className="text-center">
@@ -52,26 +23,22 @@ export function Collections() {
                 {collection.categoryName}
               </p>
               <h2 className="text-3xl md:text-4xl font-serif mt-2">
-                {collection.productCount} Products
+                {collection.productCount} Products Chưa gắn Link
               </h2>
             </div>
 
             {/* Carousel */}
-            <div
-              ref={(el) => {
-                if (el) carouselRefs.current[idx] = el;
-              }}
+            <Carousel
+              opts={{ align: "start", loop: true }}
+              className="w-full overflow-visible"
             >
-              <Carousel
-                opts={{ align: "start", loop: true }}
-                className="w-full overflow-visible"
-              >
-                <CarouselContent className="-ml-4 overflow-visible">
-                  {collection.products.map((product) => (
-                    <CarouselItem
-                      key={product.productId}
-                      className="pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 overflow-visible relative"
-                    >
+              <CarouselContent className="-ml-4 overflow-visible">
+                {collection.products.map((product) => (
+                  <CarouselItem
+                    key={product.productId}
+                    className="pl-4 basis-3/4 sm:basis-1/2 md:basis-1/3 lg:basis-1/4 overflow-visible relative"
+                  >
+                    <Link href={`/product/${product.productId}`}>
                       <div className="group relative cursor-pointer hover:z-50 hover:drop-shadow-lg z-10 hover:border-2 hover:border-primary hover:rounded-xl">
                         <div className="relative h-60 rounded-xl">
                           <img
@@ -118,14 +85,14 @@ export function Collections() {
                           </div>
                         </div>
                       </div>
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
+                    </Link>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-                <CarouselPrevious />
-                <CarouselNext />
-              </Carousel>
-            </div>
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
           </div>
         ))}
       </div>

@@ -35,22 +35,4 @@ export const collections = [
       },
     })),
   },
-  {
-    categoryId: 3,
-    categoryName: "Rosé Wine",
-    description: "Elegant and balanced rosé wines",
-    productCount: 12,
-    imageUrl: "/rose-wine-collection.jpg",
-    products: Array.from({ length: 10 }).map((_, i) => ({
-      productId: `ro${i + 1}`,
-      productName: `Rosé Wine ${i + 1}`,
-      imageUrl: "/rose-wine-collection.jpg",
-      salePrice: `${(480_000 + i * 30_000).toLocaleString('vi-VN')} VND`,
-      productDetail: {
-        size: "750ml",
-        abv: `${12 + (i % 2)}%`,
-        origin: "Spain",
-      },
-    })),
-  },
 ];

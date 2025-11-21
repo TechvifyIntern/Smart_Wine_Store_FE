@@ -42,7 +42,7 @@ export const products = [
     CostPrice: 99.99,
     SalePrice: 129.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 1,
       ProductID: 1,
       Size: 750,
@@ -62,7 +62,7 @@ export const products = [
     CostPrice: 69.99,
     SalePrice: 89.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 2,
       ProductID: 2,
       Size: 750,
@@ -82,7 +82,7 @@ export const products = [
     CostPrice: 54.99,
     SalePrice: 69.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 3,
       ProductID: 3,
       Size: 750,
@@ -102,7 +102,7 @@ export const products = [
     CostPrice: 94.99,
     SalePrice: 119.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 4,
       ProductID: 4,
       Size: 750,
@@ -122,7 +122,7 @@ export const products = [
     CostPrice: 62.99,
     SalePrice: 79.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 5,
       ProductID: 5,
       Size: 750,
@@ -142,7 +142,7 @@ export const products = [
     CostPrice: 149.99,
     SalePrice: 189.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 6,
       ProductID: 6,
       Size: 750,
@@ -162,7 +162,7 @@ export const products = [
     CostPrice: 50.99,
     SalePrice: 64.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 7,
       ProductID: 7,
       Size: 750,
@@ -182,7 +182,7 @@ export const products = [
     CostPrice: 239.99,
     SalePrice: 299.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 8,
       ProductID: 8,
       Size: 750,
@@ -202,7 +202,7 @@ export const products = [
     CostPrice: 39.99,
     SalePrice: 49.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 9,
       ProductID: 9,
       Size: 750,
@@ -222,7 +222,7 @@ export const products = [
     CostPrice: 119.99,
     SalePrice: 149.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 10,
       ProductID: 10,
       Size: 750,
@@ -242,7 +242,7 @@ export const products = [
     CostPrice: 43.99,
     SalePrice: 54.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 11,
       ProductID: 11,
       Size: 750,
@@ -262,7 +262,7 @@ export const products = [
     CostPrice: 111.99,
     SalePrice: 139.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 12,
       ProductID: 12,
       Size: 750,
@@ -282,7 +282,7 @@ export const products = [
     CostPrice: 47.99,
     SalePrice: 59.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 13,
       ProductID: 13,
       Size: 750,
@@ -302,7 +302,7 @@ export const products = [
     CostPrice: 319.99,
     SalePrice: 399.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 14,
       ProductID: 14,
       Size: 750,
@@ -322,7 +322,7 @@ export const products = [
     CostPrice: 59.99,
     SalePrice: 74.99,
     isActive: true,
-    detail: {
+    Product_Detail: {
       ProductDetailID: 15,
       ProductID: 15,
       Size: 750,
