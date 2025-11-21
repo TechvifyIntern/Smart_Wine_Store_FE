@@ -49,6 +49,11 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        gold: {
+          light: "#d4af37",
+          DEFAULT: "#ad8d5e",
+          dark: "#8c6f41",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -64,10 +69,44 @@ module.exports = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        slideInFromLeft: {
+          from: { opacity: "0", transform: "translateX(-50px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInFromRight: {
+          from: { opacity: "0", transform: "translateX(50px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
+        slideInFromTop: {
+          from: { opacity: "0", transform: "translateY(-30px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        fadeInUp: {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        shineSweep: {
+          "0%": {
+            transform: "translateX(-100%) translateY(-100%) rotate(45deg)",
+            opacity: "0",
+          },
+          "50%": {
+            opacity: "0.3",
+          },
+          "100%": {
+            transform: "translateX(100%) translateY(100%) rotate(45deg)",
+            opacity: "0",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        slideInFromLeft: "slideInFromLeft 0.8s ease-out forwards",
+        slideInFromRight: "slideInFromRight 0.8s ease-out forwards",
+        slideInFromTop: "slideInFromTop 0.8s ease-out forwards",
+        fadeInUp: "fadeInUp 0.8s ease-out forwards",
+        shineSweep: "shineSweep 0.8s ease-out",
       },
     },
     fontFamily: {
