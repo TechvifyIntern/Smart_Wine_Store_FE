@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "../ui/button";
@@ -20,9 +21,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     toast.success(`${product.ProductName} has been added to your cart.`);
   };
   return (
-    <Link href={`/product/${product.ProductID}`}>
-      <div
-        className="
+    <div
+      className="
+        group
         bg-white/5
         backdrop-blur-xl 
         border border-secondary dark:border-white/20 
@@ -34,7 +35,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         hover:scale-[1.03]
         dark:hover:border-white/40
       "
-      >
+    >
+      {/* LINK CHỈ BAO QUANH PHẦN HIỂN THỊ */}
+      <Link href={`/product/${product.ProductID}`} className="block">
         <img
           src={product.ImageURL || "/placeholder-image.jpg"}
           alt={product.ProductName}
@@ -57,9 +60,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="flex items-center justify-between">
           <div>
             <span className="font-bold text-lg dark:text-white">
-              {product.SalePrice.toFixed(2)} VND
+              {Number(product.SalePrice).toFixed(2)} VND
             </span>
-            {Number(product.CostPrice) < product.SalePrice && (
+            {Number(product.CostPrice) < Number(product.SalePrice) && (
               <span className="line-through text-sm dark:text-gray-500 ml-2">
                 {Number(product.CostPrice).toFixed(2)} VND
               </span>
@@ -67,28 +70,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </div>
 
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-xs dark:text-gray-200 line-clamp-2 flex-1">
-            {product.Product_Detail?.DescriptionTitle}
-          </p>
+        <p className="mt-2 text-xs dark:text-gray-200 line-clamp-2 flex-1">
+          {product.Product_Detail?.DescriptionTitle}
+        </p>
+      </Link>
 
-          <Button
-            onClick={handleAddToCart}
-            className="
+      {/* BUTTON ADD TO CART TÁCH RIÊNG → KHÔNG GÂY HYDRATION ERROR */}
+      <div className="mt-3 flex justify-end">
+        <Button
+          onClick={handleAddToCart}
+          className="
             flex items-center justify-center
             bg-primary
             backdrop-blur-md 
             px-4 py-2 
             rounded-xl 
-            hover:scale-130
+            hover:scale-110
             transition-all
           "
-          >
-            <ShoppingCart className="w-4 h-4" />
-          </Button>
-        </div>
+        >
+          <ShoppingCart className="w-4 h-4" />
+        </Button>
       </div>
-    </Link>
+    </div>
   );
 };
 

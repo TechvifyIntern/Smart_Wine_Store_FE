@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Menu,
   X,
@@ -25,6 +25,7 @@ import { useToast } from "@/hooks/use-toast";
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
   const [isOpen, setIsOpen] = useState(false); // mobile menu
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -40,18 +41,34 @@ export function Header() {
 
   const handleAuthModeChange = (mode: "signin" | "signup" | "forgot") =>
     setAuthMode(mode);
-
+  
+  useEffect(() => {
+  setMounted(true);
+}, []);
   return (
     <>
-      <header className="fixed w-full top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
+      <header className="fixed w-full top-0 z-50 bg-background/95 dark:backdrop-blur-md dark:border-b dark:border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="shrink-0 flex items-center">
-              <Link href="/">
-                <div className="text-2xl font-serif text-primary">V</div>
-              </Link>
-            </div>
+            <Link href="/">
+              <img 
+                src="/logo-light.svg" 
+                alt="Logo" 
+                width="70%" 
+                className="block dark:hidden"
+              />
+            </Link>
+            <Link href="/">
+              <img 
+                src="/logo-dark.svg" 
+                alt="Logo" 
+                width="70%" 
+                className="hidden dark:block"
+              />
+            </Link>
+          </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
@@ -172,11 +189,11 @@ export function Header() {
               )}
 
               {/* Theme toggle */}
+             {mounted && (
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
                 className="p-2 hover:bg-muted rounded-lg transition"
                 title="Toggle theme"
-                suppressHydrationWarning={true}
               >
                 {theme === "dark" ? (
                   <Sun className="w-5 h-5 text-muted-foreground" />
@@ -184,6 +201,7 @@ export function Header() {
                   <Moon className="w-5 h-5 text-muted-foreground" />
                 )}
               </button>
+             )}
 
               {/* Mobile Menu Button */}
               <button

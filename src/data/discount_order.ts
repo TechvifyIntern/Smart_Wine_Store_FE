@@ -2,7 +2,7 @@ export interface DiscountOrder {
     DiscountOrderID: number;
     DiscountValue: number;        // %
     MinimumOrderValue: number;    // price
-    UpdatedAt: string;
+    UpdatedAt?: string;
   }
   
 export const discountOrders : DiscountOrder[] = [

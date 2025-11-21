@@ -5,7 +5,7 @@ export interface DiscountProduct {
     TimeStart: string;
     TimeEnd: string;
     CreatedAt: string;
-    UpdatedAt: string;
+    UpdatedAt?: string;
   }
 
   export const discountProducts : DiscountProduct[]  = [
