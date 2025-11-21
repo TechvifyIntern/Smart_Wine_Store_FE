@@ -11,7 +11,8 @@
   --card-foreground: #030303;
   --popover: #f5f5f5;
   --popover-foreground: #030303;
-  --primary: #eb883b;
+  --primary: #ad8d5e;
+  --secondary:#ffffff;
   --primary-foreground: #eeeeee;
   --secondary: #dedede;
   --secondary-foreground: #161616;
@@ -23,7 +24,7 @@
   --destructive-foreground: #eeeeee;
   --border: #cececd;
   --input: oklch(0.95 0 0);
-  --ring: #eb883b;
+  --ring: #ad8d5e;
   --chart-1: #eb883b;
   --chart-2: #009689;
   --chart-3: #104e64;
@@ -42,19 +43,19 @@
   --card-foreground: #eeeeee;
   --popover: #060606;
   --popover-foreground: #eeeeee;
-  --primary: #eb883b;
+  --primary: #ad8d5e;
   --primary-foreground: #020202;
   --secondary: #121212;
   --secondary-foreground: #eeeeee;
   --muted: #2e2e2e;
   --muted-foreground: #9e9e9e;
-  --accent: #eb883b;
+  --accent: #ad8d5e;
   --accent-foreground: #020202;
   --destructive: #82181a;
   --destructive-foreground: #fb2c36;
   --border: rgb(20, 19, 19);
   --input: #0b0b0b;
-  --ring: #eb883b;
+  --ring: #ad8d5e;
 }
 
 @theme inline {
