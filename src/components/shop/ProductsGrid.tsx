@@ -1,30 +1,14 @@
 import React from "react";
 import ProductCard from "./ProductCard";
 import { products as defaultProducts } from "@/data/shop";
+import Link from "next/link";
+
+import { Product } from "@/types/product";
 
 interface ProductsGridProps {
   currentPage?: number;
   pageSize?: number;
-  products?: Array<{
-    ProductID: number;
-    ProductName: string;
-    CategoryID: number;
-    ImageURL?: string;
-    CostPrice: number;
-    SalePrice: number;
-    isActive: boolean;
-    detail: {
-      ProductDetailID: number;
-      ProductID: number;
-      Size: number;
-      ABV: number;
-      Producer: string;
-      Origin: string;
-      Varietal: string;
-      DescriptionTitle: string;
-      DescriptionContents: string;
-    };
-  }>;
+  products?: Product[];
 }
 
 const ProductsGrid: React.FC<ProductsGridProps> = ({
@@ -39,9 +23,11 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
 
   return (
     <div className="w-full px-10">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-12">
         {pageProducts.map((product) => (
-          <ProductCard key={product.ProductID} product={product} />
+          <Link key={product.ProductID} href={`/product/${product.ProductID}`}>
+            <ProductCard key={product.ProductID} product={product} />
+          </Link>
         ))}
       </div>
     </div>

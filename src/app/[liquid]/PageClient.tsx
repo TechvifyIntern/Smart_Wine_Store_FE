@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import SidebarFilters from "@/components/shop/SidebarFilters";
-import Subcategories from "@/components/shop/Subcategories";
 import ProductsGrid from "@/components/shop/ProductsGrid";
 import Pagination from "@/components/shop/Pagination";
 import { products as defaultProducts } from "@/data/shop";
@@ -15,15 +14,16 @@ export default function PageClient({ liquid }: { liquid: string }) {
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
-    <main className="mx-30 flex mt-16 min-h-screen">
+    <main className="mx-30 flex mt-28 min-h-screen">
       <SidebarFilters category={liquid} />
       <div className="flex-1 flex flex-col">
         <div className="px-10">
-          <h1 className="font-bold text-xl mb-2 capitalize">{liquid}</h1>
-          <p className="mb-4 text-gray-700 text-sm">
+          <h1 className="font-bold text-3xl mb-2 capitalize text-primary tracking-widest">
+            {liquid}
+          </h1>
+          <p className="mb-4 dark:text-gray-400 text-sm">
             Browse our collection of premium {liquid}.
           </p>
-          <Subcategories category={liquid} />
         </div>
         <ProductsGrid currentPage={currentPage} pageSize={pageSize} />
         <Pagination
