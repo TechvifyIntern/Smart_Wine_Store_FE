@@ -1,6 +1,6 @@
 import { Edit2, Trash2 } from "lucide-react";
 import { DiscountProduct } from "@/data/discount_product";
-import StatusBadge from "@/components/discounts/StatusBadge";
+import StatusBadge from "@/components/discount-events/StatusBadge";
 
 interface ProductRowProps {
     product: DiscountProduct;
@@ -73,7 +73,7 @@ export default function ProductRow({
                         title={isExpired ? "Cannot edit expired product discounts" : "Edit product discount"}
                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
                             ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
-                            : "text-[#eb883b] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
+                            : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#8c6b3e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#8c6b3e]/50 dark:text-slate-400 dark:hover:text-[#8c6b3e]"
                             }`}
                     >
                         <Edit2 className="w-4 h-4" />

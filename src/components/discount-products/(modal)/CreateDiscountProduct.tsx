@@ -194,7 +194,7 @@ export function CreateDiscountProduct({
                                 placeholder="e.g., Château Margaux 2015"
                                 {...register("ProductName")}
                                 disabled={isActiveProduct}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.ProductName ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.ProductName ? "border-red-500!" : ""}`}
                             />
                             {errors.ProductName && (
                                 <p className="text-sm text-red-500">{errors.ProductName.message}</p>
@@ -215,7 +215,7 @@ export function CreateDiscountProduct({
                                 placeholder="e.g., 25"
                                 {...register("DiscountValue", { valueAsNumber: true })}
                                 disabled={isActiveProduct}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.DiscountValue ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.DiscountValue ? "border-red-500!" : ""}`}
                             />
                             {errors.DiscountValue && (
                                 <p className="text-sm text-red-500">{errors.DiscountValue.message}</p>
@@ -238,7 +238,7 @@ export function CreateDiscountProduct({
                                 min={minDateTime}
                                 {...register("TimeStart")}
                                 disabled={isActiveProduct}
-                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#eb883b]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.TimeStart ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveProduct ? "opacity-60 cursor-not-allowed" : ""} ${errors.TimeStart ? "border-red-500!" : ""}`}
                             />
                         </div>
 
@@ -257,7 +257,7 @@ export function CreateDiscountProduct({
                                 type="datetime-local"
                                 min={minEndDateTime}
                                 {...register("TimeEnd")}
-                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#eb883b]! ${isActiveProduct ? "border-orange-300! focus:ring-orange-500!" : ""} ${errors.TimeEnd ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveProduct ? "border-orange-300!" : ""} ${errors.TimeEnd ? "border-red-500!" : ""}`}
                             />
                         </div>
                     </div>
@@ -275,7 +275,7 @@ export function CreateDiscountProduct({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#eb883b] hover:bg-[#d97730] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting
                                 ? mode === "create"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import SearchBar from "@/components/discounts/SearchBar";
+import SearchBar from "@/components/discount-events/SearchBar";
 import CreateOrderButton from "./CreateOrderButton";
 import { CreateDiscountOrder } from "./(modal)/CreateDiscountOrder";
 import { DiscountOrder } from "@/data/discount_order";

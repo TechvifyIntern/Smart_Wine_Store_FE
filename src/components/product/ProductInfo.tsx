@@ -88,7 +88,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Action Buttons */}
       <div className="flex gap-3">
         <Button
-          className="flex-1 bg-primary hover:opacity-90 text-primary-foreground text-lg py-6 hover:shadow-[0_8px_32px_0_#eb883b]"
+          className="flex-1 bg-primary hover:opacity-90 text-primary-foreground text-lg py-6 hover:shadow-[0_8px_32px_0_#ad8d5e]"
           onClick={handleAddToCart}
         >
           <ShoppingCart className="w-5 h-5 mr-2" />

@@ -13,7 +13,7 @@ export default function RowsPerPageSelector({ itemsPerPage, onItemsPerPageChange
       <select
         value={itemsPerPage}
         onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-        className="px-3 py-1.5 border border-gray-300 dark:border-slate-700/50 rounded-lg bg-white dark:bg-slate-800/50 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-[#eb883b] transition-colors cursor-pointer"
+        className="px-3 py-1.5 border border-gray-300 dark:border-slate-700/50 rounded-lg bg-white dark:bg-slate-800/50 text-sm text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800/70 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-[#ad8d5e] transition-colors cursor-pointer"
       >
         <option value={10}>10</option>
         <option value={20}>20</option>
