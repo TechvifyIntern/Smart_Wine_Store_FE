@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Sidebar from "@/components/admin/Sidebar";
-import Header from "../../components/admin/Header";
+import  Header from "@/components/admin/Header";
 
 export default function AdminLayout({
     children,
@@ -16,12 +16,11 @@ export default function AdminLayout({
     };
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen ">
             {/* Admin Header - Full width at top */}
-            <Header onMenuClick={toggleMobileSidebar} />
-
+            <Header/>
             {/* Content Area with Sidebar */}
-            <div className="flex pt-0">
+            <div className="flex pt-0 dark:bg-background/70">
                 {/* Sidebar */}
                 <Sidebar
                     isMobileSidebarOpen={isMobileSidebarOpen}
@@ -31,7 +30,7 @@ export default function AdminLayout({
                 {/* Main Content Area */}
                 <main className="flex-1 w-full overflow-auto min-h-[calc(100vh-73px)]">
                     {/* Page Content */}
-                    <div className="p-6 md:p-8">{children}</div>
+                    <div className="p-6 md:p-8 dark:bg-[#080808]">{children}</div>
                 </main>
             </div>
         </div>

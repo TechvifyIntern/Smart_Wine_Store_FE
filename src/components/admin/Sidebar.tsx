@@ -132,8 +132,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     <button
                                         onClick={item.isDiscountMenu ? toggleDiscountDropdown : toggleProductDropdown}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${isParentActive(item.subItems)
-                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                            : "text-[#020202] dark:text-white "
+                                            ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white dark:text-white/90 shadow-md"
+                                            : "text-[#020202] dark:text-white/90 "
                                             }`}
                                     >
                                         <div className="flex items-center">
@@ -155,8 +155,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                                         href={subItem.href}
                                                         onClick={onClose}
                                                         className={`flex items-center px-4 py-2.5 rounded-lg transition-all ${isActive(subItem.href)
-                                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                                            : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                                                            ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
+                                                            : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
                                                             }`}
                                                     >
                                                         <subItem.icon className="w-4 h-4 mr-3" />
@@ -173,8 +173,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     href={item.href!}
                                     onClick={onClose}
                                     className={`flex items-center px-4 py-3 rounded-lg transition-all ${isActive(item.href)
-                                        ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                        : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                                        ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
+                                        : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
                                         }`}
                                 >
                                     <item.icon className="w-5 h-5 mr-3" />

@@ -13,7 +13,7 @@ export default function CreateEventButton({
     return (
         <Button
             onClick={onClick}
-            className="dark:bg-[#c96d2e] flex items-center justify-center gap-2 h-10 px-4 py-2 text-white font-medium rounded-full"
+            className="dark:bg-[#7C653E] flex items-center justify-center gap-2 h-10 px-4 py-2 text-white font-medium rounded-full"
             type="button"
             aria-label={`Create new ${label.toLowerCase()}`}
         >
