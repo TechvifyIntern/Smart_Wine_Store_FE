@@ -3,6 +3,7 @@
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
+import Link from "next/link";
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -12,25 +13,30 @@ interface HeaderProps {
 export default function Header({ onMenuClick }: HeaderProps) {
     const { theme, setTheme } = useTheme();
     return (
-        <div className=" border-b border-[#F2F2F2]  px-4 py-2 md:px-8">
+        <div className=" border-b border-[#F2F2F2] dark:bg-background dark:border-b dark:border-[#2c2c2c] px-4 py-2 md:px-8">
             <div className="flex items-center justify-between">
                 {/* Left side - Menu button (mobile) + Logo */}
-                <div className="flex items-center gap-3">
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={onMenuClick}
-                        className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                    >
-                        <Menu className="w-6 h-6" />
-                    </button>
-
-                    {/* Logo */}
-                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center">
-                        <span className="bg-gradient-to-r from-amber-600 to-red-600 bg-clip-text text-transparent">
-                            WINE STORE
-                        </span>
-                    </h1>
-                </div>
+                <div className="flex items-center justify-between h-16">
+                        {/* Logo */}
+                        <div className="shrink-0 flex items-center">
+                            <Link href="/">
+                                <img 
+                                    src="/logo-light.svg" 
+                                    alt="Logo" 
+                                    width="70%" 
+                                    className="block dark:hidden"
+                                />
+                            </Link>
+                        <Link href="/">
+                            <img 
+                                src="/logo-dark.svg" 
+                                alt="Logo" 
+                                width="70%" 
+                                className="hidden dark:block"
+                            />
+                        </Link>
+                 </div>
+            </div>
 
                 {/* Right side - Theme toggle + User Profile */}
                 <div className="flex items-center gap-3">

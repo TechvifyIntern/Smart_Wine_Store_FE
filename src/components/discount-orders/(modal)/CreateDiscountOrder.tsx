@@ -121,7 +121,7 @@ export function CreateDiscountOrder({
                                 step="1"
                                 placeholder="e.g., 10"
                                 {...register("DiscountValue", { valueAsNumber: true })}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${errors.DiscountValue ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${errors.DiscountValue ? "border-red-500!" : ""}`}
                             />
                             {errors.DiscountValue && (
                                 <p className="text-sm text-red-500">{errors.DiscountValue.message}</p>
@@ -143,7 +143,7 @@ export function CreateDiscountOrder({
                                 step="1000"
                                 placeholder="e.g., 500000"
                                 {...register("MinimumOrderValue", { valueAsNumber: true })}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${errors.MinimumOrderValue ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${errors.MinimumOrderValue ? "border-red-500!" : ""}`}
                             />
                             {errors.MinimumOrderValue && (
                                 <p className="text-sm text-red-500">{errors.MinimumOrderValue.message}</p>
@@ -192,7 +192,7 @@ export function CreateDiscountOrder({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#eb883b] hover:bg-[#d97730] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting
                                 ? mode === "create"

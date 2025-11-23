@@ -199,7 +199,7 @@ export function CreateDiscountEvent({
                                 placeholder="e.g., Black Friday Wine Sale"
                                 {...register("EventName")}
                                 disabled={isActiveEvent}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.EventName ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.EventName ? "border-red-500!" : ""}`}
                             />
                             {errors.EventName && (
                                 <p className="text-sm text-red-500">{errors.EventName.message}</p>
@@ -217,7 +217,7 @@ export function CreateDiscountEvent({
                                 rows={4}
                                 {...register("Description")}
                                 disabled={isActiveEvent}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! resize-none ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.Description ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! resize-none ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.Description ? "border-red-500!" : ""}`}
                             />
                             {errors.Description && (
                                 <p className="text-sm text-red-500">{errors.Description.message}</p>
@@ -238,7 +238,7 @@ export function CreateDiscountEvent({
                                 placeholder="e.g., 25"
                                 {...register("DiscountValue", { valueAsNumber: true })}
                                 disabled={isActiveEvent}
-                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#eb883b]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.DiscountValue ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! placeholder:text-gray-400! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.DiscountValue ? "border-red-500!" : ""}`}
                             />
                             {errors.DiscountValue && (
                                 <p className="text-sm text-red-500">{errors.DiscountValue.message}</p>
@@ -261,7 +261,7 @@ export function CreateDiscountEvent({
                                 min={minDateTime}
                                 {...register("TimeStart")}
                                 disabled={isActiveEvent}
-                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#eb883b]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.TimeStart ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveEvent ? "opacity-60 cursor-not-allowed" : ""} ${errors.TimeStart ? "border-red-500!" : ""}`}
                             />
                         </div>
 
@@ -280,12 +280,12 @@ export function CreateDiscountEvent({
                                 type="datetime-local"
                                 min={minEndDateTime}
                                 {...register("TimeEnd")}
-                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#eb883b]! ${isActiveEvent ? "border-orange-300! focus:ring-orange-500!" : ""} ${errors.TimeEnd ? "border-red-500!" : ""}`}
+                                className={`bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#ad8d5e]! ${isActiveEvent ? "border-[#ad8d5e]! focus:ring-[#ad8d5e]!" : ""} ${errors.TimeEnd ? "border-red-500!" : ""}`}
                             />
                         </div>
                     </div>
 
-                    <DialogFooter className="gap-2 sm:gap-0">
+                    <DialogFooter className="gap-2 sm:gap-2">
                         <Button
                             type="button"
                             variant="outline"
@@ -298,7 +298,7 @@ export function CreateDiscountEvent({
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#eb883b] hover:bg-[#d97730] text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isSubmitting
                                 ? mode === "create"

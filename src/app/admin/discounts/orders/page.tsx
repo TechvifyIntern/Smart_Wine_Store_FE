@@ -3,7 +3,7 @@
 import { useState, useMemo } from "react";
 import { ShoppingCart } from "lucide-react";
 import { discountOrders, DiscountOrder } from "@/data/discount_order";
-import PageHeader from "@/components/discounts/PageHeader";
+import PageHeader from "@/components/discount-events/PageHeader";
 import OrdersTable from "@/components/discount-orders/OrdersTable";
 import Pagination from "@/components/admin/pagination/Pagination";
 import OrdersToolbar from "@/components/discount-orders/OrdersToolbar";

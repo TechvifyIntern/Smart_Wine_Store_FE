@@ -15,6 +15,8 @@ import {
     ShoppingBag,
     Award,
     ShoppingCart,
+    History,
+    FileChartColumnIncreasing,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,55 +55,64 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
             icon: LayoutDashboard,
         },
         {
-            label: "Quản lý người dùng",
-            href: "/admin/users",
+            label: "Account Management",
+            href: "/admin/accounts",
             icon: Users,
         },
         {
-            label: "Quản lý sản phẩm",
+            label: "Product Management",
             icon: Package,
             hasDropdown: true,
             subItems: [
                 {
-                    label: "Danh mục",
-                    href: "/admin/products/category",
+                    label: "Categories",
+                    href: "/admin/products/categories",
                     icon: Layers,
-                },
-                {
-                    label: "Danh sách sản phẩm",
-                    href: "/admin/products/list",
-                    icon: List,
                 },
             ],
         },
         {
-            label: "Quản lý kho",
+            label: "Inventory Management",
             href: "/admin/inventory",
             icon: Warehouse,
+            hasDropdown: true,
+            isDiscountMenu: true,
+            subItems: [
+                {
+                    label: "Products",
+                    href: "/admin/inventory/products",
+                    icon: FileChartColumnIncreasing,
+                },
+                {
+                    label: "Inventory Logs",
+                    href: "/admin/inventory/logs",
+                    icon: History,
+                },
+            ]
         },
         {
-            label: "Quản lý khuyến mãi",
+            label: "Discount Management",
             icon: Tag,
             hasDropdown: true,
             isDiscountMenu: true,
             subItems: [
                 {
-                    label: "Sự kiện",
+                    label: "Events",
                     href: "/admin/discounts/events",
                     icon: Calendar,
                 },
                 {
-                    label: "Sản phẩm",
+                    label: "Products",
                     href: "/admin/discounts/products",
                     icon: ShoppingBag,
                 },
                 {
-                    label: "Khách hàng thân thiết",
+                    label: "Loyal Customers",
                     href: "/admin/discounts/tiers",
                     icon: Award,
                 },
                 {
-                    label: "Đơn hàng",
+                    label: "Orders",
                     href: "/admin/discounts/orders",
                     icon: ShoppingCart,
                 },
@@ -132,8 +143,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     <button
                                         onClick={item.isDiscountMenu ? toggleDiscountDropdown : toggleProductDropdown}
                                         className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${isParentActive(item.subItems)
-                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                            : "text-[#020202] dark:text-white "
+                                            ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white dark:text-white/90 shadow-md"
+                                            : "text-[#020202] dark:text-white/90 "
                                             }`}
                                     >
                                         <div className="flex items-center">
@@ -155,8 +166,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                                         href={subItem.href}
                                                         onClick={onClose}
                                                         className={`flex items-center px-4 py-2.5 rounded-lg transition-all ${isActive(subItem.href)
-                                                            ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                                            : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                                                            ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
+                                                            : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
                                                             }`}
                                                     >
                                                         <subItem.icon className="w-4 h-4 mr-3" />
@@ -173,8 +184,8 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                                     href={item.href!}
                                     onClick={onClose}
                                     className={`flex items-center px-4 py-3 rounded-lg transition-all ${isActive(item.href)
-                                        ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-md"
-                                        : "text-[#020202] dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                                        ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
+                                        : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
                                         }`}
                                 >
                                     <item.icon className="w-5 h-5 mr-3" />
@@ -189,7 +200,7 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
             {/* Footer */}
             <div className="p-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-xs text-center">
-                    Wine Store Admin v1.0
+                    Wineicy
                 </div>
             </div>
         </div>

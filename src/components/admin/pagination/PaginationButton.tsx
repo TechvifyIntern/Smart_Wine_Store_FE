@@ -54,7 +54,7 @@ export default function PaginationButtons({
               key={page}
               onClick={() => onPageChange(page as number)}
               className={`w-9 h-9 rounded-lg font-medium transition-all ${currentPage === page
-                  ? "bg-[#eb883b] dark:bg-[#c96d2e] text-white shadow-sm"
+                  ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-sm"
                   : "bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700/50 text-gray-700 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/70"
                 }`}
             >

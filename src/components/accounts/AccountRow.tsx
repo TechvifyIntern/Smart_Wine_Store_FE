@@ -1,0 +1,154 @@
+import { Eye, Edit2, Trash2 } from "lucide-react";
+import { Account } from "@/data/accounts";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+
+interface AccountRowProps {
+    account: Account;
+    onView: (id: number) => void;
+    onEdit: (id: number) => void;
+    onDelete: (id: number) => void;
+    onStatusChange: (id: number, newStatusID: number) => void;
+}
+
+export default function AccountRow({
+    account,
+    onView,
+    onEdit,
+    onDelete,
+    onStatusChange,
+}: AccountRowProps) {
+    const getStatusBadgeClass = (statusName: string) => {
+        switch (statusName) {
+            case "Active":
+                return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400";
+            case "Banned":
+                return "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400";
+            case "Pending":
+                return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400";
+            default:
+                return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
+        }
+    };
+
+    const getRoleBadgeClass = (roleName: string) => {
+        switch (roleName) {
+            case "Admin":
+                return "bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400";
+            case "Seller":
+                return "bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400";
+            case "Customer":
+                return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
+            default:
+                return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
+        }
+    };
+
+    const getTierBadgeClass = (tierName: string) => {
+        switch (tierName) {
+            case "Gold":
+                return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400";
+            case "Silver":
+                return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
+            case "Bronze":
+                return "bg-orange-100 text-orange-700 dark:bg-orange-900/20 dark:text-orange-400";
+            default:
+                return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
+        }
+    };
+
+    return (
+        <tr className="dark:hover:bg-slate-800/30 transition-colors group">
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div className="dark:text-slate-400 text-sm font-regular">
+                    #{account.UserID}
+                </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm font-medium">
+                    {account.UserName}
+                </div>
+            </td>
+            <td className="px-6 py-4">
+                <div className="dark:text-slate-400 text-sm">
+                    {account.Email}
+                </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <div className="dark:text-slate-400 text-sm">
+                    {account.PhoneNumber}
+                </div>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getRoleBadgeClass(account.RoleName)}`}>
+                    {account.RoleName}
+                </span>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getTierBadgeClass(account.TierName)}`}>
+                    {account.TierName}
+                </span>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap text-center">
+                <span className="text-sm font-semibold dark:text-slate-300">
+                    {account.Point.toLocaleString()}
+                </span>
+            </td>
+            <td className="px-6 py-4 whitespace-nowrap">
+                <Select
+                    value={account.StatusID.toString()}
+                    onValueChange={(value) => onStatusChange(account.UserID, parseInt(value))}
+                >
+                    <SelectTrigger className={`w-[110px] h-7 text-xs font-medium border-0 ${getStatusBadgeClass(account.StatusName)}`}>
+                        <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="dark:bg-slate-800 dark:border-slate-700">
+                        <SelectItem value="1" className="text-xs dark:text-slate-200 dark:focus:bg-slate-700">
+                            Active
+                        </SelectItem>
+                        <SelectItem value="2" className="text-xs dark:text-slate-200 dark:focus:bg-slate-700">
+                            Banned
+                        </SelectItem>
+                        <SelectItem value="3" className="text-xs dark:text-slate-200 dark:focus:bg-slate-700">
+                            Pending
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+            </td>
+            <td className="px-6 py-5">
+                <div className="flex items-center justify-center gap-2">
+                    {/* View Button */}
+                    <button
+                        onClick={() => onView(account.UserID)}
+                        title="View details"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-blue-500 dark:bg-slate-800/50 dark:hover:bg-blue-500/20 dark:border dark:border-slate-700/50 dark:hover:border-blue-500/50 dark:text-slate-400 dark:hover:text-blue-400"
+                    >
+                        <Eye className="w-4 h-4" />
+                    </button>
+
+                    {/* Edit Button */}
+                    <button
+                        onClick={() => onEdit(account.UserID)}
+                        title="Edit account"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#ad8d5e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#ad8d5e]/50 dark:text-slate-400 dark:hover:text-[#ad8d5e]"                    >
+                        <Edit2 className="w-4 h-4" />
+                    </button>
+
+                    {/* Delete Button */}
+                    <button
+                        onClick={() => onDelete(account.UserID)}
+                        title="Delete account"
+                        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+                </div>
+            </td>
+        </tr>
+    );
+}

@@ -3,12 +3,12 @@
 import { useState, useMemo } from "react";
 import { Calendar } from "lucide-react";
 import { discountEvents, DiscountEvent } from "@/data/discount_event";
-import PageHeader from "@/components/discounts/PageHeader";
-import EventsTable from "@/components/discounts/EventsTable";
+import PageHeader from "@/components/discount-events/PageHeader";
+import EventsTable from "@/components/discount-events/EventsTable";
 import Pagination from "@/components/admin/pagination/Pagination";
-import EventsToolbar from "@/components/discounts/EventsToolbar";
-import { CreateDiscountEvent } from "@/components/discounts/(modal)/CreateDiscountEvent";
-import { DeleteConfirmDialog } from "@/components/discounts/(modal)/DeleteConfirmDialog";
+import EventsToolbar from "@/components/discount-events/EventsToolbar";
+import { CreateDiscountEvent } from "@/components/discount-events/(modal)/CreateDiscountEvent";
+import { DeleteConfirmDialog } from "@/components/discount-events/(modal)/DeleteConfirmDialog";
 
 export default function EventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
