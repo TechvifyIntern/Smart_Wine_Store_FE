@@ -22,6 +22,8 @@ import {
   type SignUpInput,
   type ForgotPasswordInput,
 } from "@/validations/auth";
+import { useAppStore } from "@/store/auth";
+import { signIn, signUp } from "@/services/auth/api";
 
 interface AuthDialogProps {
   open: boolean;
@@ -36,11 +38,12 @@ export function AuthDialog({
   mode,
   onModeChange,
 }: AuthDialogProps) {
+  const { setTokens } = useAppStore();
   // Sign In Form
   const signInForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: "",
+      identifier: "",
       password: "",
       rememberMe: false,
     },
@@ -50,12 +53,11 @@ export function AuthDialog({
   const signUpForm = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phone: "",
-      birthday: "",
+      UserName: "",
+      Email: "",
+      Password: "",
+      PhoneNumber: "+84",
+      Birthday: "",
     },
   });
 
@@ -69,23 +71,26 @@ export function AuthDialog({
 
   const onSignInSubmit = async (data: SignInInput) => {
     try {
-      console.log("[v0] Sign in submitted:", data);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { accessToken, refreshToken } = await signIn(data);
+      setTokens(accessToken, refreshToken);
       onOpenChange(false);
       signInForm.reset();
     } catch (error) {
       console.error("Sign in error:", error);
+      // TODO: Handle error UI
     }
   };
 
   const onSignUpSubmit = async (data: SignUpInput) => {
     try {
-      console.log("[v0] Sign up submitted:", data);
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      onOpenChange(false);
+      const { accessToken, refreshToken } = await signUp(data);
+      setTokens(accessToken, refreshToken);
       signUpForm.reset();
+      onOpenChange(true);
+      onModeChange("signin");
     } catch (error) {
       console.error("Sign up error:", error);
+      // TODO: Handle error UI
     }
   };
 
@@ -144,21 +149,28 @@ export function AuthDialog({
 
         {/* Sign In Form */}
         {mode === "signin" && (
-          <form onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-4">
+          <form
+            onSubmit={signInForm.handleSubmit(onSignInSubmit)}
+            className="space-y-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
+              <Label htmlFor="identifier" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 Email Address
               </Label>
               <Input
-                id="email"
+                id="identifier"
                 type="email"
                 placeholder="you@example.com"
-                {...signInForm.register("email")}
-                className={signInForm.formState.errors.email ? "border-red-500" : ""}
+                {...signInForm.register("identifier")}
+                className={
+                  signInForm.formState.errors.identifier ? "border-red-500" : ""
+                }
               />
-              {signInForm.formState.errors.email && (
-                <p className="text-sm text-red-500">{signInForm.formState.errors.email.message}</p>
+              {signInForm.formState.errors.identifier && (
+                <p className="text-sm text-red-500">
+                  {signInForm.formState.errors.identifier.message}
+                </p>
               )}
             </div>
 
@@ -172,10 +184,14 @@ export function AuthDialog({
                 type="password"
                 placeholder="••••••••"
                 {...signInForm.register("password")}
-                className={signInForm.formState.errors.password ? "border-red-500" : ""}
+                className={
+                  signInForm.formState.errors.password ? "border-red-500" : ""
+                }
               />
               {signInForm.formState.errors.password && (
-                <p className="text-sm text-red-500">{signInForm.formState.errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {signInForm.formState.errors.password.message}
+                </p>
               )}
             </div>
 
@@ -216,102 +232,110 @@ export function AuthDialog({
 
         {/* Sign Up Form */}
         {mode === "signup" && (
-          <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-4">
+          <form
+            onSubmit={signUpForm.handleSubmit(onSignUpSubmit)}
+            className="space-y-4"
+          >
             <div className="space-y-2">
-              <Label htmlFor="name" className="flex items-center gap-2">
+              <Label htmlFor="UserName" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Full Name
               </Label>
               <Input
-                id="name"
-                {...signUpForm.register("name")}
-                className={signUpForm.formState.errors.name ? "border-red-500" : ""}
+                id="UserName"
+                {...signUpForm.register("UserName")}
+                className={
+                  signUpForm.formState.errors.UserName ? "border-red-500" : ""
+                }
               />
-              {signUpForm.formState.errors.name && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.name.message}</p>
+              {signUpForm.formState.errors.UserName && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.UserName.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
+              <Label htmlFor="Email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
                 Email Address
               </Label>
               <Input
-                id="email"
+                id="Email"
                 type="email"
-                {...signUpForm.register("email")}
-                className={signUpForm.formState.errors.email ? "border-red-500" : ""}
+                {...signUpForm.register("Email")}
+                className={
+                  signUpForm.formState.errors.Email ? "border-red-500" : ""
+                }
               />
-              {signUpForm.formState.errors.email && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.email.message}</p>
+              {signUpForm.formState.errors.Email && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.Email.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
+              <Label htmlFor="Password" className="flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 Password
               </Label>
               <Input
-                id="password"
+                id="Password"
                 type="password"
                 placeholder="••••••••"
-                {...signUpForm.register("password")}
-                className={signUpForm.formState.errors.password ? "border-red-500" : ""}
+                {...signUpForm.register("Password")}
+                className={
+                  signUpForm.formState.errors.Password ? "border-red-500" : ""
+                }
               />
-              {signUpForm.formState.errors.password && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.password.message}</p>
+              {signUpForm.formState.errors.Password && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.Password.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Confirm Password
-              </Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                placeholder="••••••••"
-                {...signUpForm.register("confirmPassword")}
-                className={signUpForm.formState.errors.confirmPassword ? "border-red-500" : ""}
-              />
-              {signUpForm.formState.errors.confirmPassword && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.confirmPassword.message}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="flex items-center gap-2">
+              <Label htmlFor="PhoneNumber" className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
                 Phone Number
               </Label>
               <Input
-                id="phone"
+                id="PhoneNumber"
                 type="tel"
-                {...signUpForm.register("phone")}
-                className={signUpForm.formState.errors.phone ? "border-red-500" : ""}
+                {...signUpForm.register("PhoneNumber")}
+                className={
+                  signUpForm.formState.errors.PhoneNumber
+                    ? "border-red-500"
+                    : ""
+                }
               />
-              {signUpForm.formState.errors.phone && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.phone.message}</p>
+              {signUpForm.formState.errors.PhoneNumber && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.PhoneNumber.message}
+                </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="birthday" className="flex items-center gap-2">
+              <Label htmlFor="Birthday" className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
                 Birthday
               </Label>
               <Input
-                id="birthday"
+                id="Birthday"
                 type="date"
-                {...signUpForm.register("birthday")}
-                max={new Date().toISOString().split('T')[0]}
-                className={signUpForm.formState.errors.birthday ? "border-red-500" : ""}
+                {...signUpForm.register("Birthday")}
+                max={new Date().toISOString().split("T")[0]}
+                className={
+                  signUpForm.formState.errors.Birthday ? "border-red-500" : ""
+                }
               />
-              {signUpForm.formState.errors.birthday && (
-                <p className="text-sm text-red-500">{signUpForm.formState.errors.birthday.message}</p>
+              {signUpForm.formState.errors.Birthday && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.Birthday.message}
+                </p>
               )}
             </div>
 
@@ -320,14 +344,19 @@ export function AuthDialog({
               className="w-full bg-primary hover:bg-primary/90"
               disabled={signUpForm.formState.isSubmitting}
             >
-              {signUpForm.formState.isSubmitting ? "Processing..." : "Create Account"}
+              {signUpForm.formState.isSubmitting
+                ? "Processing..."
+                : "Create Account"}
             </Button>
           </form>
         )}
 
         {/* Forgot Password Form */}
         {mode === "forgot" && (
-          <form onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)} className="space-y-4">
+          <form
+            onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
@@ -337,10 +366,16 @@ export function AuthDialog({
                 id="email"
                 type="email"
                 {...forgotPasswordForm.register("email")}
-                className={forgotPasswordForm.formState.errors.email ? "border-red-500" : ""}
+                className={
+                  forgotPasswordForm.formState.errors.email
+                    ? "border-red-500"
+                    : ""
+                }
               />
               {forgotPasswordForm.formState.errors.email && (
-                <p className="text-sm text-red-500">{forgotPasswordForm.formState.errors.email.message}</p>
+                <p className="text-sm text-red-500">
+                  {forgotPasswordForm.formState.errors.email.message}
+                </p>
               )}
             </div>
 
@@ -349,7 +384,9 @@ export function AuthDialog({
               className="w-full bg-primary hover:bg-primary/90"
               disabled={forgotPasswordForm.formState.isSubmitting}
             >
-              {forgotPasswordForm.formState.isSubmitting ? "Processing..." : "Send Reset Link"}
+              {forgotPasswordForm.formState.isSubmitting
+                ? "Processing..."
+                : "Send Reset Link"}
             </Button>
           </form>
         )}

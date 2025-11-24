@@ -1,101 +1,163 @@
-// src/lib/types.ts
-export interface UserProfile {
-  name: string;
-  memberStatus: string;
-  bio: string;
-  orders: number | string;
-  favorites: number | string;
-  totalSpent: string;
-  avatar: string;
-  verified: boolean;
-  email: string;
-  phone: string;
-  location: string;
-  joinDate: string;
-}
-
-export interface Address {
-  id: string | number;
-  isDefault: boolean;
-  type: string;
-  street: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-}
-
-export interface Order {
-  id: string | number;
-  image: string;
-  product: string;
-  date: string;
-  total: string;
-  status: 'Delivered' | 'In Transit' | 'Pending' | string;
-}
+import { UserProfile, UserAddress, Order } from "../types";
 
 // Mock data
 export const currentUser: UserProfile = {
-  name: "John Doe",
+  UserID: 1, // Example UserID
+  UserName: "John Doe",
+  Email: "john.doe@example.com",
+  PhoneNumber: "+1 (555) 123-4567",
+  Birthday: "1990-01-01T00:00:00.000Z", // Example Birthday
+  ImageURL: "/placeholder-user.jpg",
+  Point: 100, // Example Point
+  TierName: "Premium", // Example TierName
+
+  // Frontend-specific fields, mapping from API fields
+  name: "John Doe", // Mapped from UserName
   memberStatus: "Premium",
   bio: "Passionate wine enthusiast and collector",
   orders: 24,
   favorites: 15,
-  totalSpent: "$2,450",
-  avatar: "/placeholder-user.jpg",
+totalSpent: "2,450 VND",
+  avatar: "/placeholder-user.jpg", // Mapped from ImageURL
   verified: true,
-  email: "john.doe@example.com",
-  phone: "+1 (555) 123-4567",
   location: "San Francisco, CA",
-  joinDate: "January 2023"
+  joinDate: "January 2023",
 };
 
 export const userOrders: Order[] = [
   {
-    id: "#12345",
-    image: "/placeholder.jpg",
-    product: "Cabernet Sauvignon 2020",
-    date: "Nov 15, 2023",
-    total: "$89.99",
-    status: "Delivered"
+    OrderID: 1,
+    UserID: 1,
+    UserName: "John Doe",
+    Email: "john.doe@example.com",
+    PhoneNumber: "+1 (555) 123-4567",
+    OrderStreetAddress: "123 Main Street",
+    OrderWard: "Ward 1",
+    OrderProvince: "San Francisco",
+    CreatedAt: "2023-11-15T10:00:00.000Z",
+    Subtotal: 89.99,
+    DiscountTierID: null,
+    DiscountTierValue: null,
+    DiscountID: null,
+    DiscountValue: null,
+    FinalTotal: 89.99,
+    StatusID: 1,
+    Details: [
+      {
+        DetailID: 1,
+        OrderID: 1,
+        ProductID: 1,
+        ProductName: "Cabernet Sauvignon 2020",
+        Quantity: 1,
+        UnitPrice: 89.99,
+        DiscountValue: 0,
+        FinalItemPrice: 89.99,
+      },
+    ],
   },
   {
-    id: "#12344",
-    image: "/placeholder.jpg",
-    product: "Merlot 2019",
-    date: "Nov 10, 2023",
-    total: "$65.50",
-    status: "In Transit"
+    OrderID: 2,
+    UserID: 1,
+    UserName: "John Doe",
+    Email: "john.doe@example.com",
+    PhoneNumber: "+1 (555) 123-4567",
+    OrderStreetAddress: "123 Main Street",
+    OrderWard: "Ward 1",
+    OrderProvince: "San Francisco",
+    CreatedAt: "2023-11-10T11:30:00.000Z",
+    Subtotal: 65.50,
+    DiscountTierID: null,
+    DiscountTierValue: null,
+    DiscountID: null,
+    DiscountValue: null,
+    FinalTotal: 65.50,
+    StatusID: 2,
+    Details: [
+      {
+        DetailID: 2,
+        OrderID: 2,
+        ProductID: 2,
+        ProductName: "Merlot 2019",
+        Quantity: 1,
+        UnitPrice: 65.50,
+        DiscountValue: 0,
+        FinalItemPrice: 65.50,
+      },
+    ],
   },
   {
-    id: "#12343",
-    image: "/placeholder.jpg",
-    product: "Chardonnay 2021",
-    date: "Oct 28, 2023",
-    total: "$52.99",
-    status: "Delivered"
-  }
+    OrderID: 3,
+    UserID: 1,
+    UserName: "John Doe",
+    Email: "john.doe@example.com",
+    PhoneNumber: "+1 (555) 123-4567",
+    OrderStreetAddress: "123 Main Street",
+    OrderWard: "Ward 1",
+    OrderProvince: "San Francisco",
+    CreatedAt: "2023-10-28T14:45:00.000Z",
+    Subtotal: 52.99,
+    DiscountTierID: null,
+    DiscountTierValue: null,
+    DiscountID: null,
+    DiscountValue: null,
+    FinalTotal: 52.99,
+    StatusID: 1,
+    Details: [
+      {
+        DetailID: 3,
+        OrderID: 3,
+        ProductID: 3,
+        ProductName: "Chardonnay 2021",
+        Quantity: 1,
+        UnitPrice: 52.99,
+        DiscountValue: 0,
+        FinalItemPrice: 52.99,
+      },
+    ],
+  },
 ];
 
-export const userAddresses: Address[] = [
+export const userAddresses: UserAddress[] = [
   {
-    id: 1,
-    isDefault: true,
+    UserAddressID: 1,
+    UserID: 1,
+    StreetAddress: "123 Main Street",
+    Ward: "Ward 1",
+    Province: "San Francisco",
+    IsDefault: true,
+    id: 1, // Mapped from UserAddressID
     type: "Home",
-    street: "123 Main Street",
-    city: "San Francisco",
-    state: "CA",
+    city: "San Francisco", // Example mapping
+    state: "CA", // Example mapping
     zip: "94102",
-    country: "USA"
+    country: "USA",
   },
   {
-    id: 2,
-    isDefault: false,
+    UserAddressID: 2,
+    UserID: 1,
+    StreetAddress: "456 Office Plaza",
+    Ward: "Ward 2",
+    Province: "San Francisco",
+    IsDefault: false,
+    id: 2, // Mapped from UserAddressID
     type: "Work",
-    street: "456 Office Plaza",
-    city: "San Francisco",
-    state: "CA",
+    city: "San Francisco", // Example mapping
+    state: "CA", // Example mapping
     zip: "94103",
-    country: "USA"
-  }
+    country: "USA",
+  },
+  {
+    UserAddressID: 3,
+    UserID: 1,
+    StreetAddress: "789 Other Road",
+    Ward: "Ward 3",
+    Province: "Oakland",
+    IsDefault: false,
+    id: 3, // Mapped from UserAddressID
+    type: "Other",
+    city: "Oakland", // Example mapping
+    state: "CA", // Example mapping
+    zip: "94607",
+    country: "USA",
+  },
 ];

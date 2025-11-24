@@ -4,13 +4,13 @@ export default function OurStory() {
       <div className="max-w-7xl mx-auto">
         {/* Section Header */}
         <h2 
-          className="text-[7vw] md:text-[5vw] lg:text-[4vw] tracking-wide text-gray-900 mb-16"
+          className="text-[7vw] md:text-[5vw] lg:text-[4vw] tracking-wide dark:text-white/90 text-gray-900 mb-16"
         >
           Our Story
         </h2>
         
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 ">
           {/* Left - Image */}
           <div className="relative">
             <div className="sticky top-20">
@@ -37,16 +37,16 @@ export default function OurStory() {
             <div className="w-16 h-px bg-primary mb-8" />
             
             {/* Story Text */}
-            <div className="space-y-6 text-gray-700 leading-relaxed text-base lg:text-lg">
+            <div className="space-y-6 text-gray-700 leading-relaxed text-base lg:text-lg dark:text-white/90">
               <p>
-                In the late 1800s, most Tasmanian vineyards were removed as the region was considered too cold for wine production, and many workers left for the Victorian gold rush. The industry remained dormant until the mid-1950s, when Wineicy founder <span className="text-gray-900 font-medium">Alessandro Vieri</span> revived local viticulture by planting 90 Riesling vines sourced from pioneering South Australian growers.
+                In the late 1800s, most Tasmanian vineyards were removed as the region was considered too cold for wine production, and many workers left for the Victorian gold rush. The industry remained dormant until the mid-1950s, when Wineicy founder <span className="text-gray-900 dark:text-white font-medium">Alessandro Vieri</span> revived local viticulture by planting 90 Riesling vines sourced from pioneering South Australian growers.
               </p>
               <p>
-                In 1986, the owner of the historic Lowestoft property invited Wineicy to plant and supply Pinot Noir fruit to its estate winery. The 3-hectare block, planted exclusively with Pinot Noir, later became an important source for Wineicy's reserve releases under renowned viticulturist <span className="text-gray-900 font-medium">Fred Peacock</span>.
+                In 1986, the owner of the historic Lowestoft property invited Wineicy to plant and supply Pinot Noir fruit to its estate winery. The 3-hectare block, planted exclusively with Pinot Noir, later became an important source for Wineicy's reserve releases under renowned viticulturist <span className="text-gray-900 dark:text-white font-medium">Fred Peacock</span>.
               </p>
               
               <p>
-                In 2017, Wineicy Group Executive Chairman <span className="text-gray-900 font-medium">Peter Fogarty</span> began exploring Tasmania's historic vineyard sites and recognised the significance of Lowestoft and its surrounding terroir. Wineicy acquired the estate in 2019, along with Strelley Farm and Gilling Brook, ushering in a new era of Tasmanian cool-climate winemaking for the brand.
+                In 2017, Wineicy Group Executive Chairman <span className="text-gray-900 dark:text-white font-medium">Peter Fogarty</span> began exploring Tasmania's historic vineyard sites and recognised the significance of Lowestoft and its surrounding terroir. Wineicy acquired the estate in 2019, along with Strelley Farm and Gilling Brook, ushering in a new era of Tasmanian cool-climate winemaking for the brand.
               </p>
             </div>
             

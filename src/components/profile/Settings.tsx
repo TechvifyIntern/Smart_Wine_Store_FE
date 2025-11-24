@@ -24,6 +24,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
+import { z } from "zod"; // Import z
+import { changePasswordSchema, ChangePasswordFormValues } from "@/validations/auth/passwordSchema"; // Import schema
+import { changePassword } from "@/services/auth/api"; // Import API function
+import { AxiosError } from "axios"; // Import AxiosError
 
 export const Settings: React.FC = () => {
   const { toast } = useToast();
@@ -31,48 +35,80 @@ export const Settings: React.FC = () => {
 
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false); // New loading state
 
-  const [passwordData, setPasswordData] = useState({
-    current: "",
-    new: "",
-    confirm: "",
+  const [passwordData, setPasswordData] = useState<ChangePasswordFormValues>({
+    oldPassword: "",
+    newPassword: "",
+    confirmNewPassword: "",
   });
+  const [errors, setErrors] = useState<z.ZodIssue[]>([]);
 
-  const handlePasswordChange = () => {
-    if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
-      toast({
-        title: "Validation Error",
-        description: "All password fields are required.",
-        variant: "destructive",
-      });
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({ ...prev, [name]: value }));
+    // Clear error for the current field as user types
+    setErrors((prev) => prev.filter(err => err.path[0] !== name));
+  };
+
+  const handlePasswordChange = async () => {
+    setIsChangingPassword(true);
+    const parsed = changePasswordSchema.safeParse(passwordData);
+
+    if (!parsed.success) {
+      setErrors(parsed.error.issues);
+      setIsChangingPassword(false);
       return;
     }
 
-    if (passwordData.new !== passwordData.confirm) {
-      toast({
-        title: "Validation Error",
-        description: "New password and confirm password don't match.",
-        variant: "destructive",
+    setErrors([]); // Clear errors if validation passes
+
+    try {
+      const response = await changePassword({
+        oldPassword: parsed.data.oldPassword,
+        newPassword: parsed.data.newPassword,
       });
-      return;
+
+      if (response.success) {
+        toast({
+          title: "Success",
+          description: "Your password has been successfully changed.",
+        });
+        setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+        setIsPasswordDialogOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to change password.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("API Error - changePassword:", err);
+      if (err instanceof AxiosError) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            err.message ||
+            "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsChangingPassword(false);
     }
+  };
 
-    if (passwordData.new.length < 8) {
-      toast({
-        title: "Validation Error",
-        description: "New password must be at least 8 characters long.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // In a real app, this would call an API
-    toast({
-      title: "Password Updated",
-      description: "Your password has been successfully changed.",
-    });
-
-    setPasswordData({ current: "", new: "", confirm: "" });
+  const handleClosePasswordDialog = () => {
+    setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+    setErrors([]);
     setIsPasswordDialogOpen(false);
   };
 
@@ -89,6 +125,10 @@ export const Settings: React.FC = () => {
     }, 2000);
 
     setIsDeleteDialogOpen(false);
+  };
+
+  const findError = (fieldName: string) => {
+    return errors.find(err => err.path[0] === fieldName)?.message;
   };
 
   return (
@@ -138,7 +178,7 @@ export const Settings: React.FC = () => {
       {/* Change Password Dialog */}
       <Dialog
         open={isPasswordDialogOpen}
-        onOpenChange={setIsPasswordDialogOpen}
+        onOpenChange={handleClosePasswordDialog} // Use custom handler
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -149,56 +189,71 @@ export const Settings: React.FC = () => {
           </DialogHeader>
           <div className="space-y-6">
             <div>
-              <Label htmlFor="current-password" className="mb-2">
+              <Label htmlFor="oldPassword" className="mb-2">
                 Current Password
               </Label>
               <Input
-                id="current-password"
+                id="oldPassword"
+                name="oldPassword"
                 type="password"
-                value={passwordData.current}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, current: e.target.value })
-                }
+                value={passwordData.oldPassword}
+                onChange={handleInputChange}
                 placeholder="Enter current password"
+                className={`${findError("oldPassword") ? "border-destructive" : ""}`}
+                disabled={isChangingPassword}
               />
+              {findError("oldPassword") && (
+                <p className="text-sm text-destructive mt-1">{findError("oldPassword")}</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="new-password" className="mb-2">
+              <Label htmlFor="newPassword" className="mb-2">
                 New Password
               </Label>
               <Input
-                id="new-password"
+                id="newPassword"
+                name="newPassword"
                 type="password"
-                value={passwordData.new}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, new: e.target.value })
-                }
+                value={passwordData.newPassword}
+                onChange={handleInputChange}
                 placeholder="Enter new password"
+                className={`${findError("newPassword") ? "border-destructive" : ""}`}
+                disabled={isChangingPassword}
               />
+              {findError("newPassword") && (
+                <p className="text-sm text-destructive mt-1">{findError("newPassword")}</p>
+              )}
             </div>
             <div>
-              <Label htmlFor="confirm-password" className="mb-2">
+              <Label htmlFor="confirmNewPassword" className="mb-2">
                 Confirm New Password
               </Label>
               <Input
-                id="confirm-password"
+                id="confirmNewPassword"
+                name="confirmNewPassword"
                 type="password"
-                value={passwordData.confirm}
-                onChange={(e) =>
-                  setPasswordData({ ...passwordData, confirm: e.target.value })
-                }
+                value={passwordData.confirmNewPassword}
+                onChange={handleInputChange}
                 placeholder="Confirm new password"
+                className={`${findError("confirmNewPassword") ? "border-destructive" : ""}`}
+                disabled={isChangingPassword}
               />
+              {findError("confirmNewPassword") && (
+                <p className="text-sm text-destructive mt-1">{findError("confirmNewPassword")}</p>
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-2 pt-4">
             <Button
               variant="outline"
-              onClick={() => setIsPasswordDialogOpen(false)}
+              onClick={handleClosePasswordDialog}
+              disabled={isChangingPassword}
             >
               Cancel
             </Button>
-            <Button onClick={handlePasswordChange}>Change Password</Button>
+            <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
+              {isChangingPassword ? "Changing..." : "Change Password"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

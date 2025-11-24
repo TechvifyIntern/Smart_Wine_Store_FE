@@ -10,6 +10,7 @@ import {
   Moon,
   Sun,
   ChevronDown,
+  LucideUsers,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -20,31 +21,37 @@ import {
 } from "@/data/navigation";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAppStore } from "@/store/auth";
+import { useCartStore } from "@/store/cart";
 
 export function Header() {
   const { theme, setTheme } = useTheme();
-  const { toast } = useToast();
   const [mounted, setMounted] = useState(false);
+  const { items } = useCartStore();
+
+  const totalItems = items.reduce((total, item) => total + item.Quantity, 0);
 
   const [isOpen, setIsOpen] = useState(false); // mobile menu
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<"signin" | "signup" | "forgot">(
-    "signin"
-  );
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, logout, authOpen, authMode, setAuthOpen, setAuthMode } =
+    useAppStore();
+  const isAuthenticated = !!user;
 
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
 
-  const handleSignOut = () => setIsAuthenticated(false);
-
   const handleAuthModeChange = (mode: "signin" | "signup" | "forgot") =>
     setAuthMode(mode);
-  
+
   useEffect(() => {
-  setMounted(true);
-}, []);
+    setMounted(true);
+  }, []);
   return (
     <>
       <header className="fixed w-full top-0 z-50 bg-background/95 dark:backdrop-blur-md dark:border-b dark:border-border">
@@ -52,23 +59,23 @@ export function Header() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <div className="shrink-0 flex items-center">
-            <Link href="/">
-              <img 
-                src="/logo-light.svg" 
-                alt="Logo" 
-                width="70%" 
-                className="block dark:hidden"
-              />
-            </Link>
-            <Link href="/">
-              <img 
-                src="/logo-dark.svg" 
-                alt="Logo" 
-                width="70%" 
-                className="hidden dark:block"
-              />
-            </Link>
-          </div>
+              <Link href="/">
+                <img
+                  src="/logo-light.svg"
+                  alt="Logo"
+                  width="70%"
+                  className="block dark:hidden"
+                />
+              </Link>
+              <Link href="/">
+                <img
+                  src="/logo-dark.svg"
+                  alt="Logo"
+                  width="70%"
+                  className="hidden dark:block"
+                />
+              </Link>
+            </div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-8">
@@ -120,24 +127,8 @@ export function Header() {
             <div className="flex items-center gap-4">
               {/* Search */}
               <div className="relative flex items-center">
-                <button
-                  onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="p-2 hover:bg-muted rounded-lg transition"
-                >
-                  <Search className="w-5 h-5 text-muted-foreground" />
-                </button>
                 {isSearchOpen && (
-                  <form
-                    onSubmit={(e) => {
-                      e.preventDefault();
-                      toast({
-                        title: "Search Not Available",
-                        description: "Search functionality not implemented yet",
-                      });
-                      setIsSearchOpen(false);
-                    }}
-                    className="absolute right-full flex items-center border border-primary rounded-lg shadow-lg"
-                  >
+                  <form className="flex items-center border border-primary rounded-lg shadow-lg mx-4">
                     <input
                       type="text"
                       placeholder="Search..."
@@ -145,12 +136,23 @@ export function Header() {
                     />
                   </form>
                 )}
+                <button
+                  onClick={() => setIsSearchOpen(!isSearchOpen)}
+                  className="p-2 hover:bg-muted rounded-lg transition"
+                >
+                  <Search className="w-5 h-5 text-muted-foreground" />
+                </button>
               </div>
 
               {/* Cart icon */}
-              <Link href="/cart">
+              <Link href="/cart" className="relative">
                 <button className="p-2 hover:bg-muted rounded-lg transition">
                   <ShoppingCart className="w-5 h-5 text-muted-foreground" />
+                  {totalItems > 0 && (
+                    <span className="absolute top-0 right-0 block h-4 w-4 rounded-full bg-primary text-white text-xs flex items-center justify-center">
+                      {totalItems}
+                    </span>
+                  )}
                 </button>
               </Link>
 
@@ -179,29 +181,59 @@ export function Header() {
                   </Button>
                 </div>
               ) : (
-                <button
-                  onClick={handleSignOut}
-                  className="p-2 hover:bg-muted rounded-lg transition"
-                  title="Sign Out"
-                >
-                  <LogOut className="w-5 h-5 text-muted-foreground" />
-                </button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="relative h-8 w-8 rounded-full"
+                    >
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage
+                          src="/placeholder-user.jpg"
+                          alt={user.email}
+                        />
+                        <AvatarFallback>
+                          {user.email.charAt(0).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    className="w-56"
+                    align="start"
+                    forceMount
+                  >
+                    <DropdownMenuItem asChild>
+                      <Link href="/profile" className="flex items-center">
+                        <LucideUsers className="hover:text-black" />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={logout}
+                      className="flex items-center"
+                    >
+                      <LogOut className="mr-2 h-4 w-4 hover:text-black" />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
 
               {/* Theme toggle */}
-             {mounted && (
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 hover:bg-muted rounded-lg transition"
-                title="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-5 h-5 text-muted-foreground" />
-                ) : (
-                  <Moon className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
-             )}
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-2 hover:bg-muted rounded-lg transition"
+                  title="Toggle theme"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-5 h-5 text-muted-foreground" />
+                  ) : (
+                    <Moon className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+              )}
 
               {/* Mobile Menu Button */}
               <button

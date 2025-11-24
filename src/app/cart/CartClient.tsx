@@ -27,7 +27,7 @@ export default function CartClient() {
   const [discount, setDiscount] = useState(0);
 
   const subtotal = items.reduce(
-    (acc, item) => acc + item.product.SalePrice * item.quantity,
+    (acc, item) => acc + item.product.SalePrice * item.Quantity,
     0
   );
   const tax = subtotal * TAX_RATE;
@@ -77,6 +77,13 @@ export default function CartClient() {
     }
   };
 
+  const handleCheckout = () => {
+    // In a real app, this would initiate the checkout process
+    console.log("Proceeding to checkout with cart:", cart);
+    toast.info("Initiating checkout...");
+    // You would typically navigate to a checkout page or start a payment flow here
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 md:px-6 lg:px-8 mt-20">
       <div className="flex flex-col items-center text-center mb-8">
@@ -93,9 +100,9 @@ export default function CartClient() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[49%]">Product</TableHead>
+                  <TableHead className="w-[40%]">Product</TableHead>
                   <TableHead className="w-[14%]">Price</TableHead>
-                  <TableHead className="w-[18%]">Quantity</TableHead>
+                  <TableHead className="w-[25%]">Quantity</TableHead>
                   <TableHead className="w-[10%]">Total</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
@@ -109,7 +116,7 @@ export default function CartClient() {
               <TableBody>
                 {cart.items.map((item) => (
                   <CartItem
-                    key={item.id}
+                    key={item.CartItemID}
                     item={item}
                     updateQuantity={updateQuantity}
                     removeItem={removeItem}
@@ -125,6 +132,7 @@ export default function CartClient() {
             clearCart={clearCart}
             isPending={isPending}
             applyPromoCode={applyPromoCode}
+            onCheckout={handleCheckout}
           />
         </div>
       </div>

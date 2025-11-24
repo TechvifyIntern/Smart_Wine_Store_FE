@@ -18,7 +18,7 @@ export interface Product {
   CostPrice: string | number;
   SalePrice: number;
   isActive?: boolean;
-  Product_Detail?: ProductDetail;
+  detail?: ProductDetail;
 }
 
 export interface Review {

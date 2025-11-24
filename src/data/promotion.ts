@@ -22,7 +22,7 @@ const promotions = [
     {
         id: 3,
         name: "New Year Celebration",
-        description: "$100 off on premium wines",
+description: "100 VND off on premium wines",
         discountType: "Fixed Amount",
         discountValue: 100,
         startDate: "2024-12-28",

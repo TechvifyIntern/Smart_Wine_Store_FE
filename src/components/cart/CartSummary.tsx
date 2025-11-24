@@ -10,6 +10,7 @@ interface CartSummaryProps {
   clearCart: () => void;
   isPending: boolean;
   applyPromoCode: (code: string) => void;
+  onCheckout: () => void; // New prop for checkout action
 }
 
 export default function CartSummary({
@@ -17,6 +18,7 @@ export default function CartSummary({
   clearCart,
   isPending,
   applyPromoCode,
+  onCheckout, // Destructure new prop
 }: CartSummaryProps) {
   const [promoCode, setPromoCode] = useState("");
   return (
@@ -27,20 +29,20 @@ export default function CartSummary({
       <div className="p-6">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${cart.subtotal.toFixed(2)}</span>
+          <span>${cart.subtotal.toFixed(2)} VND</span>
         </div>
         <div className="mt-4 flex justify-between">
           <span>Discount</span>
-          <span>-${cart.discount.toFixed(2)}</span>
+          <span>-${cart.discount.toFixed(2)} VND</span>
         </div>
         <div className="mt-4 flex justify-between">
-          <span>Tax 10%</span>
-          <span>${cart.tax.toFixed(2)}</span>
+          <span>Tax</span>
+          <span>${cart.tax.toFixed(2)} VND</span>
         </div>
         <Separator className="my-4" />
         <div className="flex justify-between font-semibold">
           <span>Total</span>
-          <span>${cart.total.toFixed(2)}</span>
+          <span>${cart.total.toFixed(2)} VND</span>
         </div>
       </div>
       <div className="p-6">
@@ -65,7 +67,7 @@ export default function CartSummary({
         </div>
       </div>
       <div className="p-6">
-        <Button className="w-full" disabled={isPending}>
+        <Button className="w-full" disabled={isPending} onClick={onCheckout}>
           Checkout
         </Button>
         <Button

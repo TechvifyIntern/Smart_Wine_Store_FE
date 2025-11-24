@@ -1,35 +1,54 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { currentUser as initialUser } from "@/data/profile";
 import { Edit, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserProfile } from "@/types/profile";
 
 interface ProfileHeaderProps {
   isEditMode: boolean;
   setIsEditMode: (editing: boolean) => void;
+  userProfile: UserProfile | null; // Add userProfile prop
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isEditMode,
   setIsEditMode,
+  userProfile, // Destructure userProfile prop
 }) => {
-  const [user, setUser] = useState(initialUser);
   const [editData, setEditData] = useState({
-    name: initialUser.name,
-    bio: initialUser.bio,
+    name: userProfile?.UserName || "", // Initialize with prop data
   });
 
+  // Update editData when userProfile changes (e.g., after initial fetch or a save)
+  useEffect(() => {
+    if (userProfile) {
+      setEditData({
+        name: userProfile.UserName,
+      });
+    }
+  }, [userProfile]);
+
   const handleSaveProfile = () => {
-    setUser({ ...user, name: editData.name, bio: editData.bio });
+    // In a real app, this would trigger an API call to save changes
+    // For now, we'll just log and exit edit mode
+    console.log("Saving profile changes:", editData);
     setIsEditMode(false);
+    // You would typically update the parent component's state here
   };
 
   const handleCancelEdit = () => {
-    setEditData({ name: user.name, bio: user.bio });
+    // Reset editData to current userProfile values
+    if (userProfile) {
+      setEditData({ name: userProfile.UserName });
+    }
     setIsEditMode(false);
   };
+
+  if (!userProfile) {
+    return null; // Or a loading spinner, or some placeholder
+  }
 
   return (
     <div className="py-8 mt-16">
@@ -38,8 +57,8 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           {/* Avatar */}
           <div className="relative">
             <Image
-              src={user.avatar || "/placeholder.svg"}
-              alt={user.name}
+              src={userProfile.ImageURL || "/placeholder.svg"}
+              alt={userProfile.UserName}
               width={128}
               height={128}
               className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
@@ -49,19 +68,25 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
           {/* User Info */}
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{user.name}</h1>
+              <h1 className="text-3xl font-bold">{userProfile.UserName}</h1>
             </div>
             <div className="flex flex-wrap gap-6 text-sm mb-4">
               <div>
-                <span className="font-semibold">{user.orders}</span>
+                <span className="font-semibold">
+                  {userProfile.orders || 99}
+                </span>
                 <span> Orders</span>
               </div>
               <div>
-                <span className="font-semibold">{user.favorites}</span>
+                <span className="font-semibold">
+                  {userProfile.favorites || 99}
+                </span>
                 <span> Favorites</span>
               </div>
               <div>
-                <span className="font-semibold">{user.totalSpent}</span>
+                <span className="font-semibold">
+                  {userProfile.totalSpent || 99}
+                </span>
                 <span> Total Spent</span>
               </div>
             </div>

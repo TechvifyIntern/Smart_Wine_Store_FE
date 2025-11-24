@@ -1,15 +1,19 @@
 import { Product } from "./product";
 
-export interface CartItem {
-  id: number;
-  product: Product;
-  quantity: number;
-}
-
 export interface Cart {
+  CartID?: number;
+  UserID?: number;
   items: CartItem[];
   subtotal: number;
-  discount: number;
   tax: number;
+  discount: number;
   total: number;
+}
+
+export interface CartItem {
+  CartItemID: number;
+  CartID: number;
+  ProductID: number;
+  Quantity: number;
+  product: Product;
 }
