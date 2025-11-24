@@ -1,6 +1,7 @@
 
 "use client"
 import { useState } from "react";
+import Link from "next/link";
 
 interface ProductDetail {
     size: string;
@@ -18,10 +19,11 @@ interface Product {
 
 interface ProductCardProps {
     product: Product;
-}121212
+}
 
 export function ProductCard({ product }: ProductCardProps) {
     return (
+        <Link key={product.productId} href={`/product/${product.productId}`}>
         <div className="group relative cursor-pointer border border-gray-200 dark:border-0 dark:border-t-0 dark:bg-[#121212] transition-all duration-300 hover:shadow-lg w-72 h-[26rem] hover:h-[28.5rem]">
             {/* Image Section */}
             <div className="relative h-72 overflow-hidden flex items-center justify-center bg-white">
@@ -60,5 +62,6 @@ export function ProductCard({ product }: ProductCardProps) {
                 </div>
             </div>
         </div>
+        </Link>
     );
 }

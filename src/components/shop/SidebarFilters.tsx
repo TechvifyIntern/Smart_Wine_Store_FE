@@ -15,23 +15,25 @@ interface SidebarFiltersProps {
 
 const SidebarFilters = ({ category }: SidebarFiltersProps) => {
   const [priceRange, setPriceRange] = useState({ min: 23, max: 126 });
-  const [isCategoryOpen, setIsCategoryOpen] = useState(true);
   const [isSizeOpen, setIsSizeOpen] = useState(true);
   const [isColorOpen, setIsColorOpen] = useState(true);
   const [isBrandOpen, setIsBrandOpen] = useState(true);
   const [isPriceOpen, setIsPriceOpen] = useState(true);
 
   const getDisplayCategories = () => {
-    if (category === "wine") {
+    if (category === "Wine") {
       return wineCategories;
-    } else if (category === "whisky") {
+    } else if (category === "Whisky") {
       return whiskyCategories;
     }
     // Default to wine categories if no specific category
-    return wineCategories;
+    return [];
   };
 
   const displayCategories = getDisplayCategories();
+  const [isCategoryOpen, setIsCategoryOpen] = useState(
+    displayCategories.length > 0
+  );
 
   const handlePriceRangeChange = (values: number[]) => {
     setPriceRange({ min: values[0], max: values[1] });
@@ -40,29 +42,31 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
   return (
     <aside className="w-64 p-5 border-r border-border ">
       <div className="mb-6">
-        <h3
-          className="font-bold mb-2 text-foreground flex justify-between items-center cursor-pointer"
-          onClick={() => setIsCategoryOpen(!isCategoryOpen)}
-        >
-          <span>Shop By Category</span>
-          <ChevronDown
-            size={14}
-            className={`transform transition-transform ${
-              isCategoryOpen ? "rotate-180" : ""
-            }`}
-          />
-        </h3>
         {isCategoryOpen && (
-          <ul className="space-y-2">
-            {displayCategories.map((cat) => (
-              <li
-                key={cat.id}
-                className="flex justify-between cursor-pointer hover:bg-muted p-2 rounded text-foreground"
-              >
-                <span>{cat.name}</span>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <h3
+              className="font-bold mb-2 text-foreground flex justify-between items-center cursor-pointer"
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+            >
+              <span>Shop By Category</span>
+              <ChevronDown
+                size={14}
+                className={`transform transition-transform ${
+                  isCategoryOpen ? "rotate-180" : ""
+                }`}
+              />
+            </h3>
+            <ul className="space-y-2">
+              {displayCategories?.map((cat) => (
+                <li
+                  key={cat.id}
+                  className="flex justify-between cursor-pointer hover:bg-muted p-2 rounded text-foreground"
+                >
+                  <span>{cat.name}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
 
@@ -177,8 +181,8 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
               className="w-full"
             />
             <div className="flex justify-between text-sm text-muted-foreground mt-4">
-              <span className="px-2 py-1 rounded">${priceRange.min}.00</span>
-              <span className="px-2 py-1 rounded">${priceRange.max}.00</span>
+              <span className="px-2 py-1 rounded">${priceRange.min}.00 VND</span>
+              <span className="px-2 py-1 rounded">${priceRange.max}.00 VND</span>
             </div>
           </>
         )}

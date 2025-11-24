@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
 import type { Product } from "@/types/product";
 import { useCartStore } from "@/store/cart";
-import { toast } from "sonner";
+import { useAppStore } from "@/store/auth"; // Import useAppStore
 
 interface ProductInfoProps {
   product: Product;
@@ -13,10 +13,23 @@ interface ProductInfoProps {
 
 export function ProductInfo({ product }: ProductInfoProps) {
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCartStore();
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
-    toast.success("Added to cart!");
+  const { addToCart, isUpdating } = useCartStore();
+  const { setAuthOpen, setAuthMode } = useAppStore(); // Get auth actions
+
+  const handleAddToCart = async () => {
+    try {
+      await addToCart(product, quantity);
+      // Toast on success is handled by the store
+    } catch (error: any) {
+      if (error.message === "AUTH_REQUIRED") {
+        setAuthMode("signin");
+        setAuthOpen(true);
+        // Toast for auth required is handled by the store
+      } else {
+        // Generic error toast is handled by the store, but if you want specific component toast, uncomment below
+        // toast.error("Failed to add to cart. Please try again.");
+      }
+    }
   };
 
   return (
@@ -27,7 +40,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           {product.ProductName}
         </h1>
         <p className="text-muted-foreground text-lg">
-          {product.Product_Detail?.Producer}
+          {product.detail?.Producer}
         </p>
       </div>
 
@@ -35,19 +48,19 @@ export function ProductInfo({ product }: ProductInfoProps) {
       <div className="grid grid-cols-2 gap-4 py-4 border-y">
         <div>
           <p className="text-sm text-muted-foreground">Origin</p>
-          <p className="font-semibold">{product.Product_Detail?.Origin}</p>
+          <p className="font-semibold">{product.detail?.Origin}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Size</p>
-          <p className="font-semibold">{product.Product_Detail?.Size}ml</p>
+          <p className="font-semibold">{product.detail?.Size}ml</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Varietal</p>
-          <p className="font-semibold">{product.Product_Detail?.Varietal}</p>
+          <p className="font-semibold">{product.detail?.Varietal}</p>
         </div>
         <div>
           <p className="text-sm text-muted-foreground">ABV</p>
-          <p className="font-semibold">{product.Product_Detail?.ABV}%</p>
+          <p className="font-semibold">{product.detail?.ABV}%</p>
         </div>
       </div>
 
@@ -90,8 +103,13 @@ export function ProductInfo({ product }: ProductInfoProps) {
         <Button
           className="flex-1 bg-primary hover:opacity-90 text-primary-foreground text-lg py-6 hover:shadow-[0_8px_32px_0_#ad8d5e]"
           onClick={handleAddToCart}
+          disabled={isUpdating}
         >
-          <ShoppingCart className="w-5 h-5 mr-2" />
+          {isUpdating ? (
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+          ) : (
+            <ShoppingCart className="w-5 h-5 mr-2" />
+          )}
           Add to Cart
         </Button>
       </div>
@@ -99,7 +117,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Trust Badges */}
       <div className="space-y-3 pt-4 border-t">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
             <span className="text-white text-sm">✓</span>
           </div>
           <span className="text-sm text-muted-foreground">
@@ -107,7 +125,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
             <span className="text-white text-sm">✓</span>
           </div>
           <span className="text-sm text-muted-foreground">
@@ -115,7 +133,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
             <span className="text-white text-sm">✓</span>
           </div>
           <span className="text-sm text-muted-foreground">

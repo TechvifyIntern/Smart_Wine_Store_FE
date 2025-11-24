@@ -6,7 +6,7 @@ interface ProductTabsProps {
 }
 
 export function ProductTabs({ product }: ProductTabsProps) {
-  if (!product.Product_Detail) {
+  if (!product.detail) {
     return null;
   }
 
@@ -14,23 +14,23 @@ export function ProductTabs({ product }: ProductTabsProps) {
     <div className="mt-12">
       <h3 className="text-2xl font-bold mb-2">Description</h3>
       <div className="space-y-2 text-lg ml-6 mb-4">
-        <p>{product.Product_Detail.DescriptionContents}</p>
+        <p>{product.detail.DescriptionContents}</p>
         <ul className="list-disc pl-5 space-y-2">
           <li>
             <span className="font-semibold">Producer:</span>{" "}
-            {product.Product_Detail.Producer}
+            {product.detail.Producer}
           </li>
           <li>
             <span className="font-semibold">Origin:</span>{" "}
-            {product.Product_Detail.Origin}
+            {product.detail.Origin}
           </li>
           <li>
             <span className="font-semibold">Varietal:</span>{" "}
-            {product.Product_Detail.Varietal}
+            {product.detail.Varietal}
           </li>
           <li>
             <span className="font-semibold">Alcohol Content:</span>{" "}
-            {product.Product_Detail.ABV}%
+            {product.detail.ABV}%
           </li>
         </ul>
       </div>

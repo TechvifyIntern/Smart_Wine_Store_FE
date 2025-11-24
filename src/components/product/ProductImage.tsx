@@ -11,7 +11,7 @@ export function ProductImage({ image }: ProductImageProps) {
         <img
           src={image || "/placeholder.svg"}
           alt={image}
-          className="object-contain"
+          className="object-contain w-full h-full"
         />
       </div>
     </div>

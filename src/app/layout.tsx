@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/toaster";
 import { Jost } from 'next/font/google';
+import AuthInitializer from "@/components/auth/AuthInitializer";
 
 export const metadata: Metadata = {
   title: "WINEICY",
@@ -46,7 +47,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AuthInitializer>{children}</AuthInitializer>
           <Toaster />
         </ThemeProvider>
       </body>

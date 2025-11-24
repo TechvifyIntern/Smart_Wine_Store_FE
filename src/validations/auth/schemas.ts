@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Sign In Schema
 export const signInSchema = z.object({
-    email: z
+    identifier: z
         .string()
         .min(1, "Email is required")
         .email("Please enter a valid email address"),
@@ -19,26 +19,23 @@ export const signInSchema = z.object({
 // Sign Up Schema
 export const signUpSchema = z
     .object({
-        name: z
+        UserName: z
             .string()
             .min(1, "Full name is required")
             .min(2, "Name must be at least 2 characters")
             .max(100, "Name must not exceed 100 characters"),
-        email: z
+        Email: z
             .string()
             .min(1, "Email is required")
             .email("Please enter a valid email address"),
-        password: z
+        Password: z
             .string()
             .min(1, "Password is required")
             .min(8, "Password must be at least 8 characters")
             .regex(/(?=.*[a-z])/, "Password must contain at least one lowercase letter")
             .regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
             .regex(/(?=.*\d)/, "Password must contain at least one number"),
-        confirmPassword: z
-            .string()
-            .min(1, "Please confirm your password"),
-        phone: z
+        PhoneNumber: z
             .string()
             .min(1, "Phone number is required")
             .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
@@ -46,7 +43,7 @@ export const signUpSchema = z
                 const digitsOnly = val.replace(/\D/g, "");
                 return digitsOnly.length >= 10;
             }, "Phone number must be at least 10 digits"),
-        birthday: z
+        Birthday: z
             .string()
             .min(1, "Birthday is required")
             .refine((val) => {
@@ -71,10 +68,8 @@ export const signUpSchema = z
                 const age = today.getFullYear() - birthDate.getFullYear();
                 return age <= 120;
             }, "Please enter a valid birthday"),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Passwords do not match",
-        path: ["confirmPassword"],
+        ImageURL: z.string().url().optional(),
+        RoleID: z.number().optional(),
     });
 
 // Forgot Password Schema

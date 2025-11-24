@@ -154,7 +154,7 @@ export default function PromotionsPage() {
                                             {promo.discountType === "Percentage"
                                                 ? `${promo.discountValue}% OFF`
                                                 : promo.discountType === "Fixed Amount"
-                                                    ? `$${promo.discountValue} OFF`
+                                                    ? `${promo.discountValue} VND OFF`
                                                     : promo.discountType}
                                         </span>
                                     </td>

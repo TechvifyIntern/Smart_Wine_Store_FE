@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Edit, Trash2, Plus, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,181 +22,382 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { UserAddress, AddAddressPayload } from "@/types/profile"; // Import AddAddressPayload
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { userAddresses as initialAddresses } from "@/data/profile";
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  updateDefaultAddress,
+} from "@/services/profile/api"; // Import addAddress API call
+import { useToast } from "@/hooks/use-toast"; // Import useToast
+import { AxiosError } from "axios"; // Import AxiosError
 
-interface Address {
-  id: string | number;
-  type: string;
-  street: string;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-  isDefault?: boolean;
+interface SavedAddressesProps {
+  userAddresses: UserAddress[] | null;
 }
 
-export const SavedAddresses: React.FC = () => {
-  const [addresses, setAddresses] = useState<Address[]>(initialAddresses);
+export const SavedAddresses: React.FC<SavedAddressesProps> = ({
+  userAddresses,
+}) => {
+  const { toast } = useToast();
+  const [addresses, setAddresses] = useState<UserAddress[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
+    null
+  );
   const [deleteConfirmAddressId, setDeleteConfirmAddressId] = useState<
-    string | number | null
+    number | null
   >(null);
+  const [isLoading, setIsLoading] = useState(false); // Loading state
 
-  const [newAddress, setNewAddress] = useState({
-    type: "",
-    street: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
-    isDefault: false,
+  // Form add
+  const [newAddress, setNewAddress] = useState<AddAddressPayload>({
+    StreetAddress: "",
+    Ward: "",
+    Province: "",
+    IsDefault: false,
   });
 
-  const [editAddress, setEditAddress] = useState({
-    type: "",
-    street: "",
-    city: "",
-    state: "",
-    zip: "",
-    country: "",
-    isDefault: false,
+  // Form edit
+  const [editAddress, setEditAddress] = useState<UserAddress>({
+    UserAddressID: 0,
+    UserID: 0,
+    StreetAddress: "",
+    Ward: "",
+    Province: "",
+    IsDefault: false,
   });
 
-  const handleAddAddress = () => {
-    if (!newAddress.type || !newAddress.street || !newAddress.city) return;
+  // Load from props
+  useEffect(() => {
+    if (userAddresses) {
+      setAddresses(userAddresses);
+    }
+  }, [userAddresses]);
 
-    // If new address is default, remove default from others
-    const updatedAddresses = newAddress.isDefault
-      ? addresses.map((addr) => ({ ...addr, isDefault: false }))
-      : addresses;
+  // Add new address
+  const handleAddAddress = async () => {
+    if (!newAddress.StreetAddress || !newAddress.Ward || !newAddress.Province) {
+      toast({
+        title: "Validation Error",
+        description: "Street Address, Ward, and Province are required.",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    const newId =
-      Math.max(...addresses.map((a) => (typeof a.id === "number" ? a.id : 0))) +
-      1;
-    setAddresses([...updatedAddresses, { ...newAddress, id: newId }]);
-    setNewAddress({
-      type: "",
-      street: "",
-      city: "",
-      state: "",
-      zip: "",
-      country: "",
-      isDefault: false,
-    });
-    setIsAddModalOpen(false);
+    setIsLoading(true);
+    try {
+      const response = await addAddress(newAddress);
+      if (response.success) {
+        // If the new address is default, ensure others are not
+        const updatedAddresses = newAddress.IsDefault
+          ? addresses.map((a) => ({ ...a, IsDefault: false }))
+          : addresses;
+
+        setAddresses([...updatedAddresses, response.data]);
+        toast({
+          title: "Success",
+          description: "Address added successfully!",
+          variant: "default",
+        });
+        setNewAddress({
+          StreetAddress: "",
+          Ward: "",
+          Province: "",
+          IsDefault: false,
+        });
+        setIsAddModalOpen(false);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to add address.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("API Error - addAddress:", err);
+      if (err instanceof AxiosError) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to add address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleEditAddress = (address: Address) => {
+  // Open edit modal
+  const handleEditAddress = (address: UserAddress) => {
     setEditingAddress(address);
-    setEditAddress({
-      type: address.type,
-      street: address.street,
-      city: address.city,
-      state: address.state,
-      zip: address.zip,
-      country: address.country,
-      isDefault: address.isDefault ?? false,
-    });
+    setEditAddress(address);
     setIsEditModalOpen(true);
   };
 
-  const handleSaveEdit = () => {
+  // Save edited address
+  const handleSaveEdit = async () => {
     if (!editingAddress) return;
 
-    const updatedAddresses = editAddress.isDefault
-      ? addresses.map((addr) =>
-          addr.id === editingAddress.id
-            ? { ...addr, ...editAddress }
-            : { ...addr, isDefault: false }
-        )
-      : addresses.map((addr) =>
-          addr.id === editingAddress.id ? { ...addr, ...editAddress } : addr
+    if (
+      !editAddress.StreetAddress ||
+      !editAddress.Ward ||
+      !editAddress.Province
+    ) {
+      toast({
+        title: "Validation Error",
+        description: "Street Address, Ward, and Province are required.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await updateAddress(
+        {
+          StreetAddress: editAddress.StreetAddress,
+          Ward: editAddress.Ward,
+          Province: editAddress.Province,
+          IsDefault: editAddress.IsDefault,
+        },
+        editingAddress.UserAddressID
+      );
+
+      if (response.success) {
+        // If the updated address is default, ensure others are not
+        const updatedAddresses = response.data.IsDefault
+          ? addresses.map((a) =>
+              a.UserAddressID === response.data.UserAddressID
+                ? response.data
+                : { ...a, IsDefault: false }
+            )
+          : addresses.map((a) =>
+              a.UserAddressID === response.data.UserAddressID
+                ? response.data
+                : a
+            );
+
+        setAddresses(updatedAddresses);
+        toast({
+          title: "Success",
+          description: "Address updated successfully!",
+          variant: "default",
+        });
+        setIsEditModalOpen(false);
+        setEditingAddress(null);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to update address.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("API Error - updateAddress:", err);
+      if (err instanceof AxiosError) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to update address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Delete
+  const handleDeleteAddress = async (id: number) => {
+    setIsLoading(true);
+    try {
+      const response = await deleteAddress(id);
+      if (response) {
+        setAddresses(addresses.filter((addr) => addr.UserAddressID !== id));
+        toast({
+          title: "Success",
+          description: "Address deleted successfully!",
+          variant: "default",
+        });
+        setDeleteConfirmAddressId(null);
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to delete address.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("API Error - deleteAddress:", err);
+      if (err instanceof AxiosError) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to delete address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Set default
+  const handleSetDefault = async (id: number) => {
+    setIsLoading(true);
+    try {
+      // Find the address to set as default
+      const defaultAddress = addresses.find(
+        (addr) => addr.UserAddressID === id
+      );
+      if (!defaultAddress) {
+        toast({
+          title: "Error",
+          description: "Address not found.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const response = await updateDefaultAddress(id);
+
+      if (response.success) {
+        setAddresses(
+          addresses.map((addr) =>
+            addr.UserAddressID === id
+              ? { ...addr, IsDefault: true }
+              : { ...addr, IsDefault: false }
+          )
         );
-
-    setAddresses(updatedAddresses);
-    setIsEditModalOpen(false);
-    setEditingAddress(null);
+        toast({
+          title: "Success",
+          description: "Default address set successfully!",
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: response.message || "Failed to set default address.",
+          variant: "destructive",
+        });
+      }
+    } catch (err) {
+      console.error("API Error - setDefaultAddress:", err);
+      if (err instanceof AxiosError) {
+        toast({
+          title: "Error",
+          description:
+            err.response?.data?.message ||
+            err.message ||
+            "Failed to set default address.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleDeleteAddress = (id: string | number) => {
-    setAddresses(addresses.filter((addr) => addr.id !== id));
-    setDeleteConfirmAddressId(null);
-  };
-
-  const handleSetDefault = (id: string | number) => {
-    setAddresses(
-      addresses.map((addr) =>
-        addr.id === id
-          ? { ...addr, isDefault: true }
-          : { ...addr, isDefault: false }
-      )
-    );
-  };
+  if (!userAddresses) return null;
 
   return (
     <>
-      <div className=" bg-card/40 rounded-lg shadow border">
+      <div className="bg-card/40 rounded-lg shadow border">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-bold">Saved Addresses</h2>
         </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-6">
-          {addresses.map((address) => (
+          {addresses.map((address, i) => (
             <div
-              key={address.id}
+              key={address.UserAddressID}
               className={`border rounded-lg p-4 relative dark:bg-white/10 bg-card ${
-                address.isDefault ? "border-primary" : "border-gray-200"
+                address.IsDefault ? "border-primary" : "border-gray-200"
               }`}
             >
-              {address.isDefault && (
+              {address.IsDefault && (
                 <div className="absolute top-4 right-4">
                   <span className="inline-block px-2 py-1 bg-primary text-primary-foreground font-semibold rounded">
                     Default
                   </span>
                 </div>
               )}
-              <h3 className="font-bold mb-2">{address.type}</h3>
+
+              <h3 className="font-bold mb-2">Address #{i + 1}</h3>
+
               <p className="text-sm mb-4">
-                {address.street}
+                {address.StreetAddress}
                 <br />
-                {address.city}, {address.state} {address.zip}
+                {address.Ward}
                 <br />
-                {address.country}
+                {address.Province}
               </p>
+
               <div className="flex gap-2">
-                {!address.isDefault && (
+                {!address.IsDefault && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleSetDefault(address.id)}
                     className="flex-1 gap-2"
-                    title="Set as default"
+                    onClick={() => handleSetDefault(address.UserAddressID)}
                   >
                     <Star size={16} />
                   </Button>
                 )}
+
                 <Button
                   variant="outline"
                   size="sm"
                   className="flex-1 gap-2"
                   onClick={() => handleEditAddress(address)}
+                  disabled={isLoading}
                 >
                   <Edit size={16} />
                   Edit
                 </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
                   className="flex-1 gap-2"
-                  onClick={() => setDeleteConfirmAddressId(address.id)}
+                  onClick={() =>
+                    setDeleteConfirmAddressId(address.UserAddressID)
+                  }
+                  disabled={isLoading}
                 >
                   <Trash2 size={16} />
                   Delete
@@ -205,10 +406,12 @@ export const SavedAddresses: React.FC = () => {
             </div>
           ))}
         </div>
+
         <div className="p-6 border-t border-gray-200">
           <Button
             className="w-full gap-2"
             onClick={() => setIsAddModalOpen(true)}
+            disabled={isLoading}
           >
             <Plus size={16} />
             Add New Address
@@ -216,212 +419,158 @@ export const SavedAddresses: React.FC = () => {
         </div>
       </div>
 
-      {/* Add Address Modal */}
+      {/* Add Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add New Address</DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
             <div>
-              <Label htmlFor="add-type">Type</Label>
-              <Select
-                value={newAddress.type}
-                onValueChange={(value) =>
-                  setNewAddress({ ...newAddress, type: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Home">Home</SelectItem>
-                  <SelectItem value="Work">Work</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="add-street">Street Address</Label>
+              <Label htmlFor="StreetAddress">Street Address</Label>
               <Textarea
-                id="add-street"
-                value={newAddress.street}
+                id="StreetAddress"
+                value={newAddress.StreetAddress}
                 onChange={(e) =>
-                  setNewAddress({ ...newAddress, street: e.target.value })
+                  setNewAddress({
+                    ...newAddress,
+                    StreetAddress: e.target.value,
+                  })
                 }
-                placeholder="Enter street address"
+                disabled={isLoading}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="add-city">City</Label>
-                <Input
-                  id="add-city"
-                  value={newAddress.city}
-                  onChange={(e) =>
-                    setNewAddress({ ...newAddress, city: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="add-state">State</Label>
-                <Input
-                  id="add-state"
-                  value={newAddress.state}
-                  onChange={(e) =>
-                    setNewAddress({ ...newAddress, state: e.target.value })
-                  }
-                />
-              </div>
+
+            <div>
+              <Label htmlFor="Ward">Ward</Label>
+              <Input
+                id="Ward"
+                value={newAddress.Ward}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, Ward: e.target.value })
+                }
+                disabled={isLoading}
+              />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="add-zip">ZIP Code</Label>
-                <Input
-                  id="add-zip"
-                  value={newAddress.zip}
-                  onChange={(e) =>
-                    setNewAddress({ ...newAddress, zip: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="add-country">Country</Label>
-                <Input
-                  id="add-country"
-                  value={newAddress.country}
-                  onChange={(e) =>
-                    setNewAddress({ ...newAddress, country: e.target.value })
-                  }
-                />
-              </div>
+
+            <div>
+              <Label htmlFor="Province">Province</Label>
+              <Input
+                id="Province"
+                value={newAddress.Province}
+                onChange={(e) =>
+                  setNewAddress({ ...newAddress, Province: e.target.value })
+                }
+                disabled={isLoading}
+              />
             </div>
-            <div className="flex items-center space-x-2">
+
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
-                id="add-default"
-                checked={newAddress.isDefault}
+                id="IsDefault"
+                checked={newAddress.IsDefault}
                 onChange={(e) =>
-                  setNewAddress({ ...newAddress, isDefault: e.target.checked })
+                  setNewAddress({ ...newAddress, IsDefault: e.target.checked })
                 }
+                disabled={isLoading}
               />
-              <Label htmlFor="add-default">Set as default address</Label>
+              <Label htmlFor="IsDefault">Set as default</Label>
             </div>
           </div>
+
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddModalOpen(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button onClick={handleAddAddress}>Add Address</Button>
+            <Button onClick={handleAddAddress} disabled={isLoading}>
+              {isLoading ? "Adding..." : "Add Address"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Address Modal */}
+      {/* Edit Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Address</DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
             <div>
-              <Label htmlFor="edit-type">Type</Label>
-              <Select
-                value={editAddress.type}
-                onValueChange={(value) =>
-                  setEditAddress({ ...editAddress, type: value })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Home">Home</SelectItem>
-                  <SelectItem value="Work">Work</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="edit-street">Street Address</Label>
+              <Label>Street Address</Label>
               <Textarea
-                id="edit-street"
-                value={editAddress.street}
-                onChange={(e) =>
-                  setEditAddress({ ...editAddress, street: e.target.value })
-                }
-                placeholder="Enter street address"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-city">City</Label>
-                <Input
-                  id="edit-city"
-                  value={editAddress.city}
-                  onChange={(e) =>
-                    setEditAddress({ ...editAddress, city: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-state">State</Label>
-                <Input
-                  id="edit-state"
-                  value={editAddress.state}
-                  onChange={(e) =>
-                    setEditAddress({ ...editAddress, state: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="edit-zip">ZIP Code</Label>
-                <Input
-                  id="edit-zip"
-                  value={editAddress.zip}
-                  onChange={(e) =>
-                    setEditAddress({ ...editAddress, zip: e.target.value })
-                  }
-                />
-              </div>
-              <div>
-                <Label htmlFor="edit-country">Country</Label>
-                <Input
-                  id="edit-country"
-                  value={editAddress.country}
-                  onChange={(e) =>
-                    setEditAddress({ ...editAddress, country: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="edit-default"
-                checked={editAddress.isDefault}
+                value={editAddress.StreetAddress}
                 onChange={(e) =>
                   setEditAddress({
                     ...editAddress,
-                    isDefault: e.target.checked,
+                    StreetAddress: e.target.value,
                   })
                 }
+                disabled={isLoading}
               />
-              <Label htmlFor="edit-default">Set as default address</Label>
+            </div>
+
+            <div>
+              <Label>Ward</Label>
+              <Input
+                value={editAddress.Ward}
+                onChange={(e) =>
+                  setEditAddress({ ...editAddress, Ward: e.target.value })
+                }
+                disabled={isLoading}
+              />
+            </div>
+
+            <div>
+              <Label>Province</Label>
+              <Input
+                value={editAddress.Province}
+                onChange={(e) =>
+                  setEditAddress({ ...editAddress, Province: e.target.value })
+                }
+                disabled={isLoading}
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={editAddress.IsDefault}
+                onChange={(e) =>
+                  setEditAddress({
+                    ...editAddress,
+                    IsDefault: e.target.checked,
+                  })
+                }
+                disabled={isLoading}
+              />
+              <Label>Set as default</Label>
             </div>
           </div>
+
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+              disabled={isLoading}
+            >
               Cancel
             </Button>
-            <Button onClick={handleSaveEdit}>Save Changes</Button>
+            <Button onClick={handleSaveEdit} disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
+      {/* Delete confirmation */}
       <AlertDialog
         open={!!deleteConfirmAddressId}
         onOpenChange={() => setDeleteConfirmAddressId(null)}
@@ -430,20 +579,20 @@ export const SavedAddresses: React.FC = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Address</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this address? This action cannot
-              be undone.
+              Are you sure you want to delete this address?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground"
               onClick={() =>
                 deleteConfirmAddressId &&
                 handleDeleteAddress(deleteConfirmAddressId)
               }
+              disabled={isLoading}
             >
-              Delete
+              {isLoading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
