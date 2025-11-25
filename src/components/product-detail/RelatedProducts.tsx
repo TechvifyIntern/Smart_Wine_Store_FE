@@ -1,6 +1,6 @@
 "use client";
 
-import type { Product } from "@/types/product";
+import type { Product } from "@/types/product-detail";
 import { ProductCard } from "./ProductCard";
 import {
   Carousel,
@@ -27,7 +27,10 @@ export function RelatedProducts({ products }: RelatedProductsProps) {
         >
           <CarouselContent className="-ml-4 min-h-[600px] items-center">
             {products.map((product) => (
-              <CarouselItem key={product.ProductID} className="pl-4 md:basis-1/2 lg:basis-1/3">
+              <CarouselItem
+                key={product.ProductID}
+                className="pl-4 md:basis-1/2 lg:basis-1/3"
+              >
                 <ProductCard product={product} />
               </CarouselItem>
             ))}

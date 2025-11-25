@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { Jost } from 'next/font/google';
+import { Jost } from "next/font/google";
 import AuthInitializer from "@/components/auth/AuthInitializer";
 
 export const metadata: Metadata = {
@@ -29,8 +29,8 @@ export const metadata: Metadata = {
   // },
 };
 const jost = Jost({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'], // choose what you need
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"], // choose what you need
 });
 
 export default function RootLayout({
@@ -43,7 +43,7 @@ export default function RootLayout({
       <body>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >

@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, Phone, Calendar } from "lucide-react";
+import { Mail, Lock, User, Phone, Calendar, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,7 @@ import {
 } from "@/validations/auth";
 import { useAppStore } from "@/store/auth";
 import { signIn, signUp } from "@/services/auth/api";
+import { useState } from "react";
 
 interface AuthDialogProps {
   open: boolean;
@@ -39,6 +40,9 @@ export function AuthDialog({
   onModeChange,
 }: AuthDialogProps) {
   const { setTokens } = useAppStore();
+
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   // Sign In Form
   const signInForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
@@ -77,7 +81,17 @@ export function AuthDialog({
       signInForm.reset();
     } catch (error) {
       console.error("Sign in error:", error);
-      // TODO: Handle error UI
+      if (error.response?.status === 401) {
+        signInForm.setError("root", {
+          type: "manual",
+          message: "Invalid email or password.",
+        });
+      } else {
+        signInForm.setError("root", {
+          type: "manual",
+          message: "An unexpected error occurred. Please try again.",
+        });
+      }
     }
   };
 
@@ -90,7 +104,17 @@ export function AuthDialog({
       onModeChange("signin");
     } catch (error) {
       console.error("Sign up error:", error);
-      // TODO: Handle error UI
+      if (error.response?.data?.message) {
+        signUpForm.setError("root", {
+          type: "manual",
+          message: error.response.data.message,
+        });
+      } else {
+        signUpForm.setError("root", {
+          type: "manual",
+          message: "An unexpected error occurred. Please try again.",
+        });
+      }
     }
   };
 
@@ -179,15 +203,29 @@ export function AuthDialog({
                 <Lock className="w-4 h-4" />
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                {...signInForm.register("password")}
-                className={
-                  signInForm.formState.errors.password ? "border-red-500" : ""
-                }
-              />
+
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showSignInPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...signInForm.register("password")}
+                  className={`${signInForm.formState.errors.password ? "border-red-500" : ""} pr-10`}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowSignInPassword(!showSignInPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-primary"
+                >
+                  {showSignInPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
+
               {signInForm.formState.errors.password && (
                 <p className="text-sm text-red-500">
                   {signInForm.formState.errors.password.message}
@@ -227,6 +265,11 @@ export function AuthDialog({
             >
               {signInForm.formState.isSubmitting ? "Processing..." : "Sign In"}
             </Button>
+            {signInForm.formState.errors.root && (
+              <p className="text-sm text-red-500 text-center">
+                {signInForm.formState.errors.root.message}
+              </p>
+            )}
           </form>
         )}
 
@@ -280,15 +323,30 @@ export function AuthDialog({
                 <Lock className="w-4 h-4" />
                 Password
               </Label>
-              <Input
-                id="Password"
-                type="password"
-                placeholder="••••••••"
-                {...signUpForm.register("Password")}
-                className={
-                  signUpForm.formState.errors.Password ? "border-red-500" : ""
-                }
-              />
+
+              <div className="relative">
+                <Input
+                  id="Password"
+                  type={showSignUpPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  {...signUpForm.register("Password")}
+                  className={`${signUpForm.formState.errors.Password ? "border-red-500" : ""} pr-10`}
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700
+                  dark:hover:text-primary"
+                >
+                  {showSignUpPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </button>
+              </div>
+
               {signUpForm.formState.errors.Password && (
                 <p className="text-sm text-red-500">
                   {signUpForm.formState.errors.Password.message}
@@ -348,6 +406,11 @@ export function AuthDialog({
                 ? "Processing..."
                 : "Create Account"}
             </Button>
+            {signUpForm.formState.errors.root && (
+              <p className="text-sm text-red-500 text-center">
+                {signUpForm.formState.errors.root.message}
+              </p>
+            )}
           </form>
         )}
 

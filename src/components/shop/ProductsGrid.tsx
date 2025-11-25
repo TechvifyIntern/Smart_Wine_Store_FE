@@ -1,13 +1,12 @@
 import React from "react";
 import ProductCard from "./ProductCard";
 import { products as defaultProducts } from "@/data/shop";
-
-import { Product } from "@/types/product";
+import { Products } from "@/types/products";
 
 interface ProductsGridProps {
   currentPage?: number;
   pageSize?: number;
-  products?: Product[];
+  products?: Products[];
 }
 
 const ProductsGrid: React.FC<ProductsGridProps> = ({
@@ -21,10 +20,10 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
   const pageProducts = productsToShow.slice(start, end);
 
   return (
-    <div className="w-full px-10">
+    <div className="w-full px-10 mb-10">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-12">
         {pageProducts.map((product) => (
-            <ProductCard key={product.ProductID} product={product} />
+          <ProductCard key={product.ProductID} product={product} />
         ))}
       </div>
     </div>

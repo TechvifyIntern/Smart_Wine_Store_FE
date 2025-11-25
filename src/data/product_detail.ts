@@ -1,4 +1,4 @@
-import type { Product, Review } from "@/types/product"
+import type { Product, Review } from "@/types/product-detail";
 
 export const mockProduct: Product = {
   ProductID: 1,
@@ -15,9 +15,10 @@ export const mockProduct: Product = {
     Origin: "Barossa Valley, Australia",
     Varietal: "Shiraz",
     DescriptionTitle: "Sophisticated Blend",
-    DescriptionContents: "A sophisticated blend of full-bodied Shiraz with rich berry notes and subtle oak aging. Perfect for collectors and connoisseurs alike."
-  }
-}
+    DescriptionContents:
+      "A sophisticated blend of full-bodied Shiraz with rich berry notes and subtle oak aging. Perfect for collectors and connoisseurs alike.",
+  },
+};
 
 export const relatedProducts: Product[] = [
   {
@@ -35,7 +36,8 @@ export const relatedProducts: Product[] = [
       Origin: "Napa Valley, USA",
       Varietal: "Cabernet Sauvignon",
       DescriptionTitle: "Premium Cabernet",
-      DescriptionContents: "A premium Cabernet with complex layers of dark fruit and oak.",
+      DescriptionContents:
+        "A premium Cabernet with complex layers of dark fruit and oak.",
     },
   },
   {
@@ -53,7 +55,8 @@ export const relatedProducts: Product[] = [
       Origin: "Central Coast, USA",
       Varietal: "Pinot Noir",
       DescriptionTitle: "Elegant Selection",
-      DescriptionContents: "An elegant Pinot Noir with balanced acidity and red fruit notes.",
+      DescriptionContents:
+        "An elegant Pinot Noir with balanced acidity and red fruit notes.",
     },
   },
   {
@@ -92,7 +95,7 @@ export const relatedProducts: Product[] = [
       DescriptionContents: "A crisp Chardonnay with butter and apple flavors.",
     },
   },
-]
+];
 
 export const mockReviews: Review[] = [
   {
@@ -109,7 +112,8 @@ export const mockReviews: Review[] = [
     author: "Sarah Johnson",
     rating: 4,
     date: "1 month ago",
-    comment: "Great quality wine with excellent taste profile. Perfect for special occasions.",
+    comment:
+      "Great quality wine with excellent taste profile. Perfect for special occasions.",
     helpful: 28,
   },
   {
@@ -117,7 +121,8 @@ export const mockReviews: Review[] = [
     author: "Michael Davis",
     rating: 5,
     date: "1 month ago",
-    comment: "Outstanding vintage! The balance of tannins and fruit is perfect. Worth every penny.",
+    comment:
+      "Outstanding vintage! The balance of tannins and fruit is perfect. Worth every penny.",
     helpful: 35,
   },
-]
+];

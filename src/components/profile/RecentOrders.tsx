@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ChevronRight, ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
+import { ChevronLeft, ChevronRight as ChevronRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Order } from "@/types/profile";
 import {
@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { formatCurrency } from "@/lib/utils";
 
 interface RecentOrdersProps {
   userOrders: Order[];
@@ -114,10 +115,7 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                 <div className="flex items-center gap-6">
                   <div className="text-right">
                     <p className="font-semibold">
-                      {new Intl.NumberFormat("vi-VN", {
-                        style: "currency",
-                        currency: "VND",
-                      }).format(order.FinalTotal)}
+                      {formatCurrency(order.FinalTotal)}
                     </p>
                     <span
                       className={`text-sm font-medium ${getStatusColor(order.StatusID)}`}
@@ -137,7 +135,11 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
         </div>
         <div className="p-6 flex justify-between items-center">
           {!showAllOrders && userOrders.length > INITIAL_ITEMS && (
-            <Button variant="outline" className="w-full" onClick={handleViewAllOrders}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleViewAllOrders}
+            >
               View All Orders ({userOrders.length})
             </Button>
           )}
@@ -156,12 +158,18 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
               </span>
               <Button
                 variant="outline"
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
                 disabled={currentPage === totalPages}
               >
                 Next <ChevronRightIcon size={16} className="ml-2" />
               </Button>
-              <Button variant="outline" onClick={handleShowLessOrders} className="ml-4">
+              <Button
+                variant="outline"
+                onClick={handleShowLessOrders}
+                className="ml-4"
+              >
                 Show Less
               </Button>
             </div>
@@ -184,10 +192,7 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
             <div className="py-4 space-y-3">
               <p>
                 <strong>Total:</strong>{" "}
-                {new Intl.NumberFormat("vi-VN", {
-                  style: "currency",
-                  currency: "VND",
-                }).format(selectedOrder.FinalTotal)}
+                {formatCurrency(selectedOrder.FinalTotal)}
               </p>
               <p>
                 <strong>Status:</strong>{" "}
@@ -199,10 +204,7 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                 selectedOrder.DiscountValue > 0 && (
                   <p>
                     <strong>Discount:</strong>{" "}
-                    {new Intl.NumberFormat("vi-VN", {
-                      style: "currency",
-                      currency: "VND",
-                    }).format(selectedOrder.DiscountValue)}
+                    {formatCurrency(selectedOrder.DiscountValue)}
                   </p>
                 )}
               {selectedOrder.Details.length > 0 && (
@@ -213,15 +215,8 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                       <p className="font-medium">{detail.ProductName}</p>
                       <p className="text-sm">
                         Quantity: {detail.Quantity} | Unit Price:{" "}
-                        {new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(detail.UnitPrice)}{" "}
-                        | Final Item Price:{" "}
-                        {new Intl.NumberFormat("vi-VN", {
-                          style: "currency",
-                          currency: "VND",
-                        }).format(detail.FinalItemPrice)}
+                        {formatCurrency(detail.UnitPrice)} | Final Item Price:{" "}
+                        {formatCurrency(detail.FinalItemPrice)}
                       </p>
                     </div>
                   ))}

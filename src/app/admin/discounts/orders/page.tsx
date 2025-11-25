@@ -9,6 +9,7 @@ import Pagination from "@/components/admin/pagination/Pagination";
 import OrdersToolbar from "@/components/discount-orders/OrdersToolbar";
 import { CreateDiscountOrder } from "@/components/discount-orders/(modal)/CreateDiscountOrder";
 import { DeleteConfirmDialog } from "@/components/discount-orders/(modal)/DeleteConfirmDialog";
+import { formatCurrency } from "@/lib/utils";
 
 export default function DiscountOrdersPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -28,14 +29,6 @@ export default function DiscountOrdersPage() {
             month: "2-digit",
             day: "2-digit",
         });
-    };
-
-    // Format currency (VND)
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(value);
     };
 
     // Filter orders based on search term (by discount value or minimum order value)

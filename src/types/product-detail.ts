@@ -12,10 +12,10 @@ export interface ProductDetail {
 
 export interface Product {
   ProductID: number;
-  ProductName:string;
+  ProductName: string;
   CategoryID: string | number;
   ImageURL?: string;
-  CostPrice: string | number;
+  CostPrice: number;
   SalePrice: number;
   isActive?: boolean;
   detail?: ProductDetail;

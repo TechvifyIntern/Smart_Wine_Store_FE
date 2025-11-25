@@ -21,6 +21,7 @@ import {
 import { AxiosError } from "axios";
 import { useAppStore } from "@/store/auth";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 export default function Page() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -31,6 +32,7 @@ export default function Page() {
   const [error, setError] = useState<string | null>(null);
 
   const { logout } = useAppStore();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,6 +60,7 @@ export default function Page() {
           if (err.response?.status === 401) {
             setError("Session expired. Please log in again.");
             logout();
+            router.push("/");
           } else {
             setError(
               err.response?.data?.message ||
@@ -74,7 +77,7 @@ export default function Page() {
     };
 
     fetchData();
-  }, [logout]);
+  }, [logout, router]);
 
   const handleUpdateProfile = async (updatedData: UpdateProfilePayload) => {
     if (!userProfile) return;

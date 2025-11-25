@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShoppingCart } from "lucide-react";
-import type { Product } from "@/types/product";
+import type { Product } from "@/types/product-detail";
 import { useCartStore } from "@/store/cart";
 import { useAppStore } from "@/store/auth"; // Import useAppStore
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductInfoProps {
   product: Product;
@@ -18,7 +19,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
 
   const handleAddToCart = async () => {
     try {
-      await addToCart(product, quantity);
+      await addToCart(product.ProductID, quantity);
       // Toast on success is handled by the store
     } catch (error: any) {
       if (error.message === "AUTH_REQUIRED") {
@@ -67,11 +68,11 @@ export function ProductInfo({ product }: ProductInfoProps) {
       {/* Price */}
       <div className="flex items-baseline gap-2">
         <span className="text-3xl font-bold">
-          {product.SalePrice.toFixed(2)} VND
+          {formatCurrency(product.SalePrice)}
         </span>
         {Number(product.CostPrice) > product.SalePrice && (
           <span className="line-through text-muted-foreground text-lg">
-            {Number(product.CostPrice).toFixed(2)}VND
+            {formatCurrency(product.CostPrice)}
           </span>
         )}
       </div>
