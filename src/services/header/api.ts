@@ -1,5 +1,5 @@
-import { Category } from "@/data/categories";
 import { api } from "@/services/api";
+import { Category } from "@/types/category";
 import { ApiResponse } from "@/types/responses";
 
 export const getParentCategory = async (): Promise<ApiResponse<Category[]>> => {

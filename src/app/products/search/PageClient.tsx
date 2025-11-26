@@ -11,7 +11,7 @@ import { getSearchedProducts } from "@/services/products/api";
 export default function PageClient() {
   const pageSize = 9;
   const [currentPage, setCurrentPage] = useState(1);
-  const [products, setProducts] = useState<Products[] | undefined>([]);
+  const [products, setProducts] = useState<Products[]>([]);
   const [totalPages, setTotalPages] = useState(1);
 
   const searchParams = useSearchParams();

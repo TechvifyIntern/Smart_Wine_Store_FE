@@ -232,7 +232,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
     setIsLoading(true);
     try {
       const response = await deleteAddress(id);
-      if (response) {
+      if (response.success) {
         setAddresses(addresses.filter((addr) => addr.UserAddressID !== id));
         toast({
           title: "Success",

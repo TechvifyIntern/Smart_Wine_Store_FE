@@ -13,6 +13,7 @@ export interface ProductDetail {
 export interface Product {
   ProductID: number;
   ProductName: string;
+  CategoryName?: string;
   CategoryID: string | number;
   ImageURL?: string;
   CostPrice: number;
