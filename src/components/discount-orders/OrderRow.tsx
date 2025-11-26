@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { Edit2, Trash2 } from "lucide-react";
 import { DiscountOrder } from "@/data/discount_order";
 
@@ -16,6 +17,8 @@ export default function OrderRow({
     formatDate,
     formatCurrency,
 }: OrderRowProps) {
+    const router = useRouter();
+
     const getDiscountColor = (discount: number) => {
         if (discount >= 25) return "text-pink-400";
         if (discount >= 20) return "text-purple-400";
@@ -24,7 +27,10 @@ export default function OrderRow({
     };
 
     return (
-        <tr className="dark:hover:bg-slate-800/30 transition-colors group">
+        <tr
+            className="hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors group cursor-pointer"
+            onClick={() => router.push(`/admin/discounts/orders/${order.DiscountOrderID}`)}
+        >
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="dark:text-slate-400 text-sm font-regular ">
                     #{order.DiscountOrderID}

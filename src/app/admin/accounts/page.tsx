@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { UserCog } from "lucide-react";
 import accounts, { Account } from "@/data/accounts";
 import PageHeader from "@/components/discount-events/PageHeader";
@@ -9,37 +10,50 @@ import Pagination from "@/components/admin/pagination/Pagination";
 import AccountToolbar from "@/components/accounts/AccountToolbar";
 import { AccountDetailModal } from "@/components/accounts/(modal)/AccountDetailModal";
 import { EditAccountModal } from "@/components/accounts/(modal)/EditAccountModal";
-import { DeleteAccountDialog } from "@/components/accounts/(modal)/DeleteAccountDialog";
 
 export default function AccountsPage() {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
-    const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+    const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
+    const [selectedTiers, setSelectedTiers] = useState<number[]>([]);
+    const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
 
-    // Filter accounts based on search term (UserName or Email)
+    // Filter accounts based on search term and filters (UserName or Email, RoleID, TierID, StatusID)
     const filteredAccounts = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return accounts;
+        let filtered = accounts;
+
+        // Apply search term filter
+        if (searchTerm.trim()) {
+            const lowerSearchTerm = searchTerm.toLowerCase().trim();
+            filtered = filtered.filter(
+                (account) =>
+                    account.UserName.toLowerCase().includes(lowerSearchTerm) ||
+                    account.Email.toLowerCase().includes(lowerSearchTerm)
+            );
         }
 
-        const lowerSearchTerm = searchTerm.toLowerCase().trim();
+        // Apply role filter
+        if (selectedRoles.length > 0) {
+            filtered = filtered.filter((account) => selectedRoles.includes(account.RoleID));
+        }
 
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/accounts/search?query=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
+        // Apply tier filter
+        if (selectedTiers.length > 0) {
+            filtered = filtered.filter((account) => selectedTiers.includes(account.TierID));
+        }
 
-        return accounts.filter(
-            (account) =>
-                account.UserName.toLowerCase().includes(lowerSearchTerm) ||
-                account.Email.toLowerCase().includes(lowerSearchTerm)
-        );
-    }, [searchTerm]);
+        // Apply status filter
+        if (selectedStatuses.length > 0) {
+            filtered = filtered.filter((account) => selectedStatuses.includes(account.StatusID));
+        }
+
+        return filtered;
+    }, [searchTerm, selectedRoles, selectedTiers, selectedStatuses]);
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
@@ -57,34 +71,7 @@ export default function AccountsPage() {
     };
 
     const handleEdit = (id: number) => {
-        const account = accounts.find((a) => a.UserID === id);
-        if (account) {
-            setSelectedAccount(account);
-            setIsEditModalOpen(true);
-        }
-    };
-
-    const handleDelete = (id: number) => {
-        const account = accounts.find((a) => a.UserID === id);
-        if (account) {
-            setAccountToDelete(account);
-            setIsDeleteDialogOpen(true);
-        }
-    };
-
-    const handleConfirmDelete = () => {
-        if (accountToDelete) {
-            console.log("Delete account:", accountToDelete.UserID);
-            // TODO: Implement API call to delete account
-            // Example:
-            // await fetch(`/api/accounts/${accountToDelete.UserID}`, {
-            //   method: 'DELETE',
-            // });
-
-            alert(`Account "${accountToDelete.UserName}" deleted successfully!`);
-            setIsDeleteDialogOpen(false);
-            setAccountToDelete(null);
-        }
+        router.push(`/admin/accounts/${id}?edit=true`);
     };
 
     const handleStatusChange = (id: number, newStatusID: number) => {
@@ -109,6 +96,13 @@ export default function AccountsPage() {
     const handleItemsPerPageChange = (items: number) => {
         setItemsPerPage(items);
         setCurrentPage(1);
+    };
+
+    const handleApplyFilters = (filters: { roles: number[]; tiers: number[]; statuses: number[] }) => {
+        setSelectedRoles(filters.roles);
+        setSelectedTiers(filters.tiers);
+        setSelectedStatuses(filters.statuses);
+        setCurrentPage(1); // Reset to first page when filtering
     };
 
     const handleCreateAccount = async (
@@ -157,6 +151,10 @@ export default function AccountsPage() {
                 searchPlaceholder="Search by name, email..."
                 onCreateAccount={handleCreateAccount}
                 createButtonLabel="Add Account"
+                selectedRoles={selectedRoles}
+                selectedTiers={selectedTiers}
+                selectedStatuses={selectedStatuses}
+                onApplyFilters={handleApplyFilters}
             />
 
             {/* Accounts Table */}
@@ -164,11 +162,10 @@ export default function AccountsPage() {
                 accounts={currentAccounts}
                 onView={handleView}
                 onEdit={handleEdit}
-                onDelete={handleDelete}
                 onStatusChange={handleStatusChange}
                 emptyMessage={
-                    searchTerm
-                        ? `No accounts found matching "${searchTerm}"`
+                    searchTerm || selectedRoles.length > 0 || selectedTiers.length > 0 || selectedStatuses.length > 0
+                        ? "No accounts found matching your search and filters"
                         : "No accounts found"
                 }
             />
@@ -196,14 +193,6 @@ export default function AccountsPage() {
                 onOpenChange={setIsEditModalOpen}
                 account={selectedAccount}
                 onUpdate={handleUpdateAccount}
-            />
-
-            {/* Delete Confirmation Dialog */}
-            <DeleteAccountDialog
-                open={isDeleteDialogOpen}
-                onOpenChange={setIsDeleteDialogOpen}
-                account={accountToDelete}
-                onConfirm={handleConfirmDelete}
             />
         </div>
     );

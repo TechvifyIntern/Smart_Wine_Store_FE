@@ -75,6 +75,15 @@ export const editAccountSchema = z.object({
     StatusID: z
         .number()
         .min(1, "Status is required"),
+    StreetAddress: z
+        .string()
+        .optional(),
+    Ward: z
+        .string()
+        .optional(),
+    Province: z
+        .string()
+        .optional(),
 });
 
 export type CreateAccountFormData = z.infer<typeof createAccountSchema>;

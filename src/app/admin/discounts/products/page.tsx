@@ -19,6 +19,9 @@ export default function DiscountProductsPage() {
     const [selectedProduct, setSelectedProduct] = useState<DiscountProduct | null>(null);
     const [selectedProductStatus, setSelectedProductStatus] = useState<string>("");
     const [productToDelete, setProductToDelete] = useState<DiscountProduct | null>(null);
+    const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
+    const [dateFrom, setDateFrom] = useState<string>("");
+    const [dateTo, setDateTo] = useState<string>("");
 
     // Get status based on dates
     const getProductStatus = (timeStart: string, timeEnd: string) => {
@@ -41,23 +44,50 @@ export default function DiscountProductsPage() {
         });
     };
 
-    // Filter products based on search term (ProductName only)
+    // Filter products based on search term and filters
     const filteredProducts = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return discountProducts;
+        let products = discountProducts;
+
+        // Search filter
+        if (searchTerm.trim()) {
+            const lowerSearchTerm = searchTerm.toLowerCase().trim();
+            products = products.filter((product) =>
+                product.ProductName.toLowerCase().includes(lowerSearchTerm)
+            );
         }
 
-        const lowerSearchTerm = searchTerm.toLowerCase().trim();
+        // Status filter
+        if (selectedStatuses.length > 0) {
+            products = products.filter((product) => {
+                const status = getProductStatus(product.TimeStart, product.TimeEnd);
+                const statusId = status === "Active" ? 1 : status === "Scheduled" ? 2 : 3;
+                return selectedStatuses.includes(statusId);
+            });
+        }
 
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/discount-products/search?name=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
+        // Date range filter (on TimeStart)
+        if (dateFrom || dateTo) {
+            products = products.filter((product) => {
+                const productDate = new Date(product.TimeStart);
+                const fromDate = dateFrom ? new Date(dateFrom) : null;
+                const toDate = dateTo ? new Date(dateTo + "T23:59:59") : null; // Include end of day
 
-        return discountProducts.filter((product) =>
-            product.ProductName.toLowerCase().includes(lowerSearchTerm)
-        );
-    }, [searchTerm]);
+                if (fromDate && productDate < fromDate) return false;
+                if (toDate && productDate > toDate) return false;
+                return true;
+            });
+        }
+
+        return products;
+    }, [searchTerm, selectedStatuses, dateFrom, dateTo]);
+
+    // Handler for applying filters
+    const handleApplyFilters = (filters: { statuses: number[]; dateFrom: string; dateTo: string }) => {
+        setSelectedStatuses(filters.statuses);
+        setDateFrom(filters.dateFrom);
+        setDateTo(filters.dateTo);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -178,7 +208,11 @@ export default function DiscountProductsPage() {
                 onSearchChange={handleSearchChange}
                 searchPlaceholder="Search by product name..."
                 onCreateProduct={handleCreateProduct}
-                createButtonLabel="Create Product Discount"
+                createButtonLabel="Create Discount"
+                selectedStatuses={selectedStatuses}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onApplyFilters={handleApplyFilters}
             />
 
             {/* Products Table */}

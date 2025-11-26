@@ -7,7 +7,7 @@ interface CreateOrderButtonProps {
 
 export default function CreateOrderButton({
     onClick,
-    label = "Create Order Discount",
+    label = "Create Discount",
 }: CreateOrderButtonProps) {
     return (
         <button

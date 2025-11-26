@@ -13,6 +13,7 @@ import {
     List,
     Calendar,
     ShoppingBag,
+    ShoppingBasket,
     Award,
     ShoppingCart,
     History,
@@ -32,7 +33,6 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
     const [isDiscountDropdownOpen, setIsDiscountDropdownOpen] = useState(false);
     const pathname = usePathname();
 
-    // Auto-open dropdown nếu đang ở trang con
     useEffect(() => {
         const isInProductPages = pathname.startsWith('/admin/products');
         const isInDiscountPages = pathname.startsWith('/admin/discounts');
@@ -69,26 +69,17 @@ export default function Sidebar({ className = "", isMobileSidebarOpen = false, o
                     href: "/admin/products/categories",
                     icon: Layers,
                 },
+                {
+                    label: "Products",
+                    href: "/admin/products",
+                    icon: ShoppingBasket,
+                },
             ],
         },
         {
             label: "Inventory Management",
-            href: "/admin/inventory",
-            icon: Warehouse,
-            hasDropdown: true,
-            isDiscountMenu: true,
-            subItems: [
-                {
-                    label: "Products",
-                    href: "/admin/inventory/products",
-                    icon: FileChartColumnIncreasing,
-                },
-                {
-                    label: "Inventory Logs",
-                    href: "/admin/inventory/logs",
-                    icon: History,
-                },
-            ]
+            href: "/admin/inventory/logs",
+            icon: History,
         },
         {
             label: "Discount Management",
