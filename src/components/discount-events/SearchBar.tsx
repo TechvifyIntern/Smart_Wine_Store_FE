@@ -28,11 +28,6 @@ export default function SearchBar({
                     placeholder={placeholder}
                     value={searchTerm}
                     onChange={(e) => onSearchChange(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                        }
-                    }}
                     aria-label="Search events"
                     className="w-full h-12 pl-12 pr-12 dark:bg-slate-800/50 border dark:border-slate-700/50 rounded-full dark:text-slate-300 dark:placeholder-slate-500 focus:outline-none"
                 />

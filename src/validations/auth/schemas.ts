@@ -38,7 +38,7 @@ export const signUpSchema = z
         PhoneNumber: z
             .string()
             .min(1, "Phone number is required")
-            .regex(/^[\d\s\-\+\(\)\.]+$/, "Please enter a valid phone number")
+            .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
             .refine((val) => {
                 const digitsOnly = val.replace(/\D/g, "");
                 return digitsOnly.length >= 10;

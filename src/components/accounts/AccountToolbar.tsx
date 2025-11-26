@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/discount-events/SearchBar";
 import CreateAccountButton from "./CreateAccountButton";
 import { CreateAccountModal } from "./(modal)/CreateAccountModal";
@@ -10,14 +9,12 @@ import { FilterDialog } from "./(modal)/FilterDialog";
 import { Account } from "@/data/accounts";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { signUp } from "@/services/auth/api";
-import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
 
 interface AccountToolbarProps {
     searchTerm?: string;
+    onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
-    onSearchChange?: (searchTerm: string) => void;
-    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName"> | CreateAccountFormData) => void | Promise<void>;
+    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">) => void | Promise<void>;
     createButtonLabel?: string;
     selectedRoles?: number[];
     selectedTiers?: number[];
@@ -39,57 +36,20 @@ export default function AccountToolbar({
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const { toast } = useToast();
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
     const handleSearchChange = externalOnSearchChange || setInternalSearchTerm;
 
     const handleCreateAccount = async (
-        data: CreateAccountFormData
+        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
     ) => {
-        try {
-            // Transform phone number to international format if it starts with 0
-            let phoneNumber = data.PhoneNumber;
-            if (phoneNumber.startsWith('0')) {
-                // Remove leading 0 and prepend +84
-                phoneNumber = '+84' + phoneNumber.substring(1);
-            }
-
-            // Call the register API directly
-            const registerData = {
-                UserName: data.UserName,
-                Email: data.Email,
-                PhoneNumber: phoneNumber,
-                Password: data.Password,
-                Birthday: data.Birthday,
-                ImageURL: data.ImageURL || undefined,
-                RoleID: data.RoleID || undefined,
-            };
-
-            await signUp(registerData);
-
-            // If there's a parent handler, call it too (for the page to handle)
-            if (onCreateAccount) {
-                await onCreateAccount(data);
-            }
-
-            toast({
-                title: "Success",
-                description: "Account created successfully!",
-            });
-        } catch (error: unknown) {
-            console.error("Error creating account:", error);
-
-            // Extract specific error message from API response
-            const errorMessage = (error as any)?.response?.data?.message || "Failed to create account. Please try again.";
-
-            toast({
-                title: "Error",
-                description: errorMessage,
-                variant: "destructive",
-            });
-            throw error; // Re-throw to let the modal handle the error state
+        if (onCreateAccount) {
+            await onCreateAccount(data);
+        } else {
+            console.log("Creating account:", data);
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            alert("Account created successfully!");
         }
     };
 
