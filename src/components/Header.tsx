@@ -36,7 +36,9 @@ export function Header() {
   const [searchText, setSearchText] = useState("");
 
   const [parentCategories, setParentCategories] = useState<Category[]>([]);
-  const [childrenCategories, setChildrenCategories] = useState<Category[]>([]);
+  const [childrenCategories, setChildrenCategories] = useState<
+    Record<number, Category[]>
+  >({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
