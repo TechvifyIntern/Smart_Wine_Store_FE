@@ -30,9 +30,6 @@ export default function ProductCategoriesTable({
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Description
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
-                                Parent Category
-                            </th>
                             <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
                                 Products
                             </th>

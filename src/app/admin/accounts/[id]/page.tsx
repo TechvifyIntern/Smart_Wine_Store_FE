@@ -5,14 +5,14 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, UserCog, Edit, Save, UserX } from "lucide-react";
-import accounts from "@/data/accounts";
 import { User, Mail, Phone, Calendar, MapPin, Award, Coins, Shield } from "lucide-react";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { useToast } from "@/hooks/use-toast";
+import userManagementRepository from "@/api/userManagementRepository";
+import { api } from "@/services/api";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -44,17 +44,20 @@ export default function AccountDetailPage() {
     const accountId = parseInt(params.id as string);
     const { toast } = useToast();
 
-    const account = accounts.find((a) => a.UserID === accountId);
+    // State management for account data
+    const [account, setAccount] = useState<Account | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // State management - start in edit mode if edit=true in URL
     const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
     const [showSaveDialog, setShowSaveDialog] = useState(false);
-    const [showInactiveDialog, setShowInactiveDialog] = useState(false);
+    const [showStatusDialog, setShowStatusDialog] = useState(false);
+    const [actionReason, setActionReason] = useState('');
 
     // Form management
     const {
         register,
-        handleSubmit,
         formState: { errors, isSubmitting },
         reset,
         setValue,
@@ -66,8 +69,25 @@ export default function AccountDetailPage() {
 
     // Watch form values
     const roleID = watch("RoleID");
-    const tierID = watch("TierID");
-    const statusID = watch("StatusID");
+
+    // Fetch account data on component mount
+    useEffect(() => {
+        const fetchAccount = async () => {
+            try {
+                setLoading(true);
+                const accountData = await userManagementRepository.getUserById(accountId);
+                setAccount(accountData);
+                setError(null);
+            } catch (err) {
+                console.error("Error fetching account:", err);
+                setError(err instanceof Error ? err.message : "Failed to load account data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAccount();
+    }, [accountId]);
 
     // Initialize form when account changes or edit mode toggles
     useEffect(() => {
@@ -150,28 +170,53 @@ export default function AccountDetailPage() {
         setShowSaveDialog(false);
     };
 
-    const handleInactiveClick = () => {
-        setShowInactiveDialog(true);
+    const isActive = account?.StatusID === 1;
+    const targetStatus = isActive ? 2 : 1; // If active (1), set to inactive (2); if inactive, set to active (1)
+    const actionText = isActive ? 'inactive' : 'active';
+
+    const handleStatusChangeClick = () => {
+        setShowStatusDialog(true);
     };
 
-    const handleInactiveConfirm = () => {
+    const handleStatusChangeConfirm = async () => {
         if (!account) return;
 
-        // In a real app, this would be an API call to activate the account
-        console.log("Activating account:", account.UserID);
-        account.StatusID = 1; // Active
-        account.StatusName = "Active";
+        try {
+            // Call API to update status
+            const response = await api.put(`/user-management/${account.UserID}/status`, {
+                StatusID: targetStatus,
+                Reason: actionReason
+            });
 
-        setShowInactiveDialog(false);
+            // Update local state
+            account.StatusID = targetStatus;
+            account.StatusName = targetStatus === 1 ? "Active" : "Banned";
 
-        toast({
-            title: "Account Activated",
-            description: `The account ${account.UserName} has been successfully activated.`,
-        });
+            setShowStatusDialog(false);
+            setActionReason('');
+
+            toast({
+                title: `Account ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}d Successfully`,
+                description: `The account ${account.UserName} has been successfully ${actionText}d.`,
+            });
+
+            // Refetch account data to ensure consistency
+            const updatedAccount = await userManagementRepository.getUserById(accountId);
+            setAccount(updatedAccount);
+
+        } catch (error) {
+            console.error("Error updating account status:", error);
+            toast({
+                title: `Failed to ${actionText} account`,
+                description: error instanceof Error ? error.message : `An error occurred while trying to ${actionText} the account.`,
+                variant: "destructive",
+            });
+        }
     };
 
-    const handleInactiveCancel = () => {
-        setShowInactiveDialog(false);
+    const handleStatusChangeCancel = () => {
+        setShowStatusDialog(false);
+        setActionReason('');
     };
 
     const handleCancelEdit = () => {
@@ -179,6 +224,46 @@ export default function AccountDetailPage() {
         reset();
     };
 
+    // Handle loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-8 h-8 border-4 border-[#ad8d5e] border-t-transparent rounded-full animate-spin mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading account data...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Handle error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Account</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <div className="flex gap-4 justify-center">
+                        <button
+                            onClick={() => router.back()}
+                            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        >
+                            <ArrowLeft className="w-4 h-4 mr-2" />
+                            Back to Accounts
+                        </button>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Handle account not found
     if (!account) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -298,12 +383,21 @@ export default function AccountDetailPage() {
                                 </Button>
                             )}
                             <Button
-                                onClick={handleInactiveClick}
+                                onClick={handleStatusChangeClick}
                                 disabled={isSubmitting || isEditing}
-                                className="bg-red-600 hover:bg-red-700 text-white"
+                                className={isActive ? "bg-red-600 hover:bg-red-700 text-white" : "bg-green-600 hover:bg-green-700 text-white"}
                             >
-                                <UserX className="w-4 h-4 mr-2" />
-                                Inactive
+                                {isActive ? (
+                                    <>
+                                        <UserX className="w-4 h-4 mr-2" />
+                                        Inactive
+                                    </>
+                                ) : (
+                                    <>
+                                        <Shield className="w-4 h-4 mr-2" />
+                                        Active
+                                    </>
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -472,7 +566,7 @@ export default function AccountDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Current Points</p>
-                                        <p className="font-bold text-green-600 dark:text-green-400 text-lg">{account.Point.toLocaleString()}</p>
+                                        <p className="font-bold text-green-600 dark:text-green-400 text-lg">{(account.Point ?? 0).toLocaleString()}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -481,7 +575,7 @@ export default function AccountDetailPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Min Points Required</p>
-                                        <p className="font-medium text-gray-900 dark:text-slate-100">{account.MinimumPoint.toLocaleString()}</p>
+                                        <p className="font-medium text-gray-900 dark:text-slate-100">{account.MinimumPoint?.toLocaleString() || '0'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -520,7 +614,7 @@ export default function AccountDetailPage() {
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{account.StreetAddress}</p>
+                                            <p className="font-medium text-gray-900 dark:text-slate-100">{account.StreetAddress || 'Not provided'}</p>
                                         )}
                                     </div>
                                 </div>
@@ -540,7 +634,7 @@ export default function AccountDetailPage() {
                                                     )}
                                                 </div>
                                             ) : (
-                                                <p className="font-medium text-gray-900 dark:text-slate-100">{account.Ward}</p>
+                                                <p className="font-medium text-gray-900 dark:text-slate-100">{account.Ward || 'Not provided'}</p>
                                             )}
                                         </div>
                                     </div>
@@ -559,7 +653,7 @@ export default function AccountDetailPage() {
                                                     )}
                                                 </div>
                                             ) : (
-                                                <p className="font-medium text-gray-900 dark:text-slate-100">{account.Province}</p>
+                                                <p className="font-medium text-gray-900 dark:text-slate-100">{account.Province || 'Not provided'}</p>
                                             )}
                                         </div>
                                     </div>
@@ -599,29 +693,44 @@ export default function AccountDetailPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Inactive Confirmation Dialog */}
-            <AlertDialog open={showInactiveDialog} onOpenChange={setShowInactiveDialog}>
+            {/* Status Change Confirmation Dialog */}
+            <AlertDialog open={showStatusDialog} onOpenChange={setShowStatusDialog}>
                 <AlertDialogContent className="bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-gray-900 dark:text-slate-100">
-                            Inactive người dùng
+                            {isActive ? 'Inactive người dùng' : 'Active người dùng'}
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-600 dark:text-slate-400">
-                            Bạn có muốn inactive người dùng <strong className="text-gray-900 dark:text-slate-100">{account?.UserName}</strong> không?
+                        <AlertDialogDescription className="text-gray-600 dark:text-slate-400 mb-4">
+                            Bạn có muốn {actionText} người dùng <strong className="text-gray-900 dark:text-slate-100">{account?.UserName}</strong> không?
                         </AlertDialogDescription>
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="reason" className="block text-sm font-medium text-gray-700 dark:text-slate-200 mb-2">
+                                    Lý do {actionText}
+                                </label>
+                                <Input
+                                    id="reason"
+                                    value={actionReason}
+                                    onChange={(e) => setActionReason(e.target.value)}
+                                    placeholder={`Nhập lý do ${actionText} tài khoản...`}
+                                    className="w-full bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500"
+                                />
+                            </div>
+                        </div>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={handleInactiveCancel}
+                            onClick={handleStatusChangeCancel}
                             className="bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-slate-100 hover:bg-gray-200 dark:hover:bg-slate-600"
                         >
                             Huỷ
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={handleInactiveConfirm}
-                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={handleStatusChangeConfirm}
+                            disabled={!actionReason.trim() || isSubmitting}
+                            className={isActive ? "bg-red-600 hover:bg-red-700 text-white disabled:opacity-50" : "bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"}
                         >
-                            Đồng ý
+                            {isSubmitting ? "Đang xử lý..." : (isActive ? "Inactive" : "Active")}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

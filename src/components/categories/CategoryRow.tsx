@@ -35,11 +35,6 @@ export default function CategoryRow({
                     {category.Description}
                 </div>
             </td>
-            <td className="px-6 py-4 whitespace-nowrap">
-                <div className="dark:text-slate-400 text-sm">
-                    {category.ParentCategoryName || "-"}
-                </div>
-            </td>
             <td className="px-6 py-4 whitespace-nowrap text-center">
                 <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
                     {category.ProductCount}
