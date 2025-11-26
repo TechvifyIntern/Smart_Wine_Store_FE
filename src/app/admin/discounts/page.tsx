@@ -13,6 +13,7 @@ import {
     Eye,
 } from "lucide-react";
 import { promotions, getStatusColor, getDiscountBadgeColor } from "../../../data/promotion";
+import { formatCurrency } from "@/lib/utils";
 
 export default function PromotionsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -154,7 +155,7 @@ export default function PromotionsPage() {
                                             {promo.discountType === "Percentage"
                                                 ? `${promo.discountValue}% OFF`
                                                 : promo.discountType === "Fixed Amount"
-                                                    ? `${promo.discountValue} VND OFF`
+                                                    ? `${formatCurrency(promo.discountValue)} OFF`
                                                     : promo.discountType}
                                         </span>
                                     </td>

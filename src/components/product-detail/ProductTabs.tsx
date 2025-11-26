@@ -1,5 +1,6 @@
 "use client";
-import type { Product } from "@/types/product";
+import { formatCurrency } from "@/lib/utils";
+import type { Product } from "@/types/product-detail";
 
 interface ProductTabsProps {
   product: Product;
@@ -38,12 +39,12 @@ export function ProductTabs({ product }: ProductTabsProps) {
         <h4 className="font-semibold mb-2 text-xl z">Shipping</h4>
         <ul className="list-disc pl-5 space-y-2 ml-6">
           <li>
-            <strong>Standard Shipping:</strong> Cost: 200.000 VND, Estimated
-            Delivery: 5 business days
+            <strong>Standard Shipping:</strong> Cost: {formatCurrency(200000)},
+            Estimated Delivery: 5 business days
           </li>
           <li>
-            <strong>Express Shipping:</strong> Cost: 400.000 VND, Estimated
-            Delivery: 2-3 business days
+            <strong>Express Shipping:</strong> Cost: {formatCurrency(400000)},
+            Estimated Delivery: 2-3 business days
           </li>
         </ul>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Review } from "@/types/product";
+import type { Review } from "@/types/product-detail";
 import { ThumbsUp } from "lucide-react";
 
 interface ProductReviewsProps {

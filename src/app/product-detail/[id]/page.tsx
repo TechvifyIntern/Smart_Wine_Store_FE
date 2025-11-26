@@ -1,8 +1,8 @@
-import { ProductImage } from "@/components/product/ProductImage";
-import { ProductInfo } from "@/components/product/ProductInfo";
-import { ProductTabs } from "@/components/product/ProductTabs";
-import { getProductById } from "@/services/product/api";
-import { Product } from "@/types/product";
+import { ProductImage } from "@/components/product-detail/ProductImage";
+import { ProductInfo } from "@/components/product-detail/ProductInfo";
+import { ProductTabs } from "@/components/product-detail/ProductTabs";
+import { getProductById } from "@/services/product-detail/api";
+import { Product } from "@/types/product-detail";
 import { ApiResponse } from "@/types/responses";
 
 export default async function Page(props: { params: Promise<{ id: string }> }) {

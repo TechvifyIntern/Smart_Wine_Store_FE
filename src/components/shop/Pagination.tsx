@@ -67,11 +67,14 @@ const ShopPagination: React.FC<PaginationProps> = ({
       <PaginationContent>
         <PaginationItem>
           <PaginationPrevious
-            href="#"
+            // href="#"
             onClick={(e) => {
               e.preventDefault();
               handlePrev();
             }}
+            className={
+              currentPage === 1 ? "opacity-50 pointer-events-none" : ""
+            }
             /* The component doesn't expose disable prop, but we can style */
           />
         </PaginationItem>
@@ -84,7 +87,7 @@ const ShopPagination: React.FC<PaginationProps> = ({
           ) : (
             <PaginationItem key={index}>
               <PaginationLink
-                href="#"
+                // href="#"
                 isActive={page === currentPage}
                 onClick={(e) => {
                   e.preventDefault();
@@ -102,11 +105,14 @@ const ShopPagination: React.FC<PaginationProps> = ({
 
         <PaginationItem>
           <PaginationNext
-            href="#"
+            // href="#"
             onClick={(e) => {
               e.preventDefault();
               handleNext();
             }}
+            className={
+              currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
+            }
           />
         </PaginationItem>
       </PaginationContent>

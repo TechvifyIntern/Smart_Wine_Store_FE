@@ -4,12 +4,13 @@ import React from "react";
 import { ShoppingCart } from "lucide-react";
 import { Button } from "../ui/button";
 import { useCartStore } from "@/store/cart";
-import Link from "next/link";
-import { Product } from "@/types/product";
 import { toast } from "sonner";
+import { Products } from "@/types/products";
+import Link from "next/link";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
-  product: Product;
+  product: Products;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
@@ -17,7 +18,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1);
+    addToCart(product.ProductID, 1);
     toast.success(`${product.ProductName} has been added to your cart.`);
   };
   return (
@@ -37,42 +38,33 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       "
     >
       {/* LINK CHỈ BAO QUANH PHẦN HIỂN THỊ */}
-      <Link href={`/product/${product.ProductID}`} className="block">
+      <Link href={`/product-detail/${product.ProductID}`} className="block">
         <img
           src={product.ImageURL || "/placeholder-image.jpg"}
           alt={product.ProductName}
-          className="mx-auto w-full h-64 object-cover rounded-xl"
+          className="mx-auto h-80 object-cover rounded-xl"
         />
 
         <h5 className="mt-3 font-medium tracking-wide text-xl dark:text-white">
           {product.ProductName}
         </h5>
 
-        <p className="text-sm dark:text-gray-200 opacity-90">
-          {product.Product_Detail?.Producer}
-        </p>
-
         <p className="text-xs dark:text-gray-300 opacity-80 mb-2">
-          {product.Product_Detail?.Origin} • {product.Product_Detail?.Size}ml •{" "}
-          {product.Product_Detail?.ABV}% ABV
+          {product.Size | NaN}ml • {product.ABV | NaN}% ABV
         </p>
 
         <div className="flex items-center justify-between">
           <div>
             <span className="font-bold text-lg dark:text-white">
-              {Number(product.SalePrice).toFixed(2)} VND
+              {formatCurrency(product.SalePrice)}
             </span>
             {Number(product.CostPrice) < Number(product.SalePrice) && (
               <span className="line-through text-sm dark:text-gray-500 ml-2">
-                {Number(product.CostPrice).toFixed(2)} VND
+                {formatCurrency(product.CostPrice)}
               </span>
             )}
           </div>
         </div>
-
-        <p className="mt-2 text-xs dark:text-gray-200 line-clamp-2 flex-1">
-          {product.Product_Detail?.DescriptionTitle}
-        </p>
       </Link>
 
       {/* BUTTON ADD TO CART TÁCH RIÊNG → KHÔNG GÂY HYDRATION ERROR */}

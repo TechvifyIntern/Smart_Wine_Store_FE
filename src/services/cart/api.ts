@@ -1,6 +1,6 @@
 import { api } from "@/services/api";
 
-export const addItemToCart = async (productId: number, quantity: number) => {
+export const addToCart = async (productId: number, quantity: number) => {
   try {
     const response = await api.post("/cart/items", {
       ProductID: productId,
@@ -8,7 +8,7 @@ export const addItemToCart = async (productId: number, quantity: number) => {
     });
     return response.data;
   } catch (error) {
-    console.error("API Error - addItemToCart:", error);
+    console.error("API Error - addToCart:", error);
     throw error;
   }
 };
@@ -23,7 +23,10 @@ export const getCartItems = async () => {
   }
 };
 
-export const updateCartItemQuantity = async (productId: number, quantity: number) => {
+export const updateCartItemQuantity = async (
+  productId: number,
+  quantity: number
+) => {
   try {
     const response = await api.put(`/cart/items/${productId}`, {
       Quantity: quantity,

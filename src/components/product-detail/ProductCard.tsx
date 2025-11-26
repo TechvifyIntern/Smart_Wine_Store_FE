@@ -1,10 +1,11 @@
 "use client";
 
-import type { Product } from "@/types/product";
+import type { Product } from "@/types/product-detail";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
+import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
   product: Product;
@@ -13,7 +14,7 @@ interface ProductCardProps {
 export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCartStore();
   const handleAddToCart = () => {
-    addToCart(product, 1);
+    addToCart(product.ProductID, 1);
     toast.success("Added to cart!");
   };
 
@@ -39,15 +40,15 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
       <h3 className="font-semibold mb-2">{product.ProductName}</h3>
       <p className="text-sm text-muted-foreground mb-3">
-        {product.Product_Detail?.Producer}
+        {product.detail?.Producer}
       </p>{" "}
       <div className="flex items-center justify-between">
         <span className="text-xl font-bold">
-          {product.SalePrice.toFixed(2)} VND
+          {formatCurrency(product.SalePrice)}
         </span>
         {Number(product.CostPrice) > product.SalePrice && (
           <span className="line-through text-sm text-muted-foreground ml-2">
-            {Number(product.CostPrice).toLocaleString("vi-VN")} VND
+            {formatCurrency(product.CostPrice)}
           </span>
         )}
         <Button

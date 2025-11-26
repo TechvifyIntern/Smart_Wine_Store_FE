@@ -1,22 +1,21 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-import { Product } from "@/types/product";
 import { CartItem } from "@/types/cart";
 import {
-  addItemToCart,
+  addToCart,
   updateCartItemQuantity,
   removeCartItem,
   getCartItems,
 } from "@/services/cart/api";
 import { useAppStore } from "@/store/auth"; // Import useAppStore
 import { toast } from "@/hooks/use-toast"; // Import toast
+import { persist } from "zustand/middleware";
 
 // Define the state shape
 interface CartState {
   items: CartItem[];
   isUpdating: boolean;
   setItems: (items: CartItem[]) => void;
-  addToCart: (product: Product, quantity: number) => Promise<void>;
+  addToCart: (productId: number, quantity: number) => Promise<void>;
   removeFromCart: (productId: number) => Promise<void>;
   updateQuantity: (productId: number, quantity: number) => Promise<void>;
   clearCart: () => void;
@@ -25,11 +24,11 @@ interface CartState {
 // Create the store
 export const useCartStore = create<CartState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       items: [],
       isUpdating: false,
       setItems: (items) => set({ items }),
-      addToCart: async (product, quantity) => {
+      addToCart: async (productId, quantity) => {
         const { user } = useAppStore.getState();
         if (!user) {
           toast({
@@ -43,19 +42,18 @@ export const useCartStore = create<CartState>()(
         set({ isUpdating: true });
 
         try {
-          // Make the API call to add item to cart
-          await addItemToCart(product.ProductID, quantity);
+          // Make the API call to add item to cart first
+          await addToCart(productId, quantity);
 
-          // After successful modification, refetch the entire cart
+          // After successful addition, refetch the entire cart
           const cartResponse = await getCartItems();
           if (cartResponse.success) {
-            set({ items: cartResponse.data.items }); // Update local state with refetched data
+            set({ items: cartResponse.data.items });
             toast({
               title: "Item added to cart",
-              description: `${product.ProductName} has been added to your cart.`,
+              description: `Product has been added to your cart.`,
             });
           } else {
-            // Handle error during refetch
             toast({
               title: "Error",
               description:
@@ -149,7 +147,7 @@ export const useCartStore = create<CartState>()(
       },
     }),
     {
-      name: "cart-storage", // unique name for the storage
+      name: "cart-storage",
     }
   )
 );

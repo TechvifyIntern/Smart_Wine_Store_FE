@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { formatCurrency } from "@/lib/utils";
 import { Cart } from "@/types/cart";
 import { useState } from "react";
 
@@ -29,20 +30,20 @@ export default function CartSummary({
       <div className="p-6">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${cart.subtotal.toFixed(2)} VND</span>
+          <span>{formatCurrency(cart.subtotal)}</span>
         </div>
         <div className="mt-4 flex justify-between">
           <span>Discount</span>
-          <span>-${cart.discount.toFixed(2)} VND</span>
+          <span>-{formatCurrency(cart.discount)}</span>
         </div>
         <div className="mt-4 flex justify-between">
           <span>Tax</span>
-          <span>${cart.tax.toFixed(2)} VND</span>
+          <span>{formatCurrency(cart.tax)}</span>
         </div>
         <Separator className="my-4" />
         <div className="flex justify-between font-semibold">
           <span>Total</span>
-          <span>${cart.total.toFixed(2)} VND</span>
+          <span>{formatCurrency(cart.total)}</span>
         </div>
       </div>
       <div className="p-6">

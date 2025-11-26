@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import { formatCurrency } from "@/lib/utils";
 import { CartItem as CartItemType } from "@/types/cart";
 import { X } from "lucide-react";
 import Link from "next/link";
@@ -15,11 +16,15 @@ export default function CartItem({
   updateQuantity,
   removeItem,
 }: CartItemProps) {
+  const price =
+    Number(item.product.SalePrice) < Number(item.product.CostPrice)
+      ? item.product.SalePrice
+      : item.product.CostPrice;
   return (
     <TableRow>
       <TableCell className="font-medium">
         <Link
-          href={`/product/${item.product.ProductID}`}
+          href={`/product-detail/${item.product.ProductID}`}
           className="flex items-center gap-4"
         >
           <img
@@ -32,7 +37,7 @@ export default function CartItem({
           <span>{item.product.ProductName}</span>
         </Link>
       </TableCell>
-      <TableCell>${item.product.SalePrice.toFixed(2)} VND</TableCell>
+      <TableCell>{formatCurrency(price)}</TableCell>
       <TableCell>
         <div className="flex items-center">
           <button
@@ -52,8 +57,7 @@ export default function CartItem({
             value={item.Quantity === 0 ? "" : item.Quantity}
             onChange={(e) => {
               const rawValue = e.target.value.replace(/\D/g, "");
-              const newQuantity =
-                rawValue === "" ? 0 : parseInt(rawValue, 10);
+              const newQuantity = rawValue === "" ? 0 : parseInt(rawValue, 10);
               updateQuantity(item.ProductID, newQuantity);
             }}
             onBlur={() => {
@@ -72,10 +76,14 @@ export default function CartItem({
         </div>
       </TableCell>
       <TableCell>
-        ${(item.product.SalePrice * item.Quantity).toFixed(2)} VND
+        {formatCurrency(item.product.SalePrice * item.Quantity)}
       </TableCell>
       <TableCell>
-        <Button variant="ghost" size="icon" onClick={() => removeItem(item.ProductID)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => removeItem(item.ProductID)}
+        >
           <X />
         </Button>
       </TableCell>

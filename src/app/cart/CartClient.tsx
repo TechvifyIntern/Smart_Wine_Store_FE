@@ -13,6 +13,7 @@ import CartSummary from "@/components/cart/CartSummary";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const TAX_RATE = 0.1; // 10% tax
 
@@ -25,6 +26,8 @@ export default function CartClient() {
     clearCart: clearStoreCart,
   } = useCartStore();
   const [discount, setDiscount] = useState(0);
+
+  const router = useRouter();
 
   const subtotal = items.reduce(
     (acc, item) => acc + item.product.SalePrice * item.Quantity,
@@ -78,10 +81,7 @@ export default function CartClient() {
   };
 
   const handleCheckout = () => {
-    // In a real app, this would initiate the checkout process
-    console.log("Proceeding to checkout with cart:", cart);
-    toast.info("Initiating checkout...");
-    // You would typically navigate to a checkout page or start a payment flow here
+    router.push("/checkout");
   };
 
   return (
@@ -95,24 +95,18 @@ export default function CartClient() {
       </div>
       <div className="mt-8 lg:flex lg:gap-8">
         <div className="lg:w-8/12 rounded-lg border bg-card text-card-foreground shadow-sm max-h-[500px]">
-          {/* HEADER STICKY */}
-          <div className="sticky top-0 z-20 bg-card border-b">
+          {/* BODY SCROLL */}
+          <div className="overflow-y-auto max-h-[450px] scrollbar-hide">
             <Table>
-              <TableHeader>
+              <TableHeader className="sticky top-0 z-20 bg-card border-b">
                 <TableRow>
-                  <TableHead className="w-[40%]">Product</TableHead>
-                  <TableHead className="w-[14%]">Price</TableHead>
-                  <TableHead className="w-[25%]">Quantity</TableHead>
+                  <TableHead className="w-[50%]">Product</TableHead>
+                  <TableHead className="w-[12%]">Price</TableHead>
+                  <TableHead className="w-[20%]">Quantity</TableHead>
                   <TableHead className="w-[10%]">Total</TableHead>
                   <TableHead>Action</TableHead>
                 </TableRow>
               </TableHeader>
-            </Table>
-          </div>
-
-          {/* BODY SCROLL */}
-          <div className="overflow-y-auto max-h-[450px] scrollbar-hide">
-            <Table>
               <TableBody>
                 {cart.items.map((item) => (
                   <CartItem
