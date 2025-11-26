@@ -24,8 +24,8 @@ const decodeToken = (token: string): User | null => {
     const decodedToken = jwtDecode(token);
     return {
       id: decodedToken.sub,
-      email: decodedToken.email,
-      roleId: decodedToken.roleId,
+      email: (decodedToken as any).email,
+      roleId: (decodedToken as any).roleId,
     };
   } catch (e) {
     console.error("Failed to decode token", e);
