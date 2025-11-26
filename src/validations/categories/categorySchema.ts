@@ -9,7 +9,6 @@ export const categorySchema = z.object({
         .string()
         .min(1, "Description is required")
         .max(500, "Description must be less than 500 characters"),
-    ParentCategoryID: z.number().nullable().optional(),
 });
 
 export type CategoryFormData = z.infer<typeof categorySchema>;

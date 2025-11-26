@@ -3,7 +3,9 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { UserCog } from "lucide-react";
-import accounts, { Account } from "@/data/accounts";
+import { useQueries } from "@tanstack/react-query";
+import { Account } from "@/data/accounts";
+import userManagementRepository from "@/api/userManagementRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import AccountTable from "@/components/accounts/AccountTable";
 import Pagination from "@/components/admin/pagination/Pagination";
@@ -22,20 +24,70 @@ export default function AccountsPage() {
     const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
     const [selectedTiers, setSelectedTiers] = useState<number[]>([]);
     const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-    // Filter accounts based on search term and filters (UserName or Email, RoleID, TierID, StatusID)
+    // Debounce search term for API calls (removed timeout, use direct state change)
+    useMemo(() => {
+        // No delay needed since we have debouncing in SearchBar
+        setDebouncedSearchTerm(searchTerm);
+        setCurrentPage(1);
+    }, [searchTerm]);
+
+    // Fetch accounts with React Query using useQueries
+    const queries = useQueries({
+        queries: [
+            {
+                queryKey: ["accounts"],
+                queryFn: async () => {
+                    try {
+                        const accountsResponse = await userManagementRepository.getUsers();
+                        return accountsResponse?.length > 0 ? accountsResponse : [];
+                    } catch (err) {
+                        console.error("Error fetching accounts:", err);
+                        return [];
+                    }
+                },
+                staleTime: 1000 * 60 * 5, // 5 minutes
+                gcTime: 1000 * 60 * 10, // 10 minutes
+                retry: 1,
+                enabled: !debouncedSearchTerm.trim(), // Only enabled if no search
+            },
+            {
+                queryKey: ["accounts", "search", debouncedSearchTerm],
+                queryFn: async () => {
+                    try {
+                        const searchResponse = await userManagementRepository.searchUsers(debouncedSearchTerm.trim());
+                        return searchResponse.data?.data || [];
+                    } catch (err) {
+                        console.error("Error searching accounts:", err);
+                        return [];
+                    }
+                },
+                staleTime: 1000 * 60 * 5,
+                gcTime: 1000 * 60 * 10,
+                retry: 1,
+                enabled: !!debouncedSearchTerm.trim(), // Only enabled if search term exists
+            },
+        ],
+    });
+
+    const [allAccountsQuery, searchQuery] = queries;
+    const isLoading = allAccountsQuery.isLoading || searchQuery.isLoading;
+    const error = allAccountsQuery.error || searchQuery.error;
+
+    // Determine the base data source
+    const dataSource = useMemo(() => {
+        const data = debouncedSearchTerm.trim() ? searchQuery.data : allAccountsQuery.data;
+        return Array.isArray(data) ? data : [];
+    }, [debouncedSearchTerm, searchQuery.data, allAccountsQuery.data]);
+
+    // Filter accounts based on filters (RoleID, TierID, StatusID)
     const filteredAccounts = useMemo(() => {
-        let filtered = accounts;
-
-        // Apply search term filter
-        if (searchTerm.trim()) {
-            const lowerSearchTerm = searchTerm.toLowerCase().trim();
-            filtered = filtered.filter(
-                (account) =>
-                    account.UserName.toLowerCase().includes(lowerSearchTerm) ||
-                    account.Email.toLowerCase().includes(lowerSearchTerm)
-            );
+        if (!Array.isArray(dataSource)) {
+            return [];
         }
+
+        let filtered = dataSource;
 
         // Apply role filter
         if (selectedRoles.length > 0) {
@@ -53,20 +105,32 @@ export default function AccountsPage() {
         }
 
         return filtered;
-    }, [searchTerm, selectedRoles, selectedTiers, selectedStatuses]);
+    }, [dataSource, selectedRoles, selectedTiers, selectedStatuses]);
 
     // Calculate pagination
-    const totalPages = Math.ceil(filteredAccounts.length / itemsPerPage);
+    const safeFilteredAccounts = Array.isArray(filteredAccounts) ? filteredAccounts : [];
+    const totalPages = Math.ceil(safeFilteredAccounts.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    const currentAccounts = filteredAccounts.slice(startIndex, endIndex);
+    const currentAccounts = safeFilteredAccounts.slice(startIndex, endIndex);
 
     // Action handlers
-    const handleView = (id: number) => {
-        const account = accounts.find((a) => a.UserID === id);
-        if (account) {
-            setSelectedAccount(account);
-            setIsDetailModalOpen(true);
+    const handleView = async (id: number) => {
+        try {
+            const response = await userManagementRepository.getUserById(id);
+            const accountData = response?.data;
+            if (accountData) {
+                setSelectedAccount(accountData);
+                setIsDetailModalOpen(true);
+            }
+        } catch (error) {
+            console.error("Error fetching account details:", error);
+            // Fallback to local data if API fails
+            const account = safeFilteredAccounts.find((a) => a.UserID === id);
+            if (account) {
+                setSelectedAccount(account);
+                setIsDetailModalOpen(true);
+            }
         }
     };
 
@@ -74,23 +138,21 @@ export default function AccountsPage() {
         router.push(`/admin/accounts/${id}?edit=true`);
     };
 
-    const handleStatusChange = (id: number, newStatusID: number) => {
-        console.log(`Changing status for account ${id} to ${newStatusID}`);
-        // TODO: Implement API call to update account status
-        // Example:
-        // await fetch(`/api/accounts/${id}/status`, {
-        //   method: 'PATCH',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({ StatusID: newStatusID }),
-        // });
-
-        const statusNames = ["Active", "Banned", "Pending"];
-        alert(`Account status updated to ${statusNames[newStatusID - 1]}!`);
+    const handleStatusChange = async (id: number, newStatusID: number) => {
+        try {
+            await userManagementRepository.updateUserStatus(id, newStatusID);
+            alert(`Account status updated to ${statusNames[newStatusID - 1]}!`);
+            // Refetch accounts to show updated status
+            allAccountsQuery.refetch();
+            searchQuery.refetch();
+        } catch (error) {
+            console.error("Error updating account status:", error);
+            alert("Failed to update account status. Please try again.");
+        }
     };
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        setCurrentPage(1); // Reset to first page when searching
     };
 
     const handleItemsPerPageChange = (items: number) => {
@@ -102,22 +164,17 @@ export default function AccountsPage() {
         setSelectedRoles(filters.roles);
         setSelectedTiers(filters.tiers);
         setSelectedStatuses(filters.statuses);
-        setCurrentPage(1); // Reset to first page when filtering
+        setCurrentPage(1);
     };
 
     const handleCreateAccount = async (
-        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
+        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName"> | CreateAccountFormData
     ) => {
         console.log("Creating new account:", data);
-        // TODO: Implement API call to create account
-        // Example:
-        // await fetch('/api/accounts', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
         alert("Account created successfully!");
+        // Invalidate and refetch accounts to show the new account
+        allAccountsQuery.refetch();
+        searchQuery.refetch();
     };
 
     const handleUpdateAccount = async (
@@ -125,14 +182,6 @@ export default function AccountsPage() {
         data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "Point" | "StatusName" | "StreetAddress" | "Ward" | "Province">
     ) => {
         console.log(`Updating account ${id}:`, data);
-        // TODO: Implement API call to update account
-        // Example:
-        // await fetch(`/api/accounts/${id}`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
         alert(`Account ${id} updated successfully!`);
     };
 
@@ -157,28 +206,47 @@ export default function AccountsPage() {
                 onApplyFilters={handleApplyFilters}
             />
 
-            {/* Accounts Table */}
-            <AccountTable
-                accounts={currentAccounts}
-                onView={handleView}
-                onEdit={handleEdit}
-                onStatusChange={handleStatusChange}
-                emptyMessage={
-                    searchTerm || selectedRoles.length > 0 || selectedTiers.length > 0 || selectedStatuses.length > 0
-                        ? "No accounts found matching your search and filters"
-                        : "No accounts found"
-                }
-            />
+            {/* Content area */}
+            <div className="space-y-4">
+                {/* Loading state */}
+                {isLoading ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="text-lg text-gray-600">Loading accounts...</div>
+                    </div>
+                ) : error ? (
+                    <div className="flex justify-center items-center h-64">
+                        <div className="text-center">
+                            <div className="text-lg text-red-600 mb-4">Error loading accounts</div>
+                            <div className="text-sm text-gray-600 mb-4">Please try again later</div>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Accounts Table */}
+                        <AccountTable
+                            accounts={currentAccounts}
+                            onView={handleView}
+                            onEdit={handleEdit}
+                            onStatusChange={handleStatusChange}
+                            emptyMessage={
+                                searchTerm || selectedRoles.length > 0 || selectedTiers.length > 0 || selectedStatuses.length > 0
+                                    ? "No accounts found matching your search and filters"
+                                    : "No accounts found"
+                            }
+                        />
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredAccounts.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={handleItemsPerPageChange}
-            />
+                        {/* Pagination */}
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            totalItems={safeFilteredAccounts.length}
+                            itemsPerPage={itemsPerPage}
+                            onPageChange={setCurrentPage}
+                            onItemsPerPageChange={handleItemsPerPageChange}
+                        />
+                    </>
+                )}
+            </div>
 
             {/* Account Detail Modal */}
             <AccountDetailModal

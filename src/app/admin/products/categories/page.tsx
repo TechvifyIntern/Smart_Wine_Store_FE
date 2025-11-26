@@ -1,18 +1,22 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Tag } from "lucide-react";
 import productCategories, { ProductCategory } from "@/data/product_categories";
+import categoriesRepository from "@/api/categoriesRepository";
+import { Category } from "@/types/category";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductCategoriesTable from "@/components/categories/ProductCategoriesTable";
 import Pagination from "@/components/admin/pagination/Pagination";
 import ProductCategoriesToolbar from "@/components/categories/ProductCategoriesToolbar";
 import { CreateCategory } from "@/components/categories/(modal)/CreateCategory";
 import { DeleteCategoryDialog } from "@/components/categories/(modal)/DeleteCategoryDialog";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProductCategoriesPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -20,24 +24,102 @@ export default function ProductCategoriesPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null);
     const [categoryToDelete, setCategoryToDelete] = useState<ProductCategory | null>(null);
+    const [categories, setCategories] = useState<ProductCategory[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Function to transform Category to ProductCategory
+    const transformCategory = async (category: Category): Promise<ProductCategory> => {
+        try {
+            // Get parent category name if CategoryParentID exists
+            let parentCategoryName: string | null = null;
+            if (category.CategoryParentID) {
+                try {
+                    const parentResponse = await categoriesRepository.getParentCategoryById(category.CategoryID);
+                    if (parentResponse.data) {
+                        parentCategoryName = parentResponse.data.CategoryName;
+                    }
+                } catch (err) {
+                    console.warn(`Failed to get parent category for ${category.CategoryID}`);
+                }
+            }
+
+            // Get product count for this category
+            let productCount = 0;
+            try {
+                const productsResponse = await categoriesRepository.getProductsByCategory(category.CategoryID);
+                productCount = productsResponse.data.length;
+            } catch (err) {
+                console.warn(`Failed to get product count for ${category.CategoryID}`);
+            }
+
+            return {
+                CategoryID: category.CategoryID,
+                CategoryName: category.CategoryName,
+                Description: category.Description,
+                ParentCategoryID: category.CategoryParentID,
+                ParentCategoryName: parentCategoryName,
+                ProductCount: productCount
+            };
+        } catch (error) {
+            console.error('Error transforming category:', category, error);
+            return {
+                CategoryID: category.CategoryID,
+                CategoryName: category.CategoryName,
+                Description: category.Description,
+                ParentCategoryID: category.CategoryParentID,
+                ParentCategoryName: null,
+                ProductCount: 0
+            };
+        }
+    };
+
+    // Function to fetch categories from API
+    const fetchCategories = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await categoriesRepository.getCategories();
+
+            // Transform each Category to ProductCategory
+            const transformedCategories = await Promise.all(
+                response.data.map(transformCategory)
+            );
+
+            setCategories(transformedCategories);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+            setError('Failed to load categories');
+
+            // Fallback to static data
+            setCategories(productCategories);
+            toast({
+                title: "Warning",
+                description: "Using cached categories due to API error",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Load categories on component mount
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     // Filter categories based on search term (CategoryName only)
     const filteredCategories = useMemo(() => {
         if (!searchTerm.trim()) {
-            return productCategories;
+            return categories;
         }
 
         const lowerSearchTerm = searchTerm.toLowerCase().trim();
-
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/categories/search?name=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
-
-        return productCategories.filter((category) =>
+        return categories.filter((category) =>
             category.CategoryName.toLowerCase().includes(lowerSearchTerm)
         );
-    }, [searchTerm]);
+    }, [categories, searchTerm]);
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
@@ -52,25 +134,33 @@ export default function ProductCategoriesPage() {
     };
 
     const handleDelete = (id: number) => {
-        const category = productCategories.find((c) => c.CategoryID === id);
+        const category = categories.find((c) => c.CategoryID === id);
         if (category) {
             setCategoryToDelete(category);
             setIsDeleteDialogOpen(true);
         }
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (categoryToDelete) {
-            console.log("Delete category:", categoryToDelete.CategoryID);
-            // TODO: Implement API call to delete category
-            // Example:
-            // await fetch(`/api/categories/${categoryToDelete.CategoryID}`, {
-            //   method: 'DELETE',
-            // });
-
-            alert(`Category "${categoryToDelete.CategoryName}" deleted successfully!`);
-            setIsDeleteDialogOpen(false);
-            setCategoryToDelete(null);
+            try {
+                await categoriesRepository.deleteCategory(categoryToDelete.CategoryID);
+                toast({
+                    title: "Success",
+                    description: `Category "${categoryToDelete.CategoryName}" deleted successfully!`,
+                });
+                // Refresh categories
+                await fetchCategories();
+                setIsDeleteDialogOpen(false);
+                setCategoryToDelete(null);
+            } catch (error) {
+                console.error('Failed to delete category:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to delete category. Please try again.",
+                    variant: "destructive",
+                });
+            }
         }
     };
 
@@ -85,29 +175,49 @@ export default function ProductCategoriesPage() {
     };
 
     const handleCreateCategory = async (data: Omit<ProductCategory, "CategoryID" | "ProductCount">) => {
-        console.log("Creating new category:", data);
-        // TODO: Implement API call to create category
-        // Example:
-        // await fetch('/api/categories', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
-        alert("Category created successfully!");
+        try {
+            await categoriesRepository.createCategory({
+                CategoryName: data.CategoryName,
+                Description: data.Description,
+                CategoryParentID: data.ParentCategoryID || null
+            });
+            toast({
+                title: "Success",
+                description: "Category created successfully!",
+            });
+            // Refresh categories
+            await fetchCategories();
+        } catch (error) {
+            console.error('Failed to create category:', error);
+            toast({
+                title: "Error",
+                description: "Failed to create category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleUpdateCategory = async (id: number, data: Omit<ProductCategory, "CategoryID" | "ProductCount">) => {
-        console.log(`Updating category ${id}:`, data);
-        // TODO: Implement API call to update category
-        // Example:
-        // await fetch(`/api/categories/${id}`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
-        alert(`Category ${id} updated successfully!`);
+        try {
+            await categoriesRepository.updateCategory(id, {
+                CategoryName: data.CategoryName,
+                Description: data.Description,
+                CategoryParentID: data.ParentCategoryID || null
+            });
+            toast({
+                title: "Success",
+                description: `Category ${id} updated successfully!`,
+            });
+            // Refresh categories
+            await fetchCategories();
+        } catch (error) {
+            console.error('Failed to update category:', error);
+            toast({
+                title: "Error",
+                description: "Failed to update category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     return (
@@ -127,23 +237,41 @@ export default function ProductCategoriesPage() {
                 createButtonLabel="Add Category"
             />
 
+            {/* Loading state */}
+            {loading && (
+                <div className="mt-4 p-4 text-center text-gray-500 dark:text-gray-400">
+                    Loading categories...
+                </div>
+            )}
+
+            {/* Error state */}
+            {error && !loading && (
+                <div className="mt-4 p-4 text-center text-red-500 dark:text-red-400">
+                    {error}
+                </div>
+            )}
+
             {/* Categories Table */}
-            <ProductCategoriesTable
-                categories={currentCategories}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                emptyMessage={searchTerm ? `No categories found matching "${searchTerm}"` : "No categories found"}
-            />
+            {!loading && !error && (
+                <ProductCategoriesTable
+                    categories={currentCategories}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    emptyMessage={searchTerm ? `No categories found matching "${searchTerm}"` : "No categories found"}
+                />
+            )}
 
             {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredCategories.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={handleItemsPerPageChange}
-            />
+            {!loading && !error && (
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredCategories.length}
+                    itemsPerPage={itemsPerPage}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={handleItemsPerPageChange}
+                />
+            )}
 
             {/* Edit Category Modal */}
             <CreateCategory
