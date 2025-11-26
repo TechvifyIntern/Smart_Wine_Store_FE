@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { Tag } from "lucide-react";
 import productCategories, { ProductCategory } from "@/data/product_categories";
 import PageHeader from "@/components/discount-events/PageHeader";
@@ -11,6 +12,7 @@ import { CreateCategory } from "@/components/categories/(modal)/CreateCategory";
 import { DeleteCategoryDialog } from "@/components/categories/(modal)/DeleteCategoryDialog";
 
 export default function ProductCategoriesPage() {
+    const router = useRouter();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -45,11 +47,8 @@ export default function ProductCategoriesPage() {
 
     // Action handlers
     const handleEdit = (id: number) => {
-        const category = productCategories.find((c) => c.CategoryID === id);
-        if (category) {
-            setSelectedCategory(category);
-            setIsEditModalOpen(true);
-        }
+        // Navigate to the detail page in edit mode
+        router.push(`/admin/products/categories/${id}?edit=1`);
     };
 
     const handleDelete = (id: number) => {

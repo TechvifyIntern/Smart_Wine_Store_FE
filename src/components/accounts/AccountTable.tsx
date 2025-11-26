@@ -6,7 +6,6 @@ interface AccountTableProps {
     accounts: Account[];
     onView: (id: number) => void;
     onEdit: (id: number) => void;
-    onDelete: (id: number) => void;
     onStatusChange: (id: number, newStatusID: number) => void;
     emptyMessage?: string;
 }
@@ -15,7 +14,6 @@ export default function AccountTable({
     accounts,
     onView,
     onEdit,
-    onDelete,
     onStatusChange,
     emptyMessage = "No accounts found",
 }: AccountTableProps) {
@@ -62,7 +60,6 @@ export default function AccountTable({
                                     account={account}
                                     onView={onView}
                                     onEdit={onEdit}
-                                    onDelete={onDelete}
                                     onStatusChange={onStatusChange}
                                 />
                             ))

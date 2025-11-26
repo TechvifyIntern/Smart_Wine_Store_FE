@@ -19,6 +19,9 @@ export default function EventsPage() {
     const [selectedEvent, setSelectedEvent] = useState<DiscountEvent | null>(null);
     const [selectedEventStatus, setSelectedEventStatus] = useState<string>("");
     const [eventToDelete, setEventToDelete] = useState<DiscountEvent | null>(null);
+    const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
+    const [dateFrom, setDateFrom] = useState<string>("");
+    const [dateTo, setDateTo] = useState<string>("");
 
     // Get status based on dates
     const getEventStatus = (timeStart: string, timeEnd: string) => {
@@ -41,23 +44,50 @@ export default function EventsPage() {
         });
     };
 
-    // Filter events based on search term (EventName only)
+    // Filter events based on search term and filters
     const filteredEvents = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return discountEvents;
+        let events = discountEvents;
+
+        // Search filter
+        if (searchTerm.trim()) {
+            const lowerSearchTerm = searchTerm.toLowerCase().trim();
+            events = events.filter((event) =>
+                event.EventName.toLowerCase().includes(lowerSearchTerm)
+            );
         }
 
-        const lowerSearchTerm = searchTerm.toLowerCase().trim();
+        // Status filter
+        if (selectedStatuses.length > 0) {
+            events = events.filter((event) => {
+                const status = getEventStatus(event.TimeStart, event.TimeEnd);
+                const statusId = status === "Active" ? 1 : status === "Scheduled" ? 2 : 3;
+                return selectedStatuses.includes(statusId);
+            });
+        }
 
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/discount-events/search?name=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
+        // Date range filter (on TimeStart)
+        if (dateFrom || dateTo) {
+            events = events.filter((event) => {
+                const eventDate = new Date(event.TimeStart);
+                const fromDate = dateFrom ? new Date(dateFrom) : null;
+                const toDate = dateTo ? new Date(dateTo + "T23:59:59") : null; // Include end of day
 
-        return discountEvents.filter((event) =>
-            event.EventName.toLowerCase().includes(lowerSearchTerm)
-        );
-    }, [searchTerm]);
+                if (fromDate && eventDate < fromDate) return false;
+                if (toDate && eventDate > toDate) return false;
+                return true;
+            });
+        }
+
+        return events;
+    }, [searchTerm, selectedStatuses, dateFrom, dateTo]);
+
+    // Handler for applying filters
+    const handleApplyFilters = (filters: { statuses: number[]; dateFrom: string; dateTo: string }) => {
+        setSelectedStatuses(filters.statuses);
+        setDateFrom(filters.dateFrom);
+        setDateTo(filters.dateTo);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
@@ -179,6 +209,10 @@ export default function EventsPage() {
                 searchPlaceholder="Search by event name..."
                 onCreateEvent={handleCreateEvent}
                 createButtonLabel="Create Event"
+                selectedStatuses={selectedStatuses}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                onApplyFilters={handleApplyFilters}
             />
 
             {/* Events Table */}

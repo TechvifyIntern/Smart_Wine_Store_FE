@@ -45,12 +45,12 @@ export default function LogRow({ log, formatDate }: LogRowProps) {
         <tr className="dark:hover:bg-slate-800/30 transition-colors group">
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm font-medium dark:text-slate-300">
-                    #{log.InventoryLogID}
+                    #{log.LogID}
                 </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm dark:text-slate-400">
-                    {log.InventoryID}
+                    {log.ProductID}
                 </div>
             </td>
             <td className="px-6 py-4">
@@ -59,18 +59,18 @@ export default function LogRow({ log, formatDate }: LogRowProps) {
                 </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-                {getTypeBadge(log.TransactionType)}
+                {getTypeBadge("Import")}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-                {getQuantityDisplay(log.TransactionType, log.Quantity)}
+                {getQuantityDisplay("Import", log.Quantity)}
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-                <div className="text-sm dark:text-slate-300">{log.Username}</div>
-                <div className="text-xs text-gray-500 dark:text-slate-500">{log.Email}</div>
+                <div className="text-sm dark:text-slate-300">{log.PerformedBy}</div>
+                <div className="text-xs text-gray-500 dark:text-slate-500">{log.PerformedBy}</div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="text-sm dark:text-slate-400">
-                    {formatDate(log.Date)}
+                    {formatDate(log.Timestamp)}
                 </div>
             </td>
         </tr>

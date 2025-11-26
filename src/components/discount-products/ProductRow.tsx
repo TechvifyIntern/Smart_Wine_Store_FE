@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import { Edit2, Trash2 } from "lucide-react";
 import { DiscountProduct } from "@/data/discount_product";
 import StatusBadge from "@/components/discount-events/StatusBadge";
@@ -17,6 +18,7 @@ export default function ProductRow({
     onDelete,
     formatDate,
 }: ProductRowProps) {
+    const router = useRouter();
     const getDiscountColor = (discount: number) => {
         if (discount >= 25) return "text-pink-400";
         if (discount >= 20) return "text-purple-400";
@@ -35,9 +37,12 @@ export default function ProductRow({
     };
 
     return (
-        <tr className="dark:hover:bg-slate-800/30 transition-colors group">
+        <tr
+            className="hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors group cursor-pointer"
+            onClick={() => router.push(`/admin/discounts/products/${product.DiscountProductID}`)}
+        >
             <td className="px-6 py-4 whitespace-nowrap">
-                <div className="dark:text-slate-400 text-sm font-regular ">
+                <div className="dark:text-slate-400 text-sm font-regular">
                     #{product.DiscountProductID}
                 </div>
             </td>
@@ -52,12 +57,12 @@ export default function ProductRow({
                 </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-                <div className="dark:text-slate-400 text-sm ">
+                <div className="dark:text-slate-400 text-sm">
                     {formatDate(product.TimeStart)}
                 </div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
-                <div className="dark:text-slate-400 text-sm ">
+                <div className="dark:text-slate-400 text-sm">
                     {formatDate(product.TimeEnd)}
                 </div>
             </td>
@@ -74,7 +79,7 @@ export default function ProductRow({
                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
                             ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
                             : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#8c6b3e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#8c6b3e]/50 dark:text-slate-400 dark:hover:text-[#8c6b3e]"
-                            }`}
+                        }`}
                     >
                         <Edit2 className="w-4 h-4" />
                     </button>
@@ -87,7 +92,7 @@ export default function ProductRow({
                         className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${!canDelete
                             ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
                             : "text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
-                            }`}
+                        }`}
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>

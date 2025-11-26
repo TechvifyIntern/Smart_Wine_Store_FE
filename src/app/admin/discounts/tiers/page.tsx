@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Users, Edit2, Crown, Gem, Medal, Info } from "lucide-react";
-import { discountTiers } from "@/data/discount_tier"; // file export discountTiers
+import { discountTiers } from "@/data/discount_tier";
 
 const tierStyles: Record<string, any> = {
   Gold: {
@@ -66,15 +67,16 @@ export default function TierPage() {
           const percentage = ((tier.userCount / totalUsers) * 100).toFixed(1);
 
           return (
-            <div
+            <Link
               key={tier.DiscountTierID}
-              className="rounded-xl border overflow-hidden dark:border-[#202123]"
+              href={`/admin/discounts/tiers/${tier.DiscountTierID}`}
+              className="rounded-xl border overflow-hidden dark:border-[#202123] transition-all duration-300 hover:shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer block"
             >
               {/* Card Header */}
               <div className={`${style.bgColor} ${style.bgColorDark} px-5 py-4 border-b`}>
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:rotate-6">
                       <Icon className="w-5 h-5" />
                     </div>
                     <h3 className="text-lg font-semibold">{tier.Tier}</h3>
@@ -129,12 +131,12 @@ export default function TierPage() {
                 </div>
 
                 {/* Edit Button */}
-                <button className="w-full mt-2 px-4 py-2.5 border text-sm font-medium rounded-lg flex items-center justify-center gap-2">
-                  <Edit2 className="w-4 h-4" />
+                <button className="group w-full mt-2 px-4 py-2.5 border text-sm font-medium rounded-lg flex items-center justify-center gap-2 transition-all duration-300 hover:bg-gray-50 hover:border-gray-300 hover:shadow-md hover:transform hover:scale-[1.02]">
+                  <Edit2 className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
                   Edit Tier
                 </button>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
