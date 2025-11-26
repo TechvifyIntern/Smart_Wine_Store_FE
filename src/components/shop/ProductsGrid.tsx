@@ -1,6 +1,5 @@
 import React from "react";
 import ProductCard from "./ProductCard";
-import { products as defaultProducts } from "@/data/shop";
 import { Products } from "@/types/products";
 
 interface ProductsGridProps {
@@ -14,7 +13,7 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
   currentPage = 1,
   pageSize = 9,
 }) => {
-  const productsToShow = products || defaultProducts;
+  const productsToShow = products || [];
   const start = (currentPage - 1) * pageSize;
   const end = start + pageSize;
   const pageProducts = productsToShow.slice(start, end);

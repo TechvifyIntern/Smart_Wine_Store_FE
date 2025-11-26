@@ -8,6 +8,10 @@ export interface UserProfile {
   ImageURL: string | null;
   Point: number;
   TierName: string;
+  createAt?: string;
+  orders?: number;
+  favorites?: number;
+  totalSpent?: number;
   // Additional frontend-specific fields from src/data/profile.ts
 }
 

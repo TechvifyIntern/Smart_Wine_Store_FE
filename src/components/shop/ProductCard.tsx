@@ -50,7 +50,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         </h5>
 
         <p className="text-xs dark:text-gray-300 opacity-80 mb-2">
-          {product.Size | NaN}ml • {product.ABV | NaN}% ABV
+          {product.Size ?? 0}ml • {product.ABV ?? 0}% ABV
         </p>
 
         <div className="flex items-center justify-between">

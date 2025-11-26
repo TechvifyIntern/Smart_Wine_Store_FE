@@ -79,7 +79,7 @@ export function AuthDialog({
       setTokens(accessToken, refreshToken);
       onOpenChange(false);
       signInForm.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign in error:", error);
       if (error.response?.status === 401) {
         signInForm.setError("root", {
@@ -102,7 +102,7 @@ export function AuthDialog({
       signUpForm.reset();
       onOpenChange(true);
       onModeChange("signin");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Sign up error:", error);
       if (error.response?.data?.message) {
         signUpForm.setError("root", {
