@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { UserCog } from "lucide-react";
 import accounts, { Account } from "@/data/accounts";
+import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
 import PageHeader from "@/components/discount-events/PageHeader";
 import AccountTable from "@/components/accounts/AccountTable";
 import Pagination from "@/components/admin/pagination/Pagination";
@@ -106,7 +107,7 @@ export default function AccountsPage() {
     };
 
     const handleCreateAccount = async (
-        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
+        data: CreateAccountFormData
     ) => {
         console.log("Creating new account:", data);
         // TODO: Implement API call to create account

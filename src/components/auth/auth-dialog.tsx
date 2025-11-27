@@ -101,13 +101,10 @@ export function AuthDialog({
 
   const onSignUpSubmit = async (data: SignUpInput) => {
     try {
-      // Remove ConfirmPassword and prepare data for API
-      const { ConfirmPassword, ...signUpData } = data;
-
-      // Add default RoleID = 3 if not provided
+      // Add default RoleID = 3 if not provided and keep ConfirmPassword
       const apiData = {
-        ...signUpData,
-        RoleID: signUpData.RoleID || 3
+        ...data,
+        RoleID: data.RoleID || 3
       };
 
       const response = await signUp(apiData);

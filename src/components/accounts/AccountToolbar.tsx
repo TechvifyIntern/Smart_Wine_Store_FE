@@ -7,6 +7,9 @@ import CreateAccountButton from "./CreateAccountButton";
 import { CreateAccountModal } from "./(modal)/CreateAccountModal";
 import { FilterDialog } from "./(modal)/FilterDialog";
 import { Account } from "@/data/accounts";
+import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
+import { signUp } from "@/services/auth/api";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
@@ -14,7 +17,7 @@ interface AccountToolbarProps {
     searchTerm?: string;
     onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
-    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">) => void | Promise<void>;
+    onCreateAccount?: (data: CreateAccountFormData) => void | Promise<void>;
     createButtonLabel?: string;
     selectedRoles?: number[];
     selectedTiers?: number[];
@@ -33,6 +36,7 @@ export default function AccountToolbar({
     selectedStatuses = [],
     onApplyFilters,
 }: AccountToolbarProps) {
+    const { toast } = useToast();
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
@@ -42,7 +46,7 @@ export default function AccountToolbar({
     const handleSearchChange = externalOnSearchChange || setInternalSearchTerm;
 
     const handleCreateAccount = async (
-        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
+        data: CreateAccountFormData
     ) => {
         try {
             // Transform phone number to international format if it starts with 0
@@ -58,9 +62,9 @@ export default function AccountToolbar({
                 Email: data.Email,
                 PhoneNumber: phoneNumber,
                 Password: data.Password,
+                ConfirmPassword: data.ConfirmPassword,
                 Birthday: data.Birthday,
-                ImageURL: data.ImageURL || undefined,
-                RoleID: data.RoleID || undefined,
+                RoleID: data.RoleID,
             };
 
             await signUp(registerData);

@@ -91,8 +91,10 @@ export function Header() {
   const { locale, setLocale, t } = useLocale();
 
   // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
-  const isAdminOrSeller = user?.roleId === 1 || user?.roleId === 2;
-  const isInAdminPage = pathname?.startsWith('/admin'); const handleLogout = () => {
+  const isAdminOrSeller = user?.roleId === '1' || user?.roleId === '2';
+  const isInAdminPage = pathname?.startsWith('/admin');
+
+  const handleLogout = () => {
     logout();
     router.push("/");
   };
@@ -472,6 +474,8 @@ export function Header() {
 }
 
 // Mobile Menu Component
+type Locale = "vi" | "en";
+
 interface MobileMenuProps {
   navigationLinks: any[];
   parentCategories: Category[];
@@ -480,9 +484,9 @@ interface MobileMenuProps {
   user: any;
   isAdminOrSeller: boolean;
   isInAdminPage: boolean;
-  locale: string;
+  locale: Locale;
   t: any;
-  setLocale: (locale: string) => void;
+  setLocale: (locale: Locale) => void;
   handleLogout: () => void;
   setAuthMode: (mode: "signin" | "signup" | "forgot") => void;
   setAuthOpen: (open: boolean) => void;

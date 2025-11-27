@@ -14,6 +14,7 @@ import { InventoryExportModal } from "@/components/inventory-products/(modal)/In
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import type { Inventory } from "@/api/inventoriesRepository";
+import { CreateInventoryProductFormData } from "@/validations/inventories/inventoryProductSchema";
 
 export interface InventoryProduct {
   ProductID: string;
@@ -153,7 +154,7 @@ export default function InventoryProductsPage() {
   };
 
   const handleCreateProduct = async (
-    data: Pick<InventoryProduct, "ProductID" | "Quantity">
+    data: CreateInventoryProductFormData
   ) => {
     try {
       // Validate product ID if it exists
