@@ -22,26 +22,26 @@ export default function CartItem({
       : item.product.CostPrice;
   return (
     <TableRow>
-      <TableCell className="font-medium">
+      <TableCell className="font-medium text-xs sm:text-sm">
         <Link
           href={`/product-detail/${item.product.ProductID}`}
-          className="flex items-center gap-4"
+          className="flex items-center gap-2 sm:gap-4"
         >
           <img
             src={item.product.ImageURL}
             alt={item.product.ProductName}
-            width={80}
-            height={80}
-            className="rounded-md"
+            width={60}
+            height={60}
+            className="rounded-md w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover"
           />
-          <span>{item.product.ProductName}</span>
+          <span className="line-clamp-2">{item.product.ProductName}</span>
         </Link>
       </TableCell>
-      <TableCell>{formatCurrency(price)}</TableCell>
+      <TableCell className="text-xs sm:text-sm">{formatCurrency(price)}</TableCell>
       <TableCell>
         <div className="flex items-center">
           <button
-            className="px-4 py-2 w-10 hover:bg-primary dark:hover:text-white rounded-l-lg border border-primary"
+            className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 w-7 sm:w-9 md:w-10 hover:bg-primary dark:hover:text-white rounded-l-lg border border-primary text-xs sm:text-sm"
             onClick={() => {
               if (item.Quantity > 1) {
                 updateQuantity(item.ProductID, item.Quantity - 1);
@@ -65,26 +65,27 @@ export default function CartItem({
                 updateQuantity(item.ProductID, 1);
               }
             }}
-            className="px-2 py-2 font-semibold dark:bg-white/5 border border-y-primary w-12 text-center"
+            className="px-1 sm:px-2 py-1.5 sm:py-2 font-semibold dark:bg-white/5 border border-y-primary w-10 sm:w-12 text-center text-xs sm:text-sm"
           />
           <button
-            className="px-4 py-2 w-10 hover:bg-primary dark:hover:text-white rounded-r-lg border border-primary"
+            className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 w-7 sm:w-9 md:w-10 hover:bg-primary dark:hover:text-white rounded-r-lg border border-primary text-xs sm:text-sm"
             onClick={() => updateQuantity(item.ProductID, item.Quantity + 1)}
           >
             +
           </button>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="text-xs sm:text-sm">
         {formatCurrency(item.product.SalePrice * item.Quantity)}
       </TableCell>
       <TableCell>
         <Button
           variant="ghost"
           size="icon"
+          className="h-7 w-7 sm:h-9 sm:w-9"
           onClick={() => removeItem(item.ProductID)}
         >
-          <X />
+          <X className="w-4 h-4 sm:w-5 sm:h-5" />
         </Button>
       </TableCell>
     </TableRow>

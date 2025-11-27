@@ -13,6 +13,7 @@ import { InventoryImportModal } from "@/components/inventory-products/(modal)/In
 import { InventoryExportModal } from "@/components/inventory-products/(modal)/InventoryExportModal";
 import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
+import type { Inventory } from "@/api/inventoriesRepository";
 
 export interface InventoryProduct {
   ProductID: string;
@@ -21,6 +22,9 @@ export interface InventoryProduct {
   Quantity: number;
   CostPrice: number;
   SalePrice: number;
+  WarehouseID?: number;
+  WarehouseName?: string;
+  LastUpdated?: string;
 }
 
 export default function InventoryProductsPage() {
@@ -35,20 +39,48 @@ export default function InventoryProductsPage() {
     useState<InventoryProduct | null>(null);
   const [inventories, setInventories] = useState<InventoryProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [sortBy, setSortBy] = useState<'Quantity' | 'LastUpdated' | 'ProductID'>('ProductID');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
-  const loadInventories = async () => {
+  const loadInventories = async (filters?: {
+    minQuantity?: number;
+    maxQuantity?: number;
+    productId?: number;
+    warehouseId?: number;
+  }) => {
     try {
       setIsLoading(true);
-      const response = await inventoriesRepository.getInventories();
+      const response = await inventoriesRepository.getInventories({
+        sortBy,
+        sortOrder,
+        ...filters
+      });
+
       if (response.success && response.data) {
-        // Map API response to InventoryProduct format if needed
-        setInventories(response.data as any);
+        // Map API response to InventoryProduct format
+        const mappedData: InventoryProduct[] = response.data.map((item: Inventory) => ({
+          ProductID: item.ProductID.toString(),
+          ProductName: item.ProductName || `Product ${item.ProductID}`,
+          ImageURL: '', // Add image URL if available from API
+          Quantity: item.Quantity,
+          CostPrice: 0, // Add cost price if available from API
+          SalePrice: 0, // Add sale price if available from API
+          WarehouseID: item.WarehouseID,
+          WarehouseName: item.WarehouseName,
+          LastUpdated: item.LastUpdated
+        }));
+
+        setInventories(mappedData);
+        toast.success(`Loaded ${mappedData.length} inventory items`);
       } else {
         console.error('Failed to load inventories:', response.message);
+        toast.error(response.message || 'Failed to load inventories');
+        setInventories([]);
       }
     } catch (err) {
       console.error('Error loading inventories:', err);
-      toast.error('Failed to load inventories');
+      toast.error('An error occurred while loading inventories');
+      setInventories([]);
     } finally {
       setIsLoading(false);
     }
@@ -58,6 +90,13 @@ export default function InventoryProductsPage() {
   useEffect(() => {
     loadInventories();
   }, []);
+
+  // Reload when sort changes
+  useEffect(() => {
+    if (!isLoading) {
+      loadInventories();
+    }
+  }, [sortBy, sortOrder]);
 
   // Filter products based on search term (ProductName only)
   const filteredProducts = useMemo(() => {
@@ -117,11 +156,16 @@ export default function InventoryProductsPage() {
     data: Omit<InventoryProduct, "ProductID">
   ) => {
     try {
+      // Validate product ID if it exists
+      if (!data.Quantity || data.Quantity < 0) {
+        toast.error("Please enter a valid quantity");
+        return;
+      }
+
       const response = await inventoriesRepository.createInventory({
-        ProductID: 0, // Backend will assign ID
-        WarehouseID: 1, // Default warehouse, adjust as needed
-        Quantity: data.Quantity,
-        CostPrice: data.CostPrice
+        ProductID: parseInt(data.ProductID || '0'),
+        WarehouseID: data.WarehouseID || 1,
+        Quantity: data.Quantity
       });
 
       if (response.success) {
@@ -133,7 +177,8 @@ export default function InventoryProductsPage() {
       }
     } catch (error) {
       console.error('Error creating inventory:', error);
-      toast.error("An error occurred while creating the inventory");
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      toast.error(errorMessage);
     }
   };
 
@@ -152,22 +197,33 @@ export default function InventoryProductsPage() {
     costPrice: number
   ) => {
     try {
+      if (quantity <= 0) {
+        toast.error("Quantity must be greater than 0");
+        return;
+      }
+
+      const product = inventories.find(p => p.ProductID === productId);
+      const warehouseId = product?.WarehouseID || 1;
+
       const response = await inventoriesRepository.importInventory({
         ProductID: parseInt(productId),
-        WarehouseID: 1, // Default warehouse
-        Quantity: quantity
+        WarehouseID: warehouseId,
+        Quantity: quantity,
+        Notes: `Import stock - Cost: ${formatCurrency(costPrice)}`
       });
 
       if (response.success) {
-        toast.success(`Imported ${quantity} units successfully!`);
+        toast.success(`✅ Imported ${quantity} units successfully!`);
         setIsImportModalOpen(false);
+        setSelectedProduct(null);
         await loadInventories();
       } else {
         toast.error(response.message || "Failed to import stock");
       }
     } catch (error) {
       console.error('Error importing stock:', error);
-      toast.error("An error occurred while importing stock");
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      toast.error(errorMessage);
     }
   };
 
@@ -177,22 +233,39 @@ export default function InventoryProductsPage() {
     reason: string
   ) => {
     try {
+      if (quantity <= 0) {
+        toast.error("Quantity must be greater than 0");
+        return;
+      }
+
+      const product = inventories.find(p => p.ProductID === productId);
+
+      if (product && quantity > product.Quantity) {
+        toast.error(`Cannot export ${quantity} units. Only ${product.Quantity} available in stock.`);
+        return;
+      }
+
+      const warehouseId = product?.WarehouseID || 1;
+
       const response = await inventoriesRepository.exportInventory({
         ProductID: parseInt(productId),
-        WarehouseID: 1, // Default warehouse
-        Quantity: quantity
+        WarehouseID: warehouseId,
+        Quantity: quantity,
+        Notes: reason || 'Stock export'
       });
 
       if (response.success) {
-        toast.success(`Exported ${quantity} units successfully!`);
+        toast.success(`✅ Exported ${quantity} units successfully!`);
         setIsExportModalOpen(false);
+        setSelectedProduct(null);
         await loadInventories();
       } else {
         toast.error(response.message || "Failed to export stock");
       }
     } catch (error) {
       console.error('Error exporting stock:', error);
-      toast.error("An error occurred while exporting stock");
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      toast.error(errorMessage);
     }
   };
 

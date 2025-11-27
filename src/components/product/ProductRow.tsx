@@ -75,7 +75,7 @@ export default function ProductRow({
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300">
-          {product.CategoryID ? getCategoryName(product.CategoryID) : 'N/A'}
+          {product.CategoryName || 'N/A'}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">

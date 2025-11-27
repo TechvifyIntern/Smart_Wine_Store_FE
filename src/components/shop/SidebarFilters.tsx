@@ -127,23 +127,22 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       <span>{title}</span>
       <ChevronDown
         size={16}
-        className={`transform transition-transform duration-200 ${
-          openSections[key] ? "rotate-180" : ""
-        }`}
+        className={`transform transition-transform duration-200 ${openSections[key] ? "rotate-180" : ""
+          }`}
       />
     </h3>
   );
 
   return (
-    <aside className="w-64 p-5 border-r border-border h-full overflow-y-auto">
+    <aside className="w-full md:w-64 p-4 md:p-5 border-r-0 md:border-r border-border h-auto md:h-full overflow-y-auto">
       {/* Header & Reset Button */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Filters</h2>
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <h2 className="text-lg sm:text-xl font-semibold">Filters</h2>
         {searchParams.toString().length > 0 && (
           <Button
             variant="ghost"
             size="sm"
-            className="text-xs h-8 text-red-500 hover:text-red-600 px-2"
+            className="text-xs h-7 sm:h-8 text-red-500 hover:text-red-600 px-2"
             onClick={() => router.push(pathname)}
           >
             Clear all
@@ -153,18 +152,17 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
 
       {/* 1. CATEGORY */}
       {displayCategories.length > 0 && (
-        <div className="mb-6 pb-6 border-b border-border/50">
+        <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
           {renderHeader("Categories", "category")}
           {openSections.category && (
             <ul className="space-y-1">
               {displayCategories.map((cat) => (
                 <li
                   key={cat.id}
-                  className={`flex justify-between cursor-pointer p-2 rounded transition-colors text-sm ${
-                    searchParams.get("subcategory") === cat.name
-                      ? "bg-primary/10 text-primary font-medium"
-                      : "hover:bg-muted text-foreground"
-                  }`}
+                  className={`flex justify-between cursor-pointer p-2 rounded transition-colors text-sm ${searchParams.get("subcategory") === cat.name
+                    ? "bg-primary/10 text-primary font-medium"
+                    : "hover:bg-muted text-foreground"
+                    }`}
                   onClick={() =>
                     updateParam(
                       "subcategory",
@@ -188,10 +186,10 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       )}
 
       {/* 2. ORIGIN */}
-      <div className="mb-6 pb-6 border-b border-border/50">
+      <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
         {renderHeader("Origin / Region", "origin")}
         {openSections.origin && (
-          <ul className="space-y-3">
+          <ul className="space-y-2 sm:space-y-3">
             {origins.map((origin) => (
               <li key={origin.id} className="flex items-center space-x-2">
                 <Checkbox
@@ -213,7 +211,7 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       </div>
 
       {/* 3. ABV (Alcohol %) */}
-      <div className="mb-6 pb-6 border-b border-border/50">
+      <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
         {renderHeader("Alcohol % (ABV)", "abv")}
         {openSections.abv && (
           <div className="px-1 pt-2">
@@ -224,9 +222,9 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
               min={0}
               max={60}
               step={0.5}
-              className="w-full mb-4"
+              className="w-full mb-3 sm:mb-4"
             />
-            <div className="flex justify-between text-xs font-medium text-muted-foreground">
+            <div className="flex justify-between text-[10px] sm:text-xs font-medium text-muted-foreground">
               <span>{abvRange[0]}%</span>
               <span>{abvRange[1]}%</span>
             </div>
@@ -235,7 +233,7 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       </div>
 
       {/* 4. PRICE (MONEY)*/}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         {renderHeader("Price Range", "price")}
         {openSections.price && (
           <div className="px-1 pt-2">
@@ -246,9 +244,9 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
               min={0}
               max={10000000} // Max 10 triệu, tuỳ chỉnh theo data
               step={50000} // Bước nhảy 50k
-              className="w-full mb-4"
+              className="w-full mb-3 sm:mb-4"
             />
-            <div className="flex justify-between text-xs font-medium text-muted-foreground">
+            <div className="flex justify-between text-[10px] sm:text-xs font-medium text-muted-foreground">
               <span>{formatCurrency(priceRange[0])}</span>
               <span>{formatCurrency(priceRange[1])}</span>
             </div>

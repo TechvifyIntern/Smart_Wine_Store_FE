@@ -63,8 +63,8 @@ const ShopPagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <Pagination className="my-6">
-      <PaginationContent>
+    <Pagination className="my-4 sm:my-6">
+      <PaginationContent className="gap-1 sm:gap-2">
         <PaginationItem>
           <PaginationPrevious
             // href="#"
@@ -72,16 +72,15 @@ const ShopPagination: React.FC<PaginationProps> = ({
               e.preventDefault();
               handlePrev();
             }}
-            className={
-              currentPage === 1 ? "opacity-50 pointer-events-none" : ""
-            }
-            /* The component doesn't expose disable prop, but we can style */
+            className={`text-xs sm:text-sm ${currentPage === 1 ? "opacity-50 pointer-events-none" : ""
+              }`}
+          /* The component doesn't expose disable prop, but we can style */
           />
         </PaginationItem>
 
         {getVisiblePages().map((page, index) =>
           typeof page === "string" ? (
-            <PaginationItem key={index}>
+            <PaginationItem key={index} className="hidden sm:block">
               <PaginationEllipsis />
             </PaginationItem>
           ) : (
@@ -93,9 +92,8 @@ const ShopPagination: React.FC<PaginationProps> = ({
                   e.preventDefault();
                   handlePageClick(page);
                 }}
-                className={
-                  page === currentPage ? "border-primary border-2" : ""
-                }
+                className={`text-xs sm:text-sm h-8 w-8 sm:h-10 sm:w-10 ${page === currentPage ? "border-primary border-2" : ""
+                  }`}
               >
                 {page}
               </PaginationLink>
@@ -110,9 +108,8 @@ const ShopPagination: React.FC<PaginationProps> = ({
               e.preventDefault();
               handleNext();
             }}
-            className={
-              currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
-            }
+            className={`text-xs sm:text-sm ${currentPage === totalPages ? "opacity-50 pointer-events-none" : ""
+              }`}
           />
         </PaginationItem>
       </PaginationContent>

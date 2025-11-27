@@ -79,7 +79,7 @@ class ProductsRepository extends BaseRepository {
   }
 
   /**
-   * Update product status
+   * Update product status using PATCH (legacy)
    */
   async updateProductStatus(id: number, isActive: boolean): Promise<UpdateProductStatusResponse> {
     try {
@@ -88,6 +88,50 @@ class ProductsRepository extends BaseRepository {
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to update product status: ${message}`);
+    }
+  }
+
+  /**
+   * Update product using PUT /products/{id}
+   */
+  async updateProductPut(id: number, productData: Partial<Product>): Promise<UpdateProductResponse> {
+    try {
+      console.log('Updating product with PUT:', { id, productData });
+      const response = await api.put(`${this.endpoint}/${id}`, productData);
+      console.log('Update response:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('Full error object:', error);
+
+      if (error.response) {
+        // Server responded with error status
+        const errorMessage = error.response.data?.message || error.message;
+        const statusCode = error.response.status;
+        const errorData = error.response.data;
+        console.error('Failed to update product (server error):', {
+          statusCode,
+          message: errorMessage,
+          data: errorData,
+          sentData: productData
+        });
+        throw new Error(`Failed to update product: ${errorMessage} (Status: ${statusCode})`);
+      } else if (error.request) {
+        // Request was made but no response received
+        console.error('Failed to update product (no response):', {
+          request: error.request,
+          message: error.message,
+          sentData: productData
+        });
+        throw new Error(`Failed to update product: No response from server`);
+      } else {
+        // Something else happened
+        console.error('Failed to update product (unknown error):', {
+          message: error.message,
+          error: error,
+          sentData: productData
+        });
+        throw new Error(`Failed to update product: ${error.message}`);
+      }
     }
   }
 }
