@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useEffect } from "react";
+import type { Account } from "@/data/accounts";
 import {
     Dialog,
     DialogContent,
@@ -29,7 +30,7 @@ import {
 interface CreateAccountModalProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onCreate: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">) => void | Promise<void>;
+    onCreate: (data: CreateAccountFormData) => void | Promise<void>;
 }
 
 const roles = [
@@ -100,14 +101,7 @@ export function CreateAccountModal({
 
     const onSubmit = async (data: CreateAccountFormData) => {
         try {
-            const { Password, ConfirmPassword, ...accountData } = data;
-            await onCreate({
-                ...accountData,
-                StreetAddress: accountData.StreetAddress || "",
-                Ward: accountData.Ward || "",
-                Province: accountData.Province || "",
-                Point: 0, // New accounts start with 0 points
-            });
+            await onCreate(data);
             onOpenChange(false);
             reset();
         } catch (error) {

@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
-import { Jost } from "next/font/google";
+import { Nunito } from "next/font/google";
 import AuthInitializer from "@/components/auth/AuthInitializer";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryProvider } from "@/components/providers/QueryProvider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 
 export const metadata: Metadata = {
@@ -12,27 +12,18 @@ export const metadata: Metadata = {
   description:
     "Discover refined wines with exceptional craftsmanship and taste",
   generator: "v0.app",
-  // icons: {
-  //   icon: [
-  //     {
-  //       url: "/icon-light-32x32.png",
-  //       media: "(prefers-color-scheme: light)",
-  //     },
-  //     {
-  //       url: "/icon-dark-32x32.png",
-  //       media: "(prefers-color-scheme: dark)",
-  //     },
-  //     {
-  //       url: "/icon.svg",
-  //       type: "image/svg+xml",
-  //     },
-  //   ],
-  //   apple: "/apple-icon.png",
-  // },
+  icons: {
+    icon: [
+      { url: "/logo-public.png", type: "image/svg+xml" },
+      { url: "/logo-public.png" },
+    ],
+    shortcut: "/logo-public.png",
+    apple: "/logo-public.png",
+  },
 };
-const jost = Jost({
+const nunito = Nunito({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"], // choose what you need
+  weight: ["300", "400", "500", "600", "700", "800"], // choose what you need
 });
 
 export default function RootLayout({
@@ -41,9 +32,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={jost.className}>
+    <html lang="en" suppressHydrationWarning className={nunito.className}>
       <body>
-        <QueryClientProvider client={queryClient}>
+        <QueryProvider>
           <LocaleProvider>
             <ThemeProvider
               attribute="class"
@@ -55,7 +46,7 @@ export default function RootLayout({
               <Toaster />
             </ThemeProvider>
           </LocaleProvider>
-        </QueryClientProvider>
+        </QueryProvider>
       </body>
     </html>
   );

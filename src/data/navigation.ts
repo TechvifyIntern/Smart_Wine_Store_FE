@@ -1,8 +1,8 @@
 export const navigationLinks = [
-  { label: "Products", href: "/Wine" },
-  { label: "Events", href: "#events" },
-  { label: "Blog", href: "#blog" },
-  { label: "Contact", href: "#contact" },
+  { label: "Products", href: "/products", key: "products" },
+  { label: "Events", href: "/events", key: "events" },
+  { label: "Blog", href: "/blog", key: "blog" },
+  { label: "Contact", href: "/contact", key: "contact" },
 ];
 
 export const childrenCate = [

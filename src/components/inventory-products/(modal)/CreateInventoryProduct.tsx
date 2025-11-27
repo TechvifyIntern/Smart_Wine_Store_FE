@@ -21,7 +21,7 @@ import { Upload, X, Image as ImageIcon } from "lucide-react";
 export interface CreateInventoryProductProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onCreate?: (data: Omit<InventoryProduct, "ProductID">) => void | Promise<void>;
+    onCreate?: (data: CreateInventoryProductFormData) => void | Promise<void>;
 }
 
 export function CreateInventoryProduct({

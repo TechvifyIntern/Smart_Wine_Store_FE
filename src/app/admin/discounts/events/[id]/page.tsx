@@ -76,7 +76,7 @@ export default function EventDetailPage() {
         if (event && isEditing) {
             setValue("EventName", event.EventName);
             setValue("Description", event.Description || "");
-            setValue("DiscountValue", event.DiscountValue);
+            setValue("DiscountValue", event.DiscountValue ?? 0);
             setValue("TimeStart", event.TimeStart);
             setValue("TimeEnd", event.TimeEnd);
         }
@@ -512,7 +512,7 @@ export default function EventDetailPage() {
                             Confirm Delete Event
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-600 dark:text-slate-400">
-                            Are you sure you want to delete the discount event <strong className="text-gray-900 dark:text-slate-100">"{event.EventName}"</strong>? This action cannot be undone.
+                            Are you sure you want to delete the discount event <strong className="text-gray-900 dark:text-slate-100">&quot;{event.EventName}&quot;</strong>? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

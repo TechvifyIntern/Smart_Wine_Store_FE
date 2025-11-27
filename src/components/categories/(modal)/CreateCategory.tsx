@@ -195,7 +195,7 @@ export function CreateCategory({
                                 </SelectContent>
                             </Select>
                             <p className="text-xs text-gray-500">
-                                Leave as "None" to create a top-level category
+                                Leave as &quot;None&quot; to create a top-level category
                             </p>
                         </div>
                     </div>

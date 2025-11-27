@@ -14,6 +14,8 @@ import {
   Home,
   Languages,
   Check,
+  Menu,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -31,6 +33,19 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
@@ -69,14 +84,17 @@ export function Header() {
     : 0;
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout, authOpen, authMode, setAuthOpen, setAuthMode } =
     useAppStore();
   const isAuthenticated = !!user;
   const { locale, setLocale, t } = useLocale();
 
   // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
-  const isAdminOrSeller = user?.roleId === 1 || user?.roleId === 2;
-  const isInAdminPage = pathname?.startsWith('/admin'); const handleLogout = () => {
+  const isAdminOrSeller = user?.roleId === '1' || user?.roleId === '2';
+  const isInAdminPage = pathname?.startsWith('/admin');
+
+  const handleLogout = () => {
     logout();
     router.push("/");
   };
@@ -124,23 +142,53 @@ export function Header() {
   return (
     <>
       <header className="fixed w-full top-0 z-50 bg-background/95 dark:backdrop-blur-md dark:border-b dark:border-border transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            {/* Mobile Menu Button */}
+            <div className="flex items-center gap-2 md:hidden">
+              <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-[280px] sm:w-[320px] overflow-y-auto">
+                  <MobileMenu
+                    navigationLinks={navigationLinks}
+                    parentCategories={parentCategories}
+                    childrenCategories={childrenCategories}
+                    isAuthenticated={isAuthenticated}
+                    user={user}
+                    isAdminOrSeller={isAdminOrSeller}
+                    isInAdminPage={isInAdminPage}
+                    locale={locale}
+                    t={t}
+                    setLocale={setLocale}
+                    handleLogout={handleLogout}
+                    setAuthMode={setAuthMode}
+                    setAuthOpen={setAuthOpen}
+                    setIsMobileMenuOpen={setIsMobileMenuOpen}
+                    router={router}
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
+
             {/* Logo */}
             <div className="shrink-0 flex items-center">
               <Link href="/">
-                <div className="text-xl font-bold md:hidden dark:md:hidden">
+                <div className="text-lg sm:text-xl font-bold md:hidden dark:md:hidden">
                   WINE
                 </div>
                 <img
                   src="/logo-light.svg"
                   alt="Logo"
-                  className="block dark:hidden h-8 w-auto"
+                  className="hidden md:block dark:hidden h-6 md:h-8 w-auto"
                 />
                 <img
                   src="/logo-dark.svg"
                   alt="Logo"
-                  className="hidden dark:block h-8 w-auto"
+                  className="hidden dark:md:block h-6 md:h-8 w-auto"
                 />
               </Link>
             </div>
@@ -151,15 +199,35 @@ export function Header() {
                 const children =
                   link.label === "Products" ? parentCategories : [];
                 const hasDropdown = children.length > 0;
+                const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
 
                 return (
                   <div key={link.label} className="relative group">
-                    <div className="text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground flex items-center transition">
-                      {link.label}
-                      {hasDropdown && (
+                    {hasDropdown ? (
+                      <div className={`text-sm font-medium cursor-pointer flex items-center transition relative ${isActive
+                        ? "text-primary font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                        }`}>
+                        {t(`navigation.${link.key}`)}
                         <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
-                      )}
-                    </div>
+                        {isActive && (
+                          <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
+                        )}
+                      </div>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className={`text-sm font-medium flex items-center transition relative ${isActive
+                          ? "text-primary font-semibold"
+                          : "text-muted-foreground hover:text-foreground"
+                          }`}
+                      >
+                        {t(`navigation.${link.key}`)}
+                        {isActive && (
+                          <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
+                        )}
+                      </Link>
+                    )}
 
                     {/* Level 1 dropdown */}
                     {hasDropdown && (
@@ -220,36 +288,36 @@ export function Header() {
             </nav>
 
             {/* Right Icons */}
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
               {/* Search */}
               <div className="relative flex items-center">
                 {isSearchOpen && (
-                  <form className="top-1/2 w-48 sm:w-64 animate-in slide-in-from-right-10 fade-in duration-200">
+                  <form className="absolute right-0 top-1/2 -translate-y-1/2 w-40 sm:w-48 md:w-64 animate-in slide-in-from-right-10 fade-in duration-200">
                     <input
                       value={searchText}
                       onChange={handleChange}
                       onKeyDown={handleSearchSubmit}
                       type="text"
-                      placeholder="Search..."
-                      className="w-full px-3 py-1.5 text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary shadow-sm dark:border-white/20"
+                      placeholder={t("navigation.search")}
+                      className="w-full px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary shadow-sm dark:border-white/20"
                       autoFocus
                     />
                   </form>
                 )}
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
-                  className="p-2 ml-4 hover:bg-muted rounded-lg transition-colors"
+                  className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors"
                 >
-                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 </button>
               </div>
 
               {/* Cart */}
               <Link href="/cart" className="relative group">
-                <button className="p-2 hover:bg-muted rounded-full transition-colors">
-                  <ShoppingCart className="w-5 h-5 text-muted-foreground group-hover:text-foreground" />
+                <button className="p-1.5 sm:p-2 hover:bg-muted rounded-full transition-colors">
+                  <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground group-hover:text-foreground" />
                   {totalItems > 0 && (
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center animate-bounce">
+                    <span className="absolute -top-0.5 sm:-top-1 -right-0.5 sm:-right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-primary text-primary-foreground text-[9px] sm:text-[10px] font-bold flex items-center justify-center animate-bounce">
                       {totalItems}
                     </span>
                   )}
@@ -258,10 +326,11 @@ export function Header() {
 
               {/* Auth */}
               {!isAuthenticated ? (
-                <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="text-xs sm:text-sm"
                     onClick={() => {
                       setAuthMode("signin");
                       setAuthOpen(true);
@@ -271,7 +340,7 @@ export function Header() {
                   </Button>
                   <Button
                     size="sm"
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs sm:text-sm"
                     onClick={() => {
                       setAuthMode("signup");
                       setAuthOpen(true);
@@ -285,9 +354,9 @@ export function Header() {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="relative h-9 w-9 rounded-full ml-1"
+                      className="relative h-7 w-7 sm:h-9 sm:w-9 rounded-full ml-1"
                     >
-                      <Avatar className="h-9 w-9 border border-border">
+                      <Avatar className="h-7 w-7 sm:h-9 sm:w-9 border border-border">
                         <AvatarImage
                           src={user?.photoURL || "/placeholder-user.jpg"}
                           alt={user.email}
@@ -301,7 +370,7 @@ export function Header() {
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center gap-2 p-2">
                       <div className="flex flex-col space-y-1">
-                        <p className="font-medium">{t("header.user")}</p>
+                        <p className="font-medium text-sm">{t("header.user")}</p>
                         <p className="w-[200px] truncate text-xs text-muted-foreground">
                           {user.email}
                         </p>
@@ -380,13 +449,13 @@ export function Header() {
               {/* Theme toggle */}
               <button
                 onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-2 hover:bg-muted rounded-full transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-muted rounded-full transition-colors"
                 title="Toggle theme"
               >
                 {theme === "dark" ? (
-                  <Sun className="w-5 h-5 text-muted-foreground" />
+                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 ) : (
-                  <Moon className="w-5 h-5 text-muted-foreground" />
+                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                 )}
               </button>
             </div>
@@ -401,5 +470,252 @@ export function Header() {
         onModeChange={handleAuthModeChange}
       />
     </>
+  );
+}
+
+// Mobile Menu Component
+type Locale = "vi" | "en";
+
+interface MobileMenuProps {
+  navigationLinks: any[];
+  parentCategories: Category[];
+  childrenCategories: Record<number, Category[]>;
+  isAuthenticated: boolean;
+  user: any;
+  isAdminOrSeller: boolean;
+  isInAdminPage: boolean;
+  locale: Locale;
+  t: any;
+  setLocale: (locale: Locale) => void;
+  handleLogout: () => void;
+  setAuthMode: (mode: "signin" | "signup" | "forgot") => void;
+  setAuthOpen: (open: boolean) => void;
+  setIsMobileMenuOpen: (open: boolean) => void;
+  router: any;
+}
+
+function MobileMenu({
+  navigationLinks,
+  parentCategories,
+  childrenCategories,
+  isAuthenticated,
+  user,
+  isAdminOrSeller,
+  isInAdminPage,
+  locale,
+  t,
+  setLocale,
+  handleLogout,
+  setAuthMode,
+  setAuthOpen,
+  setIsMobileMenuOpen,
+  router,
+}: MobileMenuProps) {
+  const pathname = usePathname();
+
+  const handleNavigation = (href: string) => {
+    router.push(href);
+    setIsMobileMenuOpen(false);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      <SheetHeader className="text-left mb-4">
+        <SheetTitle className="text-xl font-bold text-primary">Menu</SheetTitle>
+      </SheetHeader>
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Navigation Links */}
+        <nav className="space-y-1">
+          {navigationLinks.map((link) => {
+            const children = link.label === "Products" ? parentCategories : [];
+            const hasDropdown = children.length > 0;
+            const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+
+            if (hasDropdown) {
+              return (
+                <Accordion key={link.label} type="single" collapsible>
+                  <AccordionItem value={link.label} className="border-none">
+                    <AccordionTrigger className={`py-3 px-2 hover:no-underline hover:bg-muted rounded-md text-sm ${isActive ? 'text-primary font-semibold' : ''}`}>
+                      {t(`navigation.${link.key}`)}
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="pl-4 space-y-1">
+                        {children.map((cat) => {
+                          const subChildren = childrenCategories[cat.CategoryID] || [];
+                          const hasSub = subChildren.length > 0;
+
+                          if (hasSub) {
+                            return (
+                              <Accordion key={cat.CategoryID} type="single" collapsible>
+                                <AccordionItem value={cat.CategoryName} className="border-none">
+                                  <AccordionTrigger className="py-2 px-2 text-sm hover:no-underline hover:bg-muted rounded-md">
+                                    {cat.CategoryName}
+                                  </AccordionTrigger>
+                                  <AccordionContent>
+                                    <div className="pl-4 space-y-1">
+                                      {subChildren.map((sub) => (
+                                        <button
+                                          key={sub.CategoryID}
+                                          onClick={() => handleNavigation(`/products?category=${sub.CategoryName}`)}
+                                          className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
+                                        >
+                                          {sub.CategoryName}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            );
+                          } else {
+                            return (
+                              <button
+                                key={cat.CategoryID}
+                                onClick={() => handleNavigation(`/products?category=${cat.CategoryName}`)}
+                                className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
+                              >
+                                {cat.CategoryName}
+                              </button>
+                            );
+                          }
+                        })}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              );
+            } else {
+              return (
+                <button
+                  key={link.label}
+                  onClick={() => handleNavigation(link.href)}
+                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${isActive ? 'text-primary font-semibold bg-muted' : 'hover:bg-muted'
+                    }`}
+                >
+                  {t(`navigation.${link.key}`)}
+                </button>
+              );
+            }
+          })}
+        </nav>
+
+        <div className="h-px bg-border my-4" />
+
+        {/* User Section */}
+        {isAuthenticated ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={user?.photoURL || "/placeholder-user.jpg"} />
+                <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 overflow-hidden">
+                <p className="font-medium text-sm">{t("header.user")}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+              </div>
+            </div>
+
+            {isAdminOrSeller && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  handleNavigation(isInAdminPage ? "/" : "/admin");
+                }}
+              >
+                {isInAdminPage ? (
+                  <>
+                    <Home className="mr-2 h-4 w-4" />
+                    {t("header.userPage")}
+                  </>
+                ) : (
+                  <>
+                    <Store className="mr-2 h-4 w-4" />
+                    {t("header.storeManagement")}
+                  </>
+                )}
+              </Button>
+            )}
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              onClick={() => handleNavigation("/profile")}
+            >
+              <User className="mr-2 h-4 w-4" />
+              {t("header.accountManagement")}
+            </Button>
+
+            <Accordion type="single" collapsible>
+              <AccordionItem value="language" className="border-none">
+                <AccordionTrigger className="py-2 px-2 hover:no-underline hover:bg-muted rounded-md text-sm">
+                  <div className="flex items-center">
+                    <Languages className="mr-2 h-4 w-4" />
+                    {t("header.language")}
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="pl-4 space-y-1">
+                    <button
+                      onClick={() => setLocale("vi")}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "vi" ? "text-primary font-semibold" : ""
+                        }`}
+                    >
+                      <span>{t("languages.vi")}</span>
+                      {locale === "vi" && <Check className="h-4 w-4" />}
+                    </button>
+                    <button
+                      onClick={() => setLocale("en")}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "en" ? "text-primary font-semibold" : ""
+                        }`}
+                    >
+                      <span>{t("languages.en")}</span>
+                      {locale === "en" && <Check className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+              onClick={() => {
+                handleLogout();
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              {t("header.logout")}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Button
+              className="w-full"
+              onClick={() => {
+                setAuthMode("signin");
+                setAuthOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              {t("header.signIn")}
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setAuthMode("signup");
+                setAuthOpen(true);
+                setIsMobileMenuOpen(false);
+              }}
+            >
+              {t("header.signUp")}
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

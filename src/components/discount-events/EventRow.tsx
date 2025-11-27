@@ -47,8 +47,8 @@ export default function EventRow({
                 <div className="dark:text-slate-400 text-sm max-w-xs">{event.Description}</div>
             </td>
             <td className="px-6 py-4 whitespace-nowrap text-center">
-                <span className={`text-sm font-medium ${getDiscountColor(event.DiscountValue)}`}>
-                    {event.DiscountValue}%
+                <span className={`text-sm font-medium ${getDiscountColor(event.DiscountValue || event.discountValue || 0)}`}>
+                    {event.DiscountValue || event.discountValue || 0}%
                 </span>
             </td>
             <td className="px-6 py-4 whitespace-nowrap">
@@ -76,11 +76,10 @@ export default function EventRow({
                         }}
                         disabled={isExpired}
                         title={isExpired ? "Cannot edit expired events" : "Edit event"}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${
-                            isExpired
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
                                 ? "opacity-40 cursor-not-allowed text-gray-400 dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
                                 : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
-                        }`}
+                            }`}
                     >
                         <Edit2 className="w-4 h-4" />
                     </button>
@@ -95,11 +94,10 @@ export default function EventRow({
                         }}
                         disabled={status !== "Scheduled"}
                         title={status === "Scheduled" ? "Delete event" : status === "Active" ? "Cannot delete active events" : "Cannot delete expired events"}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${
-                            status === "Scheduled"
+                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${status === "Scheduled"
                                 ? "text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
                                 : "opacity-40 cursor-not-allowed text-gray-400 dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
-                        }`}
+                            }`}
                     >
                         <Trash2 className="w-4 h-4" />
                     </button>

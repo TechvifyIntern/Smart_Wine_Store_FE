@@ -37,7 +37,14 @@ class BaseRepository {
       const response = await api.put(`${this.endpoint}/${id}`, data);
       return response.data;
     } catch (error) {
-      throw new Error(`Failed to update ${this.endpoint.slice(1)}: ${error.message}`);
+      const errorMessage = error.response?.data?.message || error.message;
+      const statusCode = error.response?.status;
+      console.error(`Failed to update ${this.endpoint.slice(1)}:`, {
+        statusCode,
+        message: errorMessage,
+        error: error.response?.data
+      });
+      throw new Error(`Failed to update ${this.endpoint.slice(1)}: ${errorMessage} (Status: ${statusCode})`);
     }
   }
 
@@ -50,7 +57,7 @@ class BaseRepository {
     }
   }
 
-  
+
   async patch(id, data) {
     try {
       const response = await api.patch(`${this.endpoint}/${id}`, data);

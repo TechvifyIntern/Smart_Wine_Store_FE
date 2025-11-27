@@ -35,6 +35,9 @@ export const signUpSchema = z
             .regex(/(?=.*[a-z])/, "Password must contain at least one lowercase letter")
             .regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
             .regex(/(?=.*\d)/, "Password must contain at least one number"),
+        ConfirmPassword: z
+            .string()
+            .min(1, "Please confirm your password"),
         PhoneNumber: z
             .string()
             .min(1, "Phone number is required")
@@ -70,6 +73,10 @@ export const signUpSchema = z
             }, "Please enter a valid birthday"),
         ImageURL: z.string().url().optional(),
         RoleID: z.number().optional(),
+    })
+    .refine((data) => data.Password === data.ConfirmPassword, {
+        message: "Passwords do not match",
+        path: ["ConfirmPassword"],
     });
 
 // Forgot Password Schema

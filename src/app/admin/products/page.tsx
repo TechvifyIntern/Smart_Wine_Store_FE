@@ -6,6 +6,8 @@ import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { Product } from "@/data/products";
 import productsRepository from "@/api/productsRepository";
+import categoriesRepository from "@/api/categoriesRepository";
+import { Category } from "@/types/category";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductTable from "@/components/product/ProductTable";
 import ProductToolbar from "@/components/product/ProductToolbar";
@@ -19,7 +21,24 @@ export default function ProductsPage() {
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isSearching, setIsSearching] = useState(false);
+
+    // Load categories on mount
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const response = await categoriesRepository.getCategories();
+                if (response.success && response.data) {
+                    setCategories(response.data);
+                }
+            } catch (err) {
+                console.error('Error loading categories:', err);
+            }
+        };
+        loadCategories();
+    }, []);
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -88,20 +107,55 @@ export default function ProductsPage() {
     };
 
     const handleToggleStatus = async (id: number, isActive: boolean) => {
+        console.log('handleToggleStatus called with:', { id, isActive, productsCount: products.length });
+        console.log('All products:', products);
+
         const product = products.find((p) => p.ProductID === id);
-        if (product) {
-            try {
-                await productsRepository.updateProductStatus(id, isActive);
-                const response = await productsRepository.getProducts();
-                if (response.success && response.data) {
-                    setProducts(response.data);
+
+        if (!product) {
+            toast.error(`Product with ID ${id} not found`);
+            console.error('Product not found. ID:', id, 'Available IDs:', products.map(p => p.ProductID));
+            return;
+        }
+
+        console.log('Found product:', JSON.stringify(product, null, 2));
+
+        try {
+            // If CategoryID is missing but CategoryName exists, try to find it from categories
+            let categoryId = product.CategoryID;
+            if (!categoryId && product.CategoryName) {
+                const category = categories.find(cat => cat.CategoryName === product.CategoryName);
+                if (category) {
+                    categoryId = category.CategoryID;
+                    console.log(`Mapped CategoryName "${product.CategoryName}" to CategoryID ${categoryId}`);
                 }
-                const statusText = isActive ? "activated" : "deactivated";
-                toast.success(`Product "${product.ProductName}" ${statusText} successfully!`);
-            } catch (error) {
-                console.error("Error updating product status:", error);
-                toast.error("Failed to update product status");
             }
+
+            // Validate required fields
+            if (!categoryId) {
+                toast.error('Cannot update product: CategoryID is missing and could not be determined from CategoryName');
+                console.error('Product missing CategoryID:', JSON.stringify(product, null, 2));
+                return;
+            }
+
+            // Use PATCH /products/{id}/status/{isActive} to update product status
+            console.log('Toggling product status:', { id, isActive });
+
+            await productsRepository.updateProductStatus(id, isActive);
+            const response = await productsRepository.getProducts();
+            if (response.success && response.data) {
+                setProducts(response.data);
+            }
+            const statusText = isActive ? "activated" : "deactivated";
+            toast.success(`Product "${product.ProductName}" ${statusText} successfully!`);
+        } catch (error: any) {
+            console.error("Error updating product status:", error);
+            console.error("Error details:", {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
+            toast.error(`Failed to update product status: ${error.message || 'Unknown error'}`);
         }
     };
 

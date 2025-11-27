@@ -1,8 +1,14 @@
+"use client";
+
+import { useLocale } from "@/contexts/LocaleContext";
+
 interface CategoryHeaderProps {
     categoryName: string;
 }
 
 export function CategoryHeader({ categoryName }: CategoryHeaderProps) {
+    const { t } = useLocale();
+
     return (
         <div className="relative flex flex-col items-center justify-center">
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -16,7 +22,7 @@ export function CategoryHeader({ categoryName }: CategoryHeaderProps) {
             {/* Header Content */}
             <div className="relative z-10 text-center py-4">
                 <p className="text-xl tracking-widest text-primary uppercase mb-1">
-                    {categoryName}
+                    {t("collections.categoryName")}
                 </p>
                 {/* Decorative line */}
                 <div className="flex items-center justify-center gap-3 my-2">
@@ -24,7 +30,7 @@ export function CategoryHeader({ categoryName }: CategoryHeaderProps) {
                     <span className="text-primary text-xs">✦</span>
                     <span className="h-px w-12 bg-primary/40" />
                 </div>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl">Featured Products</h2>
+                <h2 className="text-2xl md:text-3xl lg:text-4xl">{t("collections.featuredProducts")}</h2>
             </div>
         </div>
     );
