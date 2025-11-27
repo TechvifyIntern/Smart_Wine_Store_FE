@@ -2,12 +2,14 @@
 
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { discountOrders, DiscountOrder } from "@/data/discount_order";
+import { useState, useEffect } from "react";
+import { DiscountOrder } from "@/data/discount_order";
+import discountOrdersRepository from "@/api/discountOrdersRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
-import { ShoppingCart, Percent, DollarSign, Calendar, TrendingUp, Edit2, Trash2, ArrowLeft } from "lucide-react";
+import { ShoppingCart, DollarSign, Calendar, TrendingUp, Edit2, Trash2, ArrowLeft } from "lucide-react";
 import { CreateDiscountOrder } from "@/components/discount-orders/(modal)/CreateDiscountOrder";
 import { DeleteConfirmDialog } from "@/components/discount-orders/(modal)/DeleteConfirmDialog";
+import { toast } from "sonner";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -16,8 +18,36 @@ export default function OrderDetailPage() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [discountOrder, setDiscountOrder] = useState<DiscountOrder | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const discountOrder = discountOrders.find((order) => order.DiscountOrderID === id);
+  // Fetch discount order from API
+  useEffect(() => {
+    const loadOrder = async () => {
+      try {
+        setIsLoading(true);
+        const response = await discountOrdersRepository.getDiscountOrders();
+        if (response.success && response.data) {
+          const foundOrder = (response.data as unknown as any[]).find((o: any) => o.DiscountOrderID === id);
+          setDiscountOrder(foundOrder || null);
+        }
+      } catch (error) {
+        console.error('Error loading order:', error);
+        toast.error('Failed to load order data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadOrder();
+  }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
   if (!discountOrder) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
@@ -76,15 +106,38 @@ export default function OrderDetailPage() {
   };
 
   const handleUpdateOrder = async (id: number, data: Omit<DiscountOrder, "DiscountOrderID">) => {
-    console.log(`Updating order discount ${id}:`, data);
-    alert(`Order discount ${id} updated successfully!`);
-    setIsEditModalOpen(false);
+    try {
+      const response = await discountOrdersRepository.updateDiscountOrder(id, {
+        DiscountID: (data as any).DiscountID,
+        OrderID: (data as any).OrderID,
+        DiscountAmount: (data as any).DiscountValue
+      });
+
+      if (response.success) {
+        toast.success(`Order discount updated successfully!`);
+        // Reload the order data
+        const reloadResponse = await discountOrdersRepository.getDiscountOrders();
+        if (reloadResponse.success && reloadResponse.data) {
+          const foundOrder = (reloadResponse.data as unknown as any[]).find((o: any) => o.DiscountOrderID === id);
+          setDiscountOrder(foundOrder || null);
+        }
+        setIsEditModalOpen(false);
+      } else {
+        toast.error(response.message || "Failed to update order discount");
+      }
+    } catch (error) {
+      console.error('Error updating order discount:', error);
+      toast.error("An error occurred while updating the order discount");
+    }
   };
 
   const handleConfirmDelete = () => {
+    if (!discountOrder) return;
     console.log("Delete order:", discountOrder.DiscountOrderID);
-    alert(`Order discount ${discountOrder.DiscountValue}% deleted successfully!`);
+    // TODO: Implement DELETE API call
+    toast.success(`Order discount deleted successfully!`);
     setIsDeleteDialogOpen(false);
+    router.push('/admin/discounts/orders');
   };
 
   return (

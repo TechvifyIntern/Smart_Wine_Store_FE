@@ -21,7 +21,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Account } from "@/data/accounts";
 import {
     createAccountSchema,
     type CreateAccountFormData,

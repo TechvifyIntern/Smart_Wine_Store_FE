@@ -61,16 +61,37 @@ export default function ProductCategoriesPage() {
 
     const handleConfirmDelete = () => {
         if (categoryToDelete) {
-            console.log("Delete category:", categoryToDelete.CategoryID);
-            // TODO: Implement API call to delete category
-            // Example:
-            // await fetch(`/api/categories/${categoryToDelete.CategoryID}`, {
-            //   method: 'DELETE',
-            // });
+            // Double-check product count before deletion
+            try {
+                const productsResponse = await categoriesRepository.getProductsByCategory(categoryToDelete.CategoryID);
+                if (productsResponse.data && productsResponse.data.length > 0) {
+                    toast({
+                        title: "Cannot Delete Category",
+                        description: `Category "${categoryToDelete.CategoryName}" contains ${productsResponse.data.length} products. Please move or delete all products first.`,
+                        variant: "destructive",
+                    });
+                    setIsDeleteDialogOpen(false);
+                    setCategoryToDelete(null);
+                    return;
+                }
 
-            alert(`Category "${categoryToDelete.CategoryName}" deleted successfully!`);
-            setIsDeleteDialogOpen(false);
-            setCategoryToDelete(null);
+                await categoriesRepository.deleteCategory(categoryToDelete.CategoryID);
+                toast({
+                    title: "Success",
+                    description: `Category "${categoryToDelete.CategoryName}" deleted successfully!`,
+                });
+                // Refresh categories
+                await fetchCategories();
+                setIsDeleteDialogOpen(false);
+                setCategoryToDelete(null);
+            } catch (error) {
+                console.error('Failed to delete category:', error);
+                toast({
+                    title: "Error",
+                    description: "Failed to delete category. Please try again.",
+                    variant: "destructive",
+                });
+            }
         }
     };
 

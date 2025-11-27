@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Jost } from "next/font/google";
 import AuthInitializer from "@/components/auth/AuthInitializer";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { LocaleProvider } from "@/contexts/LocaleContext";
 
 export const metadata: Metadata = {
   title: "WINEICY",
@@ -41,15 +43,19 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={jost.className}>
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthInitializer>{children}</AuthInitializer>
-          <Toaster />
-        </ThemeProvider>
+        <QueryClientProvider client={queryClient}>
+          <LocaleProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <AuthInitializer>{children}</AuthInitializer>
+              <Toaster />
+            </ThemeProvider>
+          </LocaleProvider>
+        </QueryClientProvider>
       </body>
     </html>
   );

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Boxes } from "lucide-react";
-import inventoryProducts from "@/data/inventory_product";
+import inventoriesRepository from "@/api/inventoriesRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import InventoryProductsTable from "@/components/inventory-products/InventoryProductsTable";
 import Pagination from "@/components/admin/pagination/Pagination";
@@ -12,6 +12,7 @@ import { UpdateInventoryProduct } from "@/components/inventory-products/(modal)/
 import { InventoryImportModal } from "@/components/inventory-products/(modal)/InventoryImportModal";
 import { InventoryExportModal } from "@/components/inventory-products/(modal)/InventoryExportModal";
 import { formatCurrency } from "@/lib/utils";
+import { toast } from "sonner";
 
 export interface InventoryProduct {
   ProductID: string;
@@ -32,20 +33,44 @@ export default function InventoryProductsPage() {
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<InventoryProduct | null>(null);
+  const [inventories, setInventories] = useState<InventoryProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const loadInventories = async () => {
+    try {
+      setIsLoading(true);
+      const response = await inventoriesRepository.getInventories();
+      if (response.success && response.data) {
+        // Map API response to InventoryProduct format if needed
+        setInventories(response.data as any);
+      } else {
+        console.error('Failed to load inventories:', response.message);
+      }
+    } catch (err) {
+      console.error('Error loading inventories:', err);
+      toast.error('Failed to load inventories');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch inventories data from API
+  useEffect(() => {
+    loadInventories();
+  }, []);
 
   // Filter products based on search term (ProductName only)
   const filteredProducts = useMemo(() => {
     if (!searchTerm.trim()) {
-      return inventoryProducts;
+      return inventories;
     }
 
     const lowerSearchTerm = searchTerm.toLowerCase().trim();
 
-    // TODO: Replace with API call when ready
-    return inventoryProducts.filter((product) =>
+    return inventories.filter((product) =>
       product.ProductName.toLowerCase().includes(lowerSearchTerm)
     );
-  }, [searchTerm]);
+  }, [searchTerm, inventories]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -55,7 +80,7 @@ export default function InventoryProductsPage() {
 
   // Action handlers
   const handleEdit = (id: string) => {
-    const product = inventoryProducts.find((p) => p.ProductID === id);
+    const product = inventories.find((p) => p.ProductID === id);
     if (product) {
       setSelectedProduct(product);
       setIsUpdateModalOpen(true);
@@ -63,7 +88,7 @@ export default function InventoryProductsPage() {
   };
 
   const handleImport = (id: string) => {
-    const product = inventoryProducts.find((p) => p.ProductID === id);
+    const product = inventories.find((p) => p.ProductID === id);
     if (product) {
       setSelectedProduct(product);
       setIsImportModalOpen(true);
@@ -71,7 +96,7 @@ export default function InventoryProductsPage() {
   };
 
   const handleExport = (id: string) => {
-    const product = inventoryProducts.find((p) => p.ProductID === id);
+    const product = inventories.find((p) => p.ProductID === id);
     if (product) {
       setSelectedProduct(product);
       setIsExportModalOpen(true);
@@ -91,9 +116,25 @@ export default function InventoryProductsPage() {
   const handleCreateProduct = async (
     data: Omit<InventoryProduct, "ProductID">
   ) => {
-    console.log("Creating new product:", data);
-    // TODO: Implement API call to create product
-    alert("Product created successfully!");
+    try {
+      const response = await inventoriesRepository.createInventory({
+        ProductID: 0, // Backend will assign ID
+        WarehouseID: 1, // Default warehouse, adjust as needed
+        Quantity: data.Quantity,
+        CostPrice: data.CostPrice
+      });
+
+      if (response.success) {
+        toast.success("Inventory created successfully!");
+        setIsCreateModalOpen(false);
+        await loadInventories();
+      } else {
+        toast.error(response.message || "Failed to create inventory");
+      }
+    } catch (error) {
+      console.error('Error creating inventory:', error);
+      toast.error("An error occurred while creating the inventory");
+    }
   };
 
   const handleUpdateProduct = async (
@@ -110,12 +151,24 @@ export default function InventoryProductsPage() {
     quantity: number,
     costPrice: number
   ) => {
-    console.log(`Importing stock for product ${productId}:`, {
-      quantity,
-      costPrice,
-    });
-    // TODO: Implement API call to import stock
-    alert(`Imported ${quantity} units successfully!`);
+    try {
+      const response = await inventoriesRepository.importInventory({
+        ProductID: parseInt(productId),
+        WarehouseID: 1, // Default warehouse
+        Quantity: quantity
+      });
+
+      if (response.success) {
+        toast.success(`Imported ${quantity} units successfully!`);
+        setIsImportModalOpen(false);
+        await loadInventories();
+      } else {
+        toast.error(response.message || "Failed to import stock");
+      }
+    } catch (error) {
+      console.error('Error importing stock:', error);
+      toast.error("An error occurred while importing stock");
+    }
   };
 
   const handleExportStock = async (
@@ -123,13 +176,43 @@ export default function InventoryProductsPage() {
     quantity: number,
     reason: string
   ) => {
-    console.log(`Exporting stock for product ${productId}:`, {
-      quantity,
-      reason,
-    });
-    // TODO: Implement API call to export stock
-    alert(`Exported ${quantity} units successfully!`);
+    try {
+      const response = await inventoriesRepository.exportInventory({
+        ProductID: parseInt(productId),
+        WarehouseID: 1, // Default warehouse
+        Quantity: quantity
+      });
+
+      if (response.success) {
+        toast.success(`Exported ${quantity} units successfully!`);
+        setIsExportModalOpen(false);
+        await loadInventories();
+      } else {
+        toast.error(response.message || "Failed to export stock");
+      }
+    } catch (error) {
+      console.error('Error exporting stock:', error);
+      toast.error("An error occurred while exporting stock");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div>
+        <PageHeader
+          title="Inventory Products"
+          icon={Boxes}
+          iconColor="text-black"
+        />
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading inventories...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

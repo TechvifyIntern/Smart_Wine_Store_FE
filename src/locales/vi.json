@@ -1,0 +1,16 @@
+{
+    "header": {
+        "user": "Người dùng",
+        "userPage": "Trang người dùng",
+        "storeManagement": "Quản lý cửa hàng",
+        "accountManagement": "Quản lý tài khoản cá nhân",
+        "language": "Ngôn ngữ",
+        "logout": "Đăng xuất",
+        "signIn": "Đăng nhập",
+        "signUp": "Đăng ký"
+    },
+    "languages": {
+        "vi": "Tiếng Việt",
+        "en": "English"
+    }
+}

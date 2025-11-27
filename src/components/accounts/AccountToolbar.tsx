@@ -44,12 +44,48 @@ export default function AccountToolbar({
     const handleCreateAccount = async (
         data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
     ) => {
-        if (onCreateAccount) {
-            await onCreateAccount(data);
-        } else {
-            console.log("Creating account:", data);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            alert("Account created successfully!");
+        try {
+            // Transform phone number to international format if it starts with 0
+            let phoneNumber = data.PhoneNumber;
+            if (phoneNumber.startsWith('0')) {
+                // Remove leading 0 and prepend +84
+                phoneNumber = '+84' + phoneNumber.substring(1);
+            }
+
+            // Call the register API directly
+            const registerData = {
+                UserName: data.UserName,
+                Email: data.Email,
+                PhoneNumber: phoneNumber,
+                Password: data.Password,
+                Birthday: data.Birthday,
+                ImageURL: data.ImageURL || undefined,
+                RoleID: data.RoleID || undefined,
+            };
+
+            await signUp(registerData);
+
+            // If there's a parent handler, call it too (for the page to handle)
+            if (onCreateAccount) {
+                await onCreateAccount(data);
+            }
+
+            toast({
+                title: "Success",
+                description: "Account created successfully!",
+            });
+        } catch (error: unknown) {
+            console.error("Error creating account:", error);
+
+            // Extract specific error message from API response
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create account. Please try again.";
+
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+            throw error; // Re-throw to let the modal handle the error state
         }
     };
 

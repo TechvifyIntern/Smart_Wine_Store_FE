@@ -5,6 +5,7 @@ import { Product } from "@/types/product-detail";
 import { useCartStore } from "@/store/cart";
 import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
+import { Wine } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -23,12 +24,16 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link key={product.ProductID} href={`/product-detail/${product.ProductID}`}>
       <div className="group relative cursor-pointer border border-gray-200 dark:border-white/20 dark:border-t-0 dark:bg-[#121212] transition-all duration-300 hover:shadow-lg w-72 h-104 hover:h-114 rounded-lg">
         {/* Image Section */}
-        <div className="relative h-72 overflow-hidden flex items-center justify-center bg-white">
-          <img
-            src={product.ImageURL}
-            alt={product.ProductName}
-            className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105 rounded-lg"
-          />
+        <div className="relative h-72 overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800">
+          {product.ImageURL ? (
+            <img
+              src={product.ImageURL}
+              alt={product.ProductName}
+              className="w-full h-full object-contain transition-transform duration-500 ease-out group-hover:scale-105 rounded-lg"
+            />
+          ) : (
+            <Wine className="w-24 h-24 text-gray-300 dark:text-gray-600" />
+          )}
         </div>
 
         {/* Content Section */}

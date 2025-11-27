@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Edit, Package, UserX, CheckCircle, Save } from "lucide-react";
-import products from "@/data/products";
+import productsRepository from "@/api/productsRepository";
+import { Product } from "@/data/products";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,7 +54,42 @@ export default function ProductDetailPage() {
     const [showToggleDialog, setShowToggleDialog] = useState(false);
     const [isActivating, setIsActivating] = useState(false);
 
-    const product = products.find((p) => p.ProductID === productId);
+    // State for product data
+    const [product, setProduct] = useState<Product | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch product data from API
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setIsLoading(true);
+                const response = await productsRepository.getProductById(productId);
+                if (response.success && response.data) {
+                    setProduct(response.data);
+                } else {
+                    console.error('Failed to load product:', response.message);
+                    toast({
+                        title: "Error",
+                        description: "Failed to load product details.",
+                        variant: "destructive",
+                    });
+                }
+            } catch (err) {
+                console.error('Error loading product:', err);
+                toast({
+                    title: "Error",
+                    description: "An error occurred while loading product details.",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (productId) {
+            fetchProduct();
+        }
+    }, [productId, toast]);
 
     // Check for edit query parameter
     useEffect(() => {
@@ -94,20 +130,50 @@ export default function ProductDetailPage() {
         }
     };
 
-    const handleSaveConfirm = (data: EditFormData) => {
+    const handleSaveConfirm = async (data: EditFormData) => {
         if (!product) return;
 
-        product.ProductName = data.ProductName;
-        product.CategoryID = data.CategoryID;
-        product.CostPrice = data.CostPrice;
-        product.SalePrice = data.SalePrice;
+        try {
+            // Call API to update product
+            const response = await productsRepository.updateProduct(product.ProductID, {
+                ProductName: data.ProductName,
+                CategoryID: data.CategoryID,
+                CostPrice: data.CostPrice,
+                SalePrice: data.SalePrice,
+            });
 
-        setIsEditing(false);
-        setShowSaveDialog(false); // Close dialog
-        toast({
-            title: "Product Updated",
-            description: `Product ${product.ProductName} has been successfully updated.`,
-        });
+            if (response.success) {
+                // Update local state with new data
+                setProduct({
+                    ...product,
+                    ProductName: data.ProductName,
+                    CategoryID: data.CategoryID,
+                    CostPrice: data.CostPrice,
+                    SalePrice: data.SalePrice,
+                });
+
+                setIsEditing(false);
+                setShowSaveDialog(false);
+
+                toast({
+                    title: "Product Updated",
+                    description: `Product ${data.ProductName} has been successfully updated.`,
+                });
+            } else {
+                toast({
+                    title: "Update Failed",
+                    description: response.message || "Failed to update product.",
+                    variant: "destructive",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating product:", error);
+            toast({
+                title: "Error",
+                description: "An error occurred while updating the product.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleSaveDialogConfirm = () => {
@@ -130,28 +196,67 @@ export default function ProductDetailPage() {
         setShowToggleDialog(true);
     };
 
-    const handleToggleConfirm = () => {
+    const handleToggleConfirm = async () => {
         if (!product) return;
 
-        if (isActivating) {
-            product.isActive = true;
+        try {
+            // Call API to update product status
+            const response = await productsRepository.updateProductStatus(
+                product.ProductID,
+                isActivating
+            );
+
+            if (response.success) {
+                // Update local state
+                setProduct({
+                    ...product,
+                    isActive: isActivating,
+                });
+
+                setShowToggleDialog(false);
+
+                if (isActivating) {
+                    toast({
+                        title: "Product Activated",
+                        description: `The product ${product.ProductName} has been successfully activated.`,
+                    });
+                } else {
+                    toast({
+                        title: "Product Deactivated",
+                        description: `The product ${product.ProductName} has been successfully deactivated.`,
+                    });
+                }
+            } else {
+                toast({
+                    title: "Update Failed",
+                    description: response.message || "Failed to update product status.",
+                    variant: "destructive",
+                });
+            }
+        } catch (error) {
+            console.error("Error updating product status:", error);
             toast({
-                title: "Product Activated",
-                description: `The product ${product.ProductName} has been successfully activated.`,
-            });
-        } else {
-            product.isActive = false;
-            toast({
-                title: "Product Deactivated",
-                description: `The product ${product.ProductName} has been successfully deactivated.`,
+                title: "Error",
+                description: "An error occurred while updating product status.",
+                variant: "destructive",
             });
         }
-        setShowToggleDialog(false);
     };
 
     const handleToggleCancel = () => {
         setShowToggleDialog(false);
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Loading product details...</p>
+                </div>
+            </div>
+        );
+    }
 
     if (!product) {
         return (
@@ -346,7 +451,7 @@ export default function ProductDetailPage() {
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{getCategoryName(product.CategoryID)}</p>
+                                            <p className="font-medium text-gray-900 dark:text-slate-100">{product.CategoryID ? getCategoryName(product.CategoryID) : 'N/A'}</p>
                                         )}
                                     </div>
                                 </div>
