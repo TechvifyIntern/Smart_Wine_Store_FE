@@ -218,7 +218,7 @@ export default function EventsPage() {
         try {
             const response = await discountEventsRepository.createDiscountEvent({
                 EventName: data.EventName,
-                DiscountPercentage: data.DiscountValue,
+                DiscountPercentage: data.DiscountValue ?? 0,
                 StartDate: data.TimeStart,
                 EndDate: data.TimeEnd,
                 Description: data.Description,

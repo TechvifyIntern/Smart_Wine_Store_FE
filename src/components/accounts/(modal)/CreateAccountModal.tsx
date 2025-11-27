@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useEffect } from "react";
+import type { Account } from "@/data/accounts";
 import {
     Dialog,
     DialogContent,

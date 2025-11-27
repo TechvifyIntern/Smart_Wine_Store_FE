@@ -153,7 +153,7 @@ export default function InventoryProductsPage() {
   };
 
   const handleCreateProduct = async (
-    data: Omit<InventoryProduct, "ProductID">
+    data: Pick<InventoryProduct, "ProductID" | "Quantity">
   ) => {
     try {
       // Validate product ID if it exists
@@ -164,7 +164,7 @@ export default function InventoryProductsPage() {
 
       const response = await inventoriesRepository.createInventory({
         ProductID: parseInt(data.ProductID || '0'),
-        WarehouseID: data.WarehouseID || 1,
+        WarehouseID: 1, // Default warehouse
         Quantity: data.Quantity
       });
 

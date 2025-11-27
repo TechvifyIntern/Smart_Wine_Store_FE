@@ -18,15 +18,13 @@ interface DiscountOrder {
 }
 
 interface CreateDiscountOrderData {
-    DiscountID: number;
-    OrderID: number;
-    DiscountAmount: number;
+    DiscountValue: number;
+    MinimumOrderValue: number;
 }
 
 interface UpdateDiscountOrderData {
-    DiscountID?: number;
-    OrderID?: number;
-    DiscountAmount?: number;
+    DiscountValue?: number;
+    MinimumOrderValue?: number;
 }
 
 class DiscountOrdersRepository extends BaseRepository {

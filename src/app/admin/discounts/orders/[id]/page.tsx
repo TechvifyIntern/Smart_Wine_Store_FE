@@ -108,9 +108,8 @@ export default function OrderDetailPage() {
   const handleUpdateOrder = async (id: number, data: Omit<DiscountOrder, "DiscountOrderID">) => {
     try {
       const response = await discountOrdersRepository.updateDiscountOrder(id, {
-        DiscountID: (data as any).DiscountID,
-        OrderID: (data as any).OrderID,
-        DiscountAmount: (data as any).DiscountValue
+        DiscountValue: data.DiscountValue,
+        MinimumOrderValue: data.MinimumOrderValue
       });
 
       if (response.success) {

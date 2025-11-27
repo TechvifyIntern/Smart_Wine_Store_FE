@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Edit, Save, X, Wine, FolderOpen, Star, ShoppingBag } from "lucide-react";
 import productCategories from "@/data/product_categories";
 import products from "@/data/products";
+import categoriesRepository from "@/api/categoriesRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +19,8 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import type { Category } from "@/types/category";
+import type { Product } from "@/data/products";
 
 export default function CategoryDetailPage() {
     const params = useParams();
@@ -25,17 +28,19 @@ export default function CategoryDetailPage() {
     const searchParams = useSearchParams();
     const categoryId = parseInt(params.id as string);
 
-    const category = productCategories.find((c) => c.CategoryID === categoryId);
-
     const { toast } = useToast();
 
     // Check if we should start in edit mode
     const shouldStartEditing = searchParams.get('edit') === '1';
 
     // State management
+    const [category, setCategory] = useState<Category | null>(null);
+    const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
     const [isEditing, setIsEditing] = useState(shouldStartEditing);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showInactiveDialog, setShowInactiveDialog] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Fetch category data from API
     useEffect(() => {
@@ -79,7 +84,7 @@ export default function CategoryDetailPage() {
                 console.error('Failed to fetch products for category:', error);
                 // Fallback to static filtering if API fails
                 const fallbackProducts = products.filter(product => product.CategoryID === categoryId);
-                setCategoryProducts(fallbackProducts as Products[]);
+                setCategoryProducts(fallbackProducts as Product[]);
             }
         };
 

@@ -76,7 +76,7 @@ export default function EventDetailPage() {
         if (event && isEditing) {
             setValue("EventName", event.EventName);
             setValue("Description", event.Description || "");
-            setValue("DiscountValue", event.DiscountValue);
+            setValue("DiscountValue", event.DiscountValue ?? 0);
             setValue("TimeStart", event.TimeStart);
             setValue("TimeEnd", event.TimeEnd);
         }

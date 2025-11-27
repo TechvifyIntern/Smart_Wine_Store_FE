@@ -92,7 +92,7 @@ export default function CartClient() {
         <ShoppingCart className="h-10 w-10 sm:h-12 sm:w-12 mb-3 sm:mb-4" />
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("cart.title")}</h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-2">
-          {t("cart.itemCount", { count: items.length }).replace("{{count}}", items.length.toString())}
+          {t("cart.itemCount").replace("{{count}}", items.length.toString())}
         </p>
       </div>
       <div className="mt-6 sm:mt-8 lg:flex lg:gap-8">

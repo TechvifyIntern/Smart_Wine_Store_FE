@@ -4,6 +4,8 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Tag } from "lucide-react";
 import productCategories, { ProductCategory } from "@/data/product_categories";
+import categoriesRepository from "@/api/categoriesRepository";
+import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductCategoriesTable from "@/components/categories/ProductCategoriesTable";
 import Pagination from "@/components/admin/pagination/Pagination";
@@ -13,6 +15,7 @@ import { DeleteCategoryDialog } from "@/components/categories/(modal)/DeleteCate
 
 export default function ProductCategoriesPage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [searchTerm, setSearchTerm] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -59,7 +62,7 @@ export default function ProductCategoriesPage() {
         }
     };
 
-    const handleConfirmDelete = () => {
+    const handleConfirmDelete = async () => {
         if (categoryToDelete) {
             // Double-check product count before deletion
             try {
@@ -80,8 +83,8 @@ export default function ProductCategoriesPage() {
                     title: "Success",
                     description: `Category "${categoryToDelete.CategoryName}" deleted successfully!`,
                 });
-                // Refresh categories
-                await fetchCategories();
+                // Refresh the page to show updated data
+                router.refresh();
                 setIsDeleteDialogOpen(false);
                 setCategoryToDelete(null);
             } catch (error) {

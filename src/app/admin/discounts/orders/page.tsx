@@ -147,9 +147,8 @@ export default function DiscountOrdersPage() {
     const handleCreateOrder = async (data: Omit<DiscountOrder, "DiscountOrderID">) => {
         try {
             const response = await discountOrdersRepository.createDiscountOrder({
-                DiscountID: data.DiscountID || 0,
-                OrderID: data.OrderID || 0,
-                DiscountAmount: data.DiscountValue || 0
+                DiscountValue: data.DiscountValue || 0,
+                MinimumOrderValue: data.MinimumOrderValue || 0
             });
 
             if (response.success) {
@@ -167,9 +166,8 @@ export default function DiscountOrdersPage() {
     const handleUpdateOrder = async (id: number, data: Omit<DiscountOrder, "DiscountOrderID">) => {
         try {
             const response = await discountOrdersRepository.updateDiscountOrder(id, {
-                DiscountID: data.DiscountID,
-                OrderID: data.OrderID,
-                DiscountAmount: data.DiscountValue
+                DiscountValue: data.DiscountValue,
+                MinimumOrderValue: data.MinimumOrderValue
             });
 
             if (response.success) {
