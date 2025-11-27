@@ -6,7 +6,6 @@ import type {
   CreateCategoryResponse,
   UpdateCategoryResponse,
   DeleteCategoryResponse,
-  GetParentCategoriesResponse,
   GetChildrenCategoriesResponse,
   GetProductsByCategoryResponse,
   GetParentCategoryByIdResponse,
@@ -94,6 +93,7 @@ class CategoriesRepository extends BaseRepository {
     }
   }
 }
+
 
 // Export singleton instance
 const categoriesRepository = new CategoriesRepository();

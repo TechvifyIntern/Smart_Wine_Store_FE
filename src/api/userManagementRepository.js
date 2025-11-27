@@ -39,6 +39,7 @@ class UserManagementRepository extends BaseRepository {
     }
   }
 
+  
   /**
    * Get user by ID
    * @param {number} id - User ID

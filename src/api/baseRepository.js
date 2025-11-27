@@ -50,6 +50,7 @@ class BaseRepository {
     }
   }
 
+  
   async patch(id, data) {
     try {
       const response = await api.patch(`${this.endpoint}/${id}`, data);
