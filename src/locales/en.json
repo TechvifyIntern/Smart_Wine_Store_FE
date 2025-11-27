@@ -1,0 +1,16 @@
+{
+    "header": {
+        "user": "User",
+        "userPage": "User Page",
+        "storeManagement": "Store Management",
+        "accountManagement": "Account Management",
+        "language": "Language",
+        "logout": "Logout",
+        "signIn": "Sign In",
+        "signUp": "Sign Up"
+    },
+    "languages": {
+        "vi": "Tiếng Việt",
+        "en": "English"
+    }
+}

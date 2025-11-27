@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
-import products, { Product } from "@/data/products";
+import { toast } from "sonner";
+import { Product } from "@/data/products";
+import productsRepository from "@/api/productsRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductTable from "@/components/product/ProductTable";
 import ProductToolbar from "@/components/product/ProductToolbar";
@@ -16,31 +18,47 @@ export default function ProductsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Filter products based on search term
-    const filteredProducts = useMemo(() => {
-        let filtered = products;
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                setIsSearching(true);
+                let response;
 
-        // Apply search term filter
-        if (searchTerm.trim()) {
-            const lowerSearchTerm = searchTerm.toLowerCase().trim();
-            filtered = filtered.filter(
-                (product) =>
-                    product.ProductName.toLowerCase().includes(lowerSearchTerm) ||
-                    product.ProductID.toString().includes(lowerSearchTerm)
-            );
-        }
+                if (searchTerm.trim()) {
+                    response = await productsRepository.searchProducts({ name: searchTerm });
+                } else {
+                    response = await productsRepository.getProducts();
+                }
 
-        return filtered;
+                if (response.success && response.data) {
+                    setProducts(response.data);
+                } else {
+                    console.error('Failed to load products:', response.message);
+                }
+            } catch (err) {
+                console.error('Error loading products:', err);
+            } finally {
+                setIsSearching(false);
+            }
+        };
+
+        const timeoutId = setTimeout(() => {
+            loadProducts();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
     }, [searchTerm]);
 
-    // Calculate pagination
+    const filteredProducts = products;
+
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
-    // Action handlers
     const handleView = (id: number) => {
         router.push(`/product/${id}`);
     };
@@ -52,20 +70,38 @@ export default function ProductsPage() {
         }
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         const product = products.find((p) => p.ProductID === id);
-        if (product) {
-            if (window.confirm(`Are you sure you want to delete "${product.ProductName}"?`)) {
-                alert(`Product "${product.ProductName}" deleted successfully!`);
+        if (product && window.confirm(`Are you sure you want to delete "${product.ProductName}"?`)) {
+            try {
+                await productsRepository.deleteProduct(id);
+                const response = await productsRepository.getProducts();
+                if (response.success && response.data) {
+                    setProducts(response.data);
+                }
+                toast.success(`Product "${product.ProductName}" deleted successfully!`);
+            } catch (error) {
+                console.error("Error deleting product:", error);
+                toast.error("Failed to delete product");
             }
         }
     };
 
-    const handleToggleStatus = (id: number, isActive: boolean) => {
+    const handleToggleStatus = async (id: number, isActive: boolean) => {
         const product = products.find((p) => p.ProductID === id);
         if (product) {
-            const statusText = isActive ? "activated" : "deactivated";
-            alert(`Product "${product.ProductName}" ${statusText}!`);
+            try {
+                await productsRepository.updateProductStatus(id, isActive);
+                const response = await productsRepository.getProducts();
+                if (response.success && response.data) {
+                    setProducts(response.data);
+                }
+                const statusText = isActive ? "activated" : "deactivated";
+                toast.success(`Product "${product.ProductName}" ${statusText} successfully!`);
+            } catch (error) {
+                console.error("Error updating product status:", error);
+                toast.error("Failed to update product status");
+            }
         }
     };
 
@@ -73,19 +109,31 @@ export default function ProductsPage() {
         setIsCreateModalOpen(true);
     };
 
-    const handleCreate = (data: Omit<Product, "ProductID">) => {
-        const newProduct: Product = {
-            ...data,
-            ProductID: Math.max(...products.map(p => p.ProductID)) + 1,
-            CategoryID: data.CategoryID as number | string,
-        };
-        products.push(newProduct);
-        alert(`Product "${newProduct.ProductName}" created successfully!`);
+    const handleCreate = async (data: Omit<Product, 'ProductID' | 'CreatedAt' | 'UpdatedAt'>) => {
+        try {
+            const productData = {
+                ...data,
+                CategoryID: typeof data.CategoryID === 'string' ? parseInt(data.CategoryID) : data.CategoryID,
+            };
+
+            const createdProductResponse = await productsRepository.createProduct(productData);
+            const response = await productsRepository.getProducts();
+            if (response.success && response.data) {
+                setProducts(response.data);
+            }
+            setIsCreateModalOpen(false);
+            if (createdProductResponse.success && createdProductResponse.data) {
+                toast.success(`Product "${createdProductResponse.data.ProductName}" created successfully!`);
+            }
+        } catch (error) {
+            console.error("Error creating product:", error);
+            toast.error("Failed to create product");
+        }
     };
 
     const handleSearchChange = (value: string) => {
         setSearchTerm(value);
-        setCurrentPage(1); // Reset to first page when searching
+        setCurrentPage(1);
     };
 
     const handleItemsPerPageChange = (items: number) => {

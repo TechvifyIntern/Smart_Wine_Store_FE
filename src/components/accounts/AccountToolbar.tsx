@@ -82,7 +82,7 @@ export default function AccountToolbar({
             console.error("Error creating account:", error);
 
             // Extract specific error message from API response
-            const errorMessage = (error as any)?.response?.data?.message || "Failed to create account. Please try again.";
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create account. Please try again.";
 
             toast({
                 title: "Error",

@@ -143,7 +143,20 @@ export default function ProductCategoriesPage() {
 
     const handleConfirmDelete = async () => {
         if (categoryToDelete) {
+            // Double-check product count before deletion
             try {
+                const productsResponse = await categoriesRepository.getProductsByCategory(categoryToDelete.CategoryID);
+                if (productsResponse.data && productsResponse.data.length > 0) {
+                    toast({
+                        title: "Cannot Delete Category",
+                        description: `Category "${categoryToDelete.CategoryName}" contains ${productsResponse.data.length} products. Please move or delete all products first.`,
+                        variant: "destructive",
+                    });
+                    setIsDeleteDialogOpen(false);
+                    setCategoryToDelete(null);
+                    return;
+                }
+
                 await categoriesRepository.deleteCategory(categoryToDelete.CategoryID);
                 toast({
                     title: "Success",

@@ -88,7 +88,7 @@ export default function CategoryDetailPage() {
                 console.error('Failed to fetch products for category:', error);
                 // Fallback to static filtering if API fails
                 const fallbackProducts = products.filter(product => product.CategoryID === categoryId);
-                setCategoryProducts(fallbackProducts);
+                setCategoryProducts(fallbackProducts as Products[]);
             }
         };
 
@@ -115,7 +115,7 @@ export default function CategoryDetailPage() {
             const updateData = {
                 CategoryName: category.CategoryName,
                 Description: category.Description,
-                CategoryParentID: category.CategoryParentID || 0
+                CategoryParentID: category.CategoryParentID === 0 || !category.CategoryParentID ? null : category.CategoryParentID
             };
 
             await categoriesRepository.updateCategory(category.CategoryID, updateData);
@@ -145,18 +145,39 @@ export default function CategoryDetailPage() {
         setShowInactiveDialog(true);
     };
 
-    const handleInactiveConfirm = () => {
+    const handleInactiveConfirm = async () => {
         if (!category) return;
 
-        // In a real app, this would be an API call to delete the category
-        console.log("Deleting category:", category.CategoryID);
+        try {
+            // Double-check that the category has no products (safety check)
+            if (categoryProducts.length > 0) {
+                toast({
+                    title: "Cannot Delete Category",
+                    description: `The category "${category.CategoryName}" contains ${categoryProducts.length} products. Please move or delete all products first.`,
+                    variant: "destructive",
+                });
+                setShowInactiveDialog(false);
+                return;
+            }
 
-        toast({
-            title: "Category Deleted",
-            description: `The category ${category.CategoryName} has been successfully deleted.`,
-        });
+            await categoriesRepository.deleteCategory(category.CategoryID);
 
-        setShowInactiveDialog(false);
+            toast({
+                title: "Category Deleted",
+                description: `The category "${category.CategoryName}" has been successfully deleted.`,
+            });
+
+            setShowInactiveDialog(false);
+            // Navigate back to categories list
+            router.push('/admin/products/categories');
+        } catch (error) {
+            console.error("Error deleting category:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleInactiveCancel = () => {
@@ -174,6 +195,37 @@ export default function CategoryDetailPage() {
             currency: 'VND'
         }).format(amount);
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-gray-200 dark:border-slate-600 border-t-[#ad8d5e] rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Loading category...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Category</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Categories
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!category) {
         return (

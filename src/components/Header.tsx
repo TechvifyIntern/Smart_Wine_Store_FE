@@ -10,6 +10,10 @@ import {
   ChevronDown,
   ChevronRight,
   User,
+  Store,
+  Home,
+  Languages,
+  Check,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthDialog } from "@/components/auth/auth-dialog";
@@ -22,15 +26,21 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
+import { useLocale } from "@/contexts/LocaleContext";
 import { Category } from "@/types/category";
 import { getParentCategory, getChildrenCategory } from "@/services/header/api";
 
 export function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -62,8 +72,11 @@ export function Header() {
   const { user, logout, authOpen, authMode, setAuthOpen, setAuthMode } =
     useAppStore();
   const isAuthenticated = !!user;
+  const { locale, setLocale, t } = useLocale();
 
-  const handleLogout = () => {
+  // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
+  const isAdminOrSeller = user?.roleId === 1 || user?.roleId === 2;
+  const isInAdminPage = pathname?.startsWith('/admin'); const handleLogout = () => {
     logout();
     router.push("/");
   };
@@ -254,7 +267,7 @@ export function Header() {
                       setAuthOpen(true);
                     }}
                   >
-                    Sign In
+                    {t("header.signIn")}
                   </Button>
                   <Button
                     size="sm"
@@ -264,7 +277,7 @@ export function Header() {
                       setAuthOpen(true);
                     }}
                   >
-                    Sign Up
+                    {t("header.signUp")}
                   </Button>
                 </div>
               ) : (
@@ -288,29 +301,77 @@ export function Header() {
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center gap-2 p-2">
                       <div className="flex flex-col space-y-1">
-                        <p className="font-medium">User</p>
+                        <p className="font-medium">{t("header.user")}</p>
                         <p className="w-[200px] truncate text-xs text-muted-foreground">
                           {user.email}
                         </p>
                       </div>
                     </div>
 
-                    <DropdownMenuItem asChild>
-                      <Link
-                        href="/profile"
+                    <DropdownMenuSeparator />
+
+                    {/* Quản lý cửa hàng / Trang người dùng */}
+                    {isAdminOrSeller && (
+                      <DropdownMenuItem
+                        onClick={() => router.push(isInAdminPage ? "/" : "/admin")}
                         className="flex items-center cursor-pointer"
                       >
-                        <User className="mr-2 h-4 w-4" />
-                        Profile
-                      </Link>
+                        {isInAdminPage ? (
+                          <>
+                            <Home className="mr-2 h-4 w-4" />
+                            {t("header.userPage")}
+                          </>
+                        ) : (
+                          <>
+                            <Store className="mr-2 h-4 w-4" />
+                            {t("header.storeManagement")}
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    )}
+
+                    {/* Quản lý tài khoản cá nhân */}
+                    <DropdownMenuItem
+                      onClick={() => router.push("/profile")}
+                      className="flex items-center cursor-pointer"
+                    >
+                      <User className="mr-2 h-4 w-4" />
+                      {t("header.accountManagement")}
                     </DropdownMenuItem>
 
+                    {/* Ngôn ngữ - Sub Menu */}
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger className="flex items-center cursor-pointer">
+                        <Languages className="mr-2 h-4 w-4" />
+                        {t("header.language")}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem
+                          onClick={() => setLocale("vi")}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <span>{t("languages.vi")}</span>
+                          {locale === "vi" && <Check className="h-4 w-4 ml-2" />}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setLocale("en")}
+                          className="flex items-center justify-between cursor-pointer"
+                        >
+                          <span>{t("languages.en")}</span>
+                          {locale === "en" && <Check className="h-4 w-4 ml-2" />}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+
+                    <DropdownMenuSeparator />
+
+                    {/* Logout */}
                     <DropdownMenuItem
                       onClick={handleLogout}
                       className="flex items-center cursor-pointer text-red-500 focus:text-red-500"
                     >
                       <LogOut className="mr-2 h-4 w-4" />
-                      Sign Out
+                      {t("header.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
