@@ -56,7 +56,7 @@ export default function EventsClient() {
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-12">
                             <span className="text-primary text-sm font-semibold uppercase tracking-wider">{t("events.featured")}</span>
-                            <h2 className="text-3xl md:text-4xl font-serif mt-2">Don't Miss Out</h2>
+                            <h2 className="text-3xl md:text-4xl font-serif mt-2">Don&apos;t Miss Out</h2>
                         </div>
                         <div className="grid md:grid-cols-2 gap-8 items-center bg-background rounded-2xl overflow-hidden shadow-lg">
                             <div className="relative h-[400px]">

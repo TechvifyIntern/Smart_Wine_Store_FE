@@ -18,16 +18,17 @@ interface SuccessDialogProps {
     title?: string;
     message?: string;
     onContinue?: () => void;
-    autoCloseDelay?: number; 
+    autoCloseDelay?: number;
+}
 
 export function SuccessDialog({
-        open,
-        onOpenChange,
-        title = "Registration Successful!",
-        message = "Your account has been created successfully. Welcome to WINEICY!",
-        onContinue,
-        autoCloseDelay,
-    }: SuccessDialogProps) {
+    open,
+    onOpenChange,
+    title = "Registration Successful!",
+    message = "Your account has been created successfully. Welcome to WINEICY!",
+    onContinue,
+    autoCloseDelay,
+}: SuccessDialogProps) {
     const { t } = useLocale();
     const [showConfetti, setShowConfetti] = useState(false);
 
