@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Edit, Save, X, Wine, FolderOpen, Star, ShoppingBag } from "lucide-react";
 import productCategories from "@/data/product_categories";
 import products from "@/data/products";
-import categoriesRepository from "@/api/categoriesRepository";
-import { Category } from "@/types/category";
-import { Products } from "@/types/products";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,15 +25,9 @@ export default function CategoryDetailPage() {
     const searchParams = useSearchParams();
     const categoryId = parseInt(params.id as string);
 
+    const category = productCategories.find((c) => c.CategoryID === categoryId);
+
     const { toast } = useToast();
-
-    // State management for category data
-    const [category, setCategory] = useState<Category | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // State management for category products
-    const [categoryProducts, setCategoryProducts] = useState<Products[]>([]);
 
     // Check if we should start in edit mode
     const shouldStartEditing = searchParams.get('edit') === '1';
@@ -128,12 +119,7 @@ export default function CategoryDetailPage() {
             setIsEditing(false);
             setShowSaveDialog(false);
         } catch (error) {
-            console.error("Error updating category:", error);
-            toast({
-                title: "Error",
-                description: "Failed to update category. Please try again.",
-                variant: "destructive"
-            });
+            console.error("Error saving category:", error);
         }
     };
 
@@ -344,55 +330,18 @@ export default function CategoryDetailPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Category Name</p>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={category.CategoryName}
-                                                onChange={(e) => setCategory({ ...category, CategoryName: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter category name"
-                                            />
-                                        ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
-                                        )}
+                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
+                                <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600 md:col-span-2">
                                     <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
                                         <Star className="w-4 h-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Description</p>
-                                        {isEditing ? (
-                                            <textarea
-                                                value={category.Description}
-                                                onChange={(e) => setCategory({ ...category, Description: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-vertical"
-                                                placeholder="Enter category description"
-                                            />
-                                        ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
-                                        )}
+                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
                                     </div>
                                 </div>
-                                {isEditing && (
-                                    <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
-                                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
-                                            <span className="text-xs font-bold text-purple-600 dark:text-purple-400">#</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Parent Category ID</p>
-                                            <input
-                                                type="number"
-                                                value={category.CategoryParentID || 0}
-                                                onChange={(e) => setCategory({ ...category, CategoryParentID: parseInt(e.target.value) || 0 })}
-                                                className="w-32 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="0"
-                                                min="0"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -475,6 +424,7 @@ export default function CategoryDetailPage() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleSaveConfirm}
+                            disabled={isEditing}
                             className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white"
                         >
                             Đồng ý

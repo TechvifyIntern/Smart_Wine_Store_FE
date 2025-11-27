@@ -1,7 +1,4 @@
-"use client";
-
 import type { Metadata } from "next";
-import { useState } from "react";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
@@ -10,6 +7,29 @@ import AuthInitializer from "@/components/auth/AuthInitializer";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 
+export const metadata: Metadata = {
+  title: "WINEICY",
+  description:
+    "Discover refined wines with exceptional craftsmanship and taste",
+  generator: "v0.app",
+  // icons: {
+  //   icon: [
+  //     {
+  //       url: "/icon-light-32x32.png",
+  //       media: "(prefers-color-scheme: light)",
+  //     },
+  //     {
+  //       url: "/icon-dark-32x32.png",
+  //       media: "(prefers-color-scheme: dark)",
+  //     },
+  //     {
+  //       url: "/icon.svg",
+  //       type: "image/svg+xml",
+  //     },
+  //   ],
+  //   apple: "/apple-icon.png",
+  // },
+};
 const jost = Jost({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"], // choose what you need
@@ -20,8 +40,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [queryClient] = useState(() => new QueryClient());
-
   return (
     <html lang="en" suppressHydrationWarning className={jost.className}>
       <body>

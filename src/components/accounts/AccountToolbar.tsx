@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/discount-events/SearchBar";
 import CreateAccountButton from "./CreateAccountButton";
 import { CreateAccountModal } from "./(modal)/CreateAccountModal";
@@ -10,14 +9,12 @@ import { FilterDialog } from "./(modal)/FilterDialog";
 import { Account } from "@/data/accounts";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { signUp } from "@/services/auth/api";
-import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
 
 interface AccountToolbarProps {
     searchTerm?: string;
+    onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
-    onSearchChange?: (searchTerm: string) => void;
-    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName"> | CreateAccountFormData) => void | Promise<void>;
+    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">) => void | Promise<void>;
     createButtonLabel?: string;
     selectedRoles?: number[];
     selectedTiers?: number[];
@@ -39,14 +36,13 @@ export default function AccountToolbar({
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const { toast } = useToast();
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
     const handleSearchChange = externalOnSearchChange || setInternalSearchTerm;
 
     const handleCreateAccount = async (
-        data: CreateAccountFormData
+        data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName">
     ) => {
         try {
             // Transform phone number to international format if it starts with 0
