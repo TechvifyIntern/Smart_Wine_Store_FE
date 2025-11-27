@@ -15,7 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { ProductCategory } from "@/data/product_categories";
+import productCategories from "@/data/product_categories";
 import {
     categorySchema,
     type CategoryFormData,
@@ -44,34 +52,49 @@ export function CreateCategory({
         formState: { errors, isSubmitting },
         reset,
         setValue,
+        watch,
     } = useForm<CategoryFormData>({
         resolver: zodResolver(categorySchema),
         defaultValues: {
             CategoryName: "",
             Description: "",
+            ParentCategoryID: null,
         },
     });
+
+    const parentCategoryID = watch("ParentCategoryID");
+
+    // Get available parent categories (top-level categories only)
+    const availableParentCategories = productCategories.filter(
+        (cat) => cat.ParentCategoryID === null && cat.CategoryID !== category?.CategoryID
+    );
 
     // Pre-fill form when in edit mode
     useEffect(() => {
         if (mode === "edit" && category) {
             setValue("CategoryName", category.CategoryName);
             setValue("Description", category.Description);
+            setValue("ParentCategoryID", category.ParentCategoryID ?? null);
         } else if (mode === "create") {
             reset({
                 CategoryName: "",
                 Description: "",
+                ParentCategoryID: null,
             });
         }
     }, [mode, category, setValue, reset]);
 
     const onSubmit = async (data: CategoryFormData) => {
         try {
+            const parentCategory = availableParentCategories.find(
+                (cat) => cat.CategoryID === data.ParentCategoryID
+            );
+
             const formattedData = {
                 CategoryName: data.CategoryName,
                 Description: data.Description,
-                ParentCategoryID: null,
-                ParentCategoryName: null,
+                ParentCategoryID: data.ParentCategoryID ?? null,
+                ParentCategoryName: parentCategory?.CategoryName ?? null,
             };
 
             if (mode === "create" && onCreate) {
@@ -140,6 +163,40 @@ export function CreateCategory({
                             {errors.Description && (
                                 <p className="text-sm text-red-500">{errors.Description.message}</p>
                             )}
+                        </div>
+
+                        {/* Parent Category */}
+                        <div className="space-y-2">
+                            <Label htmlFor="ParentCategoryID" className="text-sm font-medium text-gray-900!">
+                                Parent Category (Optional)
+                            </Label>
+                            <Select
+                                value={parentCategoryID?.toString() ?? "none"}
+                                onValueChange={(value) => {
+                                    setValue("ParentCategoryID", value === "none" ? null : parseInt(value));
+                                }}
+                            >
+                                <SelectTrigger className="bg-white! border-gray-300! text-gray-900! focus:ring-2 focus:ring-[#ad8d5e]!">
+                                    <SelectValue placeholder="Select parent category" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white! border-gray-200!">
+                                    <SelectItem value="none" className="text-gray-900!">
+                                        None (Top Level Category)
+                                    </SelectItem>
+                                    {availableParentCategories.map((cat) => (
+                                        <SelectItem
+                                            key={cat.CategoryID}
+                                            value={cat.CategoryID.toString()}
+                                            className="text-gray-900!"
+                                        >
+                                            {cat.CategoryName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-gray-500">
+                                Leave as "None" to create a top-level category
+                            </p>
                         </div>
                     </div>
 
