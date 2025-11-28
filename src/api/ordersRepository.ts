@@ -1,4 +1,4 @@
-import BaseRepository from './baseRepository.js';
+import BaseRepository from './baseRepository';
 
 // Interface for Order
 export interface Order {

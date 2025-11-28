@@ -200,8 +200,8 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                   {getStatusString(selectedOrder.StatusID)}
                 </span>
               </p>
-              {selectedOrder.DiscountValue &&
-                selectedOrder.DiscountValue > 0 && (
+              {selectedOrder.Details.length &&
+                selectedOrder.Details.length > 0 && (
                   <p>
                     <strong>Discount:</strong>{" "}
                     {formatCurrency(selectedOrder.DiscountValue)}

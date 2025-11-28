@@ -18,20 +18,24 @@ import {
   signInSchema,
   signUpSchema,
   forgotPasswordSchema,
+  otpSchema,
   type SignInInput,
   type SignUpInput,
   type ForgotPasswordInput,
+  type OtpInput,
 } from "@/validations/auth";
 import { useAppStore } from "@/store/auth";
-import { signIn, signUp } from "@/services/auth/api";
+import { signIn, signUp, verifyOtp, resendOtp } from "@/services/auth/api";
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+
+type AuthMode = "signin" | "signup" | "forgot" | "otp";
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "signin" | "signup" | "forgot";
-  onModeChange: (mode: "signin" | "signup" | "forgot") => void;
+  mode: AuthMode;
+  onModeChange: (mode: AuthMode) => void;
 }
 
 export function AuthDialog({
@@ -46,7 +50,8 @@ export function AuthDialog({
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  // Sign In Form
+  const [emailForOtp, setEmailForOtp] = useState("");
+
   const signInForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -56,7 +61,6 @@ export function AuthDialog({
     },
   });
 
-  // Sign Up Form
   const signUpForm = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -69,11 +73,17 @@ export function AuthDialog({
     },
   });
 
-  // Forgot Password Form
   const forgotPasswordForm = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
+    },
+  });
+
+  const otpForm = useForm<OtpInput>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: "",
     },
   });
 
@@ -101,53 +111,50 @@ export function AuthDialog({
 
   const onSignUpSubmit = async (data: SignUpInput) => {
     try {
-      // Add default RoleID = 3 if not provided and keep ConfirmPassword
-      const apiData = {
-        ...data,
-        RoleID: data.RoleID || 3
-      };
-
-      const response = await signUp(apiData);
-      console.log("Sign up response:", response);
-
-      // Validate tokens before setting
-      if (!response.accessToken || typeof response.accessToken !== 'string') {
-        throw new Error("Invalid access token received from server");
-      }
-      if (!response.refreshToken || typeof response.refreshToken !== 'string') {
-        throw new Error("Invalid refresh token received from server");
-      }
-
-      setTokens(response.accessToken, response.refreshToken);
-      signUpForm.reset();
-      onOpenChange(false);
-      // Don't change mode, just close the dialog after successful signup
+      const apiData = { ...data, RoleID: data.RoleID || 3 };
+      await signUp(apiData);
+      setEmailForOtp(data.Email);
+      onModeChange("otp");
     } catch (error: any) {
       console.error("Sign up error:", error);
-
-      // Handle specific error status codes
       if (error.response?.status === 409) {
         signUpForm.setError("root", {
           type: "manual",
           message: t("auth.signUpDialog.errors.emailExists"),
         });
-      } else if (error.response?.status === 400) {
-        const message = error.response?.data?.message || t("auth.signUpDialog.errors.invalidData");
-        signUpForm.setError("root", {
-          type: "manual",
-          message: message,
-        });
-      } else if (error.response?.data?.message) {
-        signUpForm.setError("root", {
-          type: "manual",
-          message: error.response.data.message,
-        });
       } else {
         signUpForm.setError("root", {
           type: "manual",
-          message: error.message || t("auth.signUpDialog.errors.unexpectedError"),
+          message: error.response?.data?.message || t("auth.signUpDialog.errors.unexpectedError"),
         });
       }
+    }
+  };
+
+  const onOtpSubmit = async (data: OtpInput) => {
+    try {
+      const { accessToken, refreshToken } = await verifyOtp(emailForOtp, data.otp);
+      setTokens(accessToken, refreshToken);
+      onOpenChange(false);
+      otpForm.reset();
+      signUpForm.reset();
+    } catch (error: any) {
+      console.error("OTP verification error:", error);
+      otpForm.setError("root", {
+        type: "manual",
+        message: "Invalid OTP. Please try again.",
+      });
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await resendOtp(emailForOtp);
+      // Optionally, show a success message to the user
+      console.log("OTP resent successfully");
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      // Optionally, show an error message
     }
   };
 
@@ -163,15 +170,15 @@ export function AuthDialog({
   };
 
   const handleForgotPassword = () => {
-    console.log("[v0] Forgot password clicked");
     signInForm.reset();
     onModeChange("forgot");
   };
 
-  const handleModeChange = (newMode: "signin" | "signup" | "forgot") => {
+  const handleModeChange = (newMode: AuthMode) => {
     signInForm.reset();
     signUpForm.reset();
     forgotPasswordForm.reset();
+    otpForm.reset();
     onModeChange(newMode);
   };
 
@@ -180,6 +187,7 @@ export function AuthDialog({
       signInForm.reset();
       signUpForm.reset();
       forgotPasswordForm.reset();
+      otpForm.reset();
     }
     onOpenChange(open);
   };
@@ -193,18 +201,48 @@ export function AuthDialog({
               ? t("auth.signInDialog.title")
               : mode === "signup"
                 ? t("auth.signUpDialog.title")
-                : t("auth.forgotPasswordDialog.title")}
+                : mode === "otp"
+                  ? "Verify your email"
+                  : t("auth.forgotPasswordDialog.title")}
           </DialogTitle>
           <DialogDescription>
             {mode === "signin"
               ? t("auth.signInDialog.description")
               : mode === "signup"
                 ? t("auth.signUpDialog.description")
-                : t("auth.forgotPasswordDialog.description")}
+                : mode === "otp"
+                  ? "We've sent a 6-digit code to your email. Please enter it below."
+                  : t("auth.forgotPasswordDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Sign In Form */}
+        {mode === "otp" && (
+          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp">OTP Code</Label>
+              <Input
+                id="otp"
+                type="text"
+                maxLength={6}
+                {...otpForm.register("otp")}
+              />
+              {otpForm.formState.errors.otp && (
+                <p className="text-sm text-red-500">{otpForm.formState.errors.otp.message}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full">Verify</Button>
+            {otpForm.formState.errors.root && (
+              <p className="text-sm text-red-500 text-center">{otpForm.formState.errors.root.message}</p>
+            )}
+            <div className="text-center text-sm">
+              Didn't receive the code?{" "}
+              <button type="button" onClick={handleResendOtp} className="text-primary hover:underline">
+                Resend OTP
+              </button>
+            </div>
+          </form>
+        )}
+
         {mode === "signin" && (
           <form
             onSubmit={signInForm.handleSubmit(onSignInSubmit)}
@@ -306,7 +344,6 @@ export function AuthDialog({
           </form>
         )}
 
-        {/* Sign Up Form */}
         {mode === "signup" && (
           <form
             onSubmit={signUpForm.handleSubmit(onSignUpSubmit)}
@@ -490,7 +527,6 @@ export function AuthDialog({
           </form>
         )}
 
-        {/* Forgot Password Form */}
         {mode === "forgot" && (
           <form
             onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}

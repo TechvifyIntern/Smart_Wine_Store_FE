@@ -52,7 +52,7 @@ export interface Order {
   DiscountTierID: number | null; // Assuming it can be null
   DiscountTierValue: number | null; // Assuming it can be null
   DiscountID: number | null; // Assuming it can be null
-  DiscountValue: number | null; // Assuming it can be null
+  DiscountValue: number;
   FinalTotal: number;
   StatusID: number;
   Details: OrderDetail[];
@@ -63,6 +63,7 @@ export interface UpdateProfilePayload {
   Email?: string;
   PhoneNumber?: string;
   Birthday?: string;
+  ImageURL?: string;
 }
 
 export interface AddAddressPayload {

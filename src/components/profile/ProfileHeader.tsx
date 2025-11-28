@@ -2,95 +2,129 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { Edit, Save, X } from "lucide-react";
+import { Edit, Save, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { UserProfile } from "@/types/profile";
+import { UserProfile, UpdateProfilePayload } from "@/types/profile";
+import { toast } from "sonner";
+import { CldUploadWidget } from "next-cloudinary";
 
 interface ProfileHeaderProps {
   isEditMode: boolean;
   setIsEditMode: (editing: boolean) => void;
-  userProfile: UserProfile | null; // Add userProfile prop
+  userProfile: UserProfile | null;
+  onSave: (data: UpdateProfilePayload) => Promise<void>;
 }
 
 export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
   isEditMode,
   setIsEditMode,
-  userProfile, // Destructure userProfile prop
+  userProfile,
+  onSave,
 }) => {
   const [editData, setEditData] = useState({
-    name: userProfile?.UserName || "", // Initialize with prop data
+    name: userProfile?.UserName || "",
   });
 
-  // Update editData when userProfile changes (e.g., after initial fetch or a save)
+  const [isHovering, setIsHovering] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
-    if (userProfile) {
-      setEditData({
-        name: userProfile.UserName,
-      });
-    }
-  }, [userProfile]);
-
-  const handleSaveProfile = () => {
-    // In a real app, this would trigger an API call to save changes
-    // For now, we'll just log and exit edit mode
-    console.log("Saving profile changes:", editData);
-    setIsEditMode(false);
-    // You would typically update the parent component's state here
-  };
-
-  const handleCancelEdit = () => {
-    // Reset editData to current userProfile values
     if (userProfile) {
       setEditData({ name: userProfile.UserName });
     }
+  }, [userProfile]);
+
+  const handleSaveProfile = async () => {
+    await onSave({ UserName: editData.name });
     setIsEditMode(false);
   };
 
-  if (!userProfile) {
-    return null; // Or a loading spinner, or some placeholder
-  }
+  const handleCancelEdit = () => {
+    if (userProfile) setEditData({ name: userProfile.UserName });
+    setIsEditMode(false);
+  };
+
+  if (!userProfile) return null;
 
   return (
     <div className="py-8 mt-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
           {/* Avatar */}
-          <div className="relative">
-            <Image
-              src={userProfile.ImageURL || "/placeholder.svg"}
-              alt={userProfile.UserName}
-              width={128}
-              height={128}
-              className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
-            />
-          </div>
+          <CldUploadWidget
+            uploadPreset="wine_store_avatars"
+            options={{
+              cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+              maxFiles: 1,
+              resourceType: "image",
+              folder: "wine-store/avatars",
+            }}
+            onOpen={() => setIsHovering(false)}
+            onUploadAdded={() => setIsUploading(true)}
+            onSuccess={async (result: any) => {
+              setIsUploading(false);
+
+              const url = result?.info?.secure_url;
+              if (!url) return toast.error("Upload failed!");
+
+              console.log(url);
+
+              await onSave({ ImageURL: url });
+              toast.success("Avatar updated!");
+            }}
+            onError={() => {
+              setIsUploading(false);
+              toast.error("Upload failed");
+            }}
+          >
+            {({ open }) => (
+              <div
+                className="relative cursor-pointer"
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
+                onClick={() => open()}
+              >
+                <Image
+                  src={userProfile.ImageURL || "/placeholder.svg"}
+                  alt={userProfile.UserName}
+                  width={128}
+                  height={128}
+                  className="w-32 h-32 rounded-full border-4 border-white shadow-lg object-cover"
+                />
+
+                {/* Hover Overlay */}
+                {isHovering && !isUploading && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-full">
+                    <Upload className="text-white" size={30} />
+                  </div>
+                )}
+
+                {/* Uploading Loading */}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center rounded-full">
+                    <Loader2 className="animate-spin text-white" size={30} />
+                  </div>
+                )}
+              </div>
+            )}
+          </CldUploadWidget>
 
           {/* User Info */}
           <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold">{userProfile.UserName}</h1>
-            </div>
+            <h1 className="text-3xl font-bold mb-2">{userProfile.UserName}</h1>
+
             <div className="flex flex-wrap gap-6 text-sm mb-4">
               <div>
-                <span className="font-semibold">
-                  {userProfile.orders || 99}
-                </span>
-                <span> Orders</span>
+                Tier:{" "}
+                <span className="font-semibold">{userProfile.TierName}</span>
               </div>
               <div>
-                <span className="font-semibold">
-                  {userProfile.favorites || 99}
-                </span>
-                <span> Favorites</span>
-              </div>
-              <div>
-                <span className="font-semibold">
-                  {userProfile.totalSpent || 99}
-                </span>
-                <span> Total Spent</span>
+                Point:{" "}
+                <span className="font-semibold">{userProfile.Point}</span>
               </div>
             </div>
 
+            {/* Edit Buttons */}
             <div className="flex gap-2">
               {isEditMode ? (
                 <>
@@ -98,6 +132,7 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
                     <Save size={16} />
                     Save Changes
                   </Button>
+
                   <Button
                     onClick={handleCancelEdit}
                     variant="outline"

@@ -18,12 +18,31 @@ export const signIn = async (
   }
 };
 
-export const signUp = async (
-  data: SignUpInput
-): Promise<{ accessToken: string; refreshToken: string }> => {
+export const signUp = async (data: SignUpInput): Promise<ApiResponse<null>> => {
   try {
     const response = await api.post("/auth/register", data);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const verifyOtp = async (
+  email: string,
+  otp: string
+): Promise<{ accessToken: string; refreshToken: string }> => {
+  try {
+    const response = await api.post("/auth/verify-otp", { email, otpCode: otp });
     return response.data.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const resendOtp = async (email: string): Promise<ApiResponse<null>> => {
+  try {
+    const response = await api.post("/auth/resend-otp", { email });
+    return response.data;
   } catch (error) {
     throw error;
   }

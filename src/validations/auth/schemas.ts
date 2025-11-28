@@ -87,7 +87,13 @@ export const forgotPasswordSchema = z.object({
         .email("Please enter a valid email address"),
 });
 
+// OTP Schema
+export const otpSchema = z.object({
+    otp: z.string().min(1, "OTP is required").max(6, "OTP must be 6 characters"),
+});
+
 // Type exports
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type OtpInput = z.infer<typeof otpSchema>;
