@@ -11,12 +11,13 @@ interface AppState {
   accessToken: string | null;
   refreshToken: string | null;
   authOpen: boolean; // Add authOpen
-  authMode: "signin" | "signup" | "forgot"; // Add authMode
+  authMode: "signin" | "signup" | "forgot" | "otp"; // Add authMode
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
   logout: () => void;
   setAuthOpen: (open: boolean) => void; // Add setAuthOpen
-  setAuthMode: (mode: "signin" | "signup" | "forgot") => void; // Add setAuthMode
+  setAuthMode: (mode: "signin" | "signup" | "forgot" | "otp") => void; // Add setAuthMode
 }
 
 const decodeToken = (token: string): User | null => {
@@ -56,6 +57,11 @@ export const useAppStore = create<AppState>()(
         set({ user, accessToken, refreshToken });
         setAuthToken(accessToken);
         fetchCartAndSetStore();
+      },
+      setAccessToken: (accessToken) => {
+        const user = decodeToken(accessToken);
+        set({ user, accessToken });
+        setAuthToken(accessToken);
       },
       logout: () => {
         set({ user: null, accessToken: null, refreshToken: null });

@@ -126,7 +126,7 @@ export function CreateDiscountEvent({
         if (mode === "edit" && event) {
             setValue("EventName", event.EventName);
             setValue("Description", event.Description || "");
-            setValue("DiscountValue", event.DiscountValue);
+            setValue("DiscountValue", event.DiscountValue ?? 0);
             setValue("TimeStart", toDatetimeLocalFormat(event.TimeStart));
             setValue("TimeEnd", toDatetimeLocalFormat(event.TimeEnd));
         } else if (mode === "create") {

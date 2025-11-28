@@ -5,9 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Percent, Edit2, Save, Trash2 } from "lucide-react";
-import { discountEvents } from "@/data/discount_event";
+import { DiscountEvent } from "@/data/discount_event";
+import discountEventsRepository from "@/api/discountEventsRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,14 +32,33 @@ export default function EventDetailPage() {
     const params = useParams();
     const router = useRouter();
     const eventId = parseInt(params.id as string);
-    const { toast } = useToast();
-
-    const event = discountEvents.find((e) => e.DiscountEventID === eventId);
 
     // State management
+    const [event, setEvent] = useState<DiscountEvent | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    // Fetch event data from API
+    useEffect(() => {
+        const loadEvent = async () => {
+            try {
+                setIsLoading(true);
+                const response = await discountEventsRepository.getDiscountEvents();
+                if (response.success && response.data) {
+                    const foundEvent = (response.data as any[]).find((e: any) => e.DiscountEventID === eventId);
+                    setEvent(foundEvent || null);
+                }
+            } catch (error) {
+                console.error('Error loading event:', error);
+                toast.error('Failed to load event data');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadEvent();
+    }, [eventId]);
 
     // Form management
     const {
@@ -56,7 +76,7 @@ export default function EventDetailPage() {
         if (event && isEditing) {
             setValue("EventName", event.EventName);
             setValue("Description", event.Description || "");
-            setValue("DiscountValue", event.DiscountValue);
+            setValue("DiscountValue", event.DiscountValue ?? 0);
             setValue("TimeStart", event.TimeStart);
             setValue("TimeEnd", event.TimeEnd);
         }
@@ -85,31 +105,33 @@ export default function EventDetailPage() {
 
         try {
             const formData = getValues();
-            console.log("Saving event data:", formData);
 
-            // Update the local event data (in a real app, this would come from the API response)
-            event.EventName = formData.EventName;
-            event.Description = formData.Description || "";
-            event.DiscountValue = formData.DiscountValue;
-            event.TimeStart = formData.TimeStart;
-            event.TimeEnd = formData.TimeEnd;
-            event.UpdatedAt = new Date().toISOString();
-
-            setIsEditing(false);
-            setShowSaveDialog(false);
-            reset();
-
-            toast({
-                title: "Success",
-                description: `Event "${event.EventName}" has been updated successfully.`,
+            const response = await discountEventsRepository.updateDiscountEvent(event.DiscountEventID, {
+                EventName: formData.EventName,
+                DiscountPercentage: formData.DiscountValue,
+                StartDate: formData.TimeStart,
+                EndDate: formData.TimeEnd,
+                Description: formData.Description,
+                isActive: true
             });
+
+            if (response.success) {
+                // Update local state with the response data
+                if (response.data) {
+                    setEvent(response.data as any);
+                }
+
+                setIsEditing(false);
+                setShowSaveDialog(false);
+                reset();
+
+                toast.success(`Event "${formData.EventName}" has been updated successfully.`);
+            } else {
+                toast.error(response.message || "Failed to update event");
+            }
         } catch (error) {
             console.error("Error saving event:", error);
-            toast({
-                title: "Error",
-                description: "Failed to update event. Please try again.",
-                variant: "destructive",
-            });
+            toast.error("Failed to update event. Please try again.");
         }
     };
 
@@ -125,14 +147,12 @@ export default function EventDetailPage() {
         if (!event || !canDelete) return;
 
         console.log("Deleting event:", event.DiscountEventID);
-        // In a real app, this would be an API call to delete the event
+        // TODO: Implement DELETE API call
+        // await discountEventsRepository.deleteDiscountEvent(event.DiscountEventID);
 
         setShowDeleteDialog(false);
 
-        toast({
-            title: "Success",
-            description: `Event "${event.EventName}" has been deleted successfully.`,
-        });
+        toast.success(`Event "${event.EventName}" has been deleted successfully.`);
 
         // Navigate back to events page
         router.push("/admin/discounts/events");
@@ -146,6 +166,14 @@ export default function EventDetailPage() {
         setIsEditing(false);
         reset();
     };
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+            </div>
+        );
+    }
 
     if (!event) {
         return (
@@ -484,7 +512,7 @@ export default function EventDetailPage() {
                             Confirm Delete Event
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-gray-600 dark:text-slate-400">
-                            Are you sure you want to delete the discount event <strong className="text-gray-900 dark:text-slate-100">"{event.EventName}"</strong>? This action cannot be undone.
+                            Are you sure you want to delete the discount event <strong className="text-gray-900 dark:text-slate-100">&quot;{event.EventName}&quot;</strong>? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

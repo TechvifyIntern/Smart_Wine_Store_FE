@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const createInventoryProductSchema = z.object({
+    ProductID: z.string().min(1, "Product ID is required"),
     ProductName: z.string().min(1, "Product name is required").max(200, "Product name is too long"),
     ImageURL: z.string().min(1, "Image is required").refine((value) => {
         // Allow both URLs and base64 data URLs

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Schema for creating new account (calls /auth/register API)
+// Schema for creating new account
 export const createAccountSchema = z.object({
     UserName: z
         .string()
@@ -13,23 +13,16 @@ export const createAccountSchema = z.object({
     PhoneNumber: z
         .string()
         .min(1, "Phone number is required")
-        .regex(/^\+?[0-9\s\-\(\)\.]{7,15}$/, "Invalid phone number format"),
+        .regex(/^(09|03)\d{8}$/, "Phone number must be valid Vietnamese format (09xxxxxxxx or 03xxxxxxxx)"),
     Birthday: z
         .string()
-        .min(1, "Birthday is required")
-        .refine((val) => {
-            const birthDate = new Date(val);
-            const today = new Date();
-            let age = today.getFullYear() - birthDate.getFullYear();
-            const m = today.getMonth() - birthDate.getMonth();
-            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-            }
-            return age >= 18;
-        }, "You must be at least 18 years old to register"),
+        .min(1, "Birthday is required"),
     RoleID: z
         .number()
         .min(1, "Role is required"),
+    TierID: z
+        .number()
+        .min(1, "Tier is required"),
     Password: z
         .string()
         .min(8, "Password must be at least 8 characters")
@@ -38,14 +31,21 @@ export const createAccountSchema = z.object({
         .regex(/[0-9]/, "Password must contain at least one number"),
     ConfirmPassword: z
         .string()
-        .min(8, "Confirm password is required"),
-    ImageURL: z
+        .min(1, "Please confirm your password"),
+    StatusID: z
+        .number()
+        .min(1, "Status is required"),
+    StreetAddress: z
         .string()
-        .url("Please enter a valid image URL")
-        .optional()
-        .or(z.literal("")),
+        .optional(),
+    Ward: z
+        .string()
+        .optional(),
+    Province: z
+        .string()
+        .optional(),
 }).refine((data) => data.Password === data.ConfirmPassword, {
-    message: "Passwords don't match",
+    message: "Passwords do not match",
     path: ["ConfirmPassword"],
 });
 
@@ -62,7 +62,7 @@ export const editAccountSchema = z.object({
     PhoneNumber: z
         .string()
         .min(1, "Phone number is required")
-        .regex(/^\+?[0-9\s\-\(\)\.]{7,15}$/, "Invalid phone number format"),
+        .regex(/^(09|03)\d{8}$/, "Phone number must be valid Vietnamese format (09xxxxxxxx or 03xxxxxxxx)"),
     Birthday: z
         .string()
         .min(1, "Birthday is required"),

@@ -67,7 +67,7 @@ export default function PageClient() {
 
       return true;
     });
-  }, [products, category, minAbv, maxAbv, minPrice, maxPrice]);
+  }, [products, minAbv, maxAbv, minPrice, maxPrice]);
 
   return (
     <main className="mx-30 flex mt-28 min-h-screen">

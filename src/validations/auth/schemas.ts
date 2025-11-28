@@ -35,10 +35,13 @@ export const signUpSchema = z
             .regex(/(?=.*[a-z])/, "Password must contain at least one lowercase letter")
             .regex(/(?=.*[A-Z])/, "Password must contain at least one uppercase letter")
             .regex(/(?=.*\d)/, "Password must contain at least one number"),
+        ConfirmPassword: z
+            .string()
+            .min(1, "Please confirm your password"),
         PhoneNumber: z
             .string()
             .min(1, "Phone number is required")
-            .regex(/^[\d\s\-\+\(\)\.]+$/, "Please enter a valid phone number")
+            .regex(/^[\d\s\-\+\(\)]+$/, "Please enter a valid phone number")
             .refine((val) => {
                 const digitsOnly = val.replace(/\D/g, "");
                 return digitsOnly.length >= 10;
@@ -70,6 +73,10 @@ export const signUpSchema = z
             }, "Please enter a valid birthday"),
         ImageURL: z.string().url().optional(),
         RoleID: z.number().optional(),
+    })
+    .refine((data) => data.Password === data.ConfirmPassword, {
+        message: "Passwords do not match",
+        path: ["ConfirmPassword"],
     });
 
 // Forgot Password Schema
@@ -80,7 +87,13 @@ export const forgotPasswordSchema = z.object({
         .email("Please enter a valid email address"),
 });
 
+// OTP Schema
+export const otpSchema = z.object({
+    otp: z.string().min(1, "OTP is required").max(6, "OTP must be 6 characters"),
+});
+
 // Type exports
 export type SignInInput = z.infer<typeof signInSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type OtpInput = z.infer<typeof otpSchema>;

@@ -36,10 +36,6 @@ export default function CartSummary({
           <span>Discount</span>
           <span>-{formatCurrency(cart.discount)}</span>
         </div>
-        <div className="mt-4 flex justify-between">
-          <span>Tax</span>
-          <span>{formatCurrency(cart.tax)}</span>
-        </div>
         <Separator className="my-4" />
         <div className="flex justify-between font-semibold">
           <span>Total</span>

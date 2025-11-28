@@ -1,12 +1,11 @@
 import { api } from '@/services/api';
-import BaseRepository from './baseRepository.js';
+import BaseRepository from './baseRepository';
 import type {
   GetCategoriesResponse,
   GetCategoryByIdResponse,
   CreateCategoryResponse,
   UpdateCategoryResponse,
   DeleteCategoryResponse,
-  GetParentCategoriesResponse,
   GetChildrenCategoriesResponse,
   GetProductsByCategoryResponse,
   GetParentCategoryByIdResponse,
@@ -94,6 +93,7 @@ class CategoriesRepository extends BaseRepository {
     }
   }
 }
+
 
 // Export singleton instance
 const categoriesRepository = new CategoriesRepository();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Edit2 } from "lucide-react";
+import { Edit2, Wine } from "lucide-react";
 import { Product } from "@/data/products";
 import {
   Select,
@@ -40,12 +40,8 @@ const getStatusBadgeColor = (isActive?: boolean): string => {
 
 export default function ProductRow({
   product,
-  onView,
-  onEdit,
-  onDelete,
   onToggleStatus,
   formatCurrency,
-  onStatusChangePending,
 }: ProductRowProps) {
   const router = useRouter();
 
@@ -55,13 +51,17 @@ export default function ProductRow({
       onClick={() => router.push(`/admin/products/${product.ProductID}`)}
     >
       <td className="px-6 py-4 whitespace-nowrap">
-        <img
-          src={
-            product.ImageURL || "https://picsum.photos/seed/placeholder/200/200"
-          }
-          alt={product.ProductName}
-          className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-slate-700"
-        />
+        {product.ImageURL ? (
+          <img
+            src={product.ImageURL}
+            alt={product.ProductName}
+            className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-slate-700"
+          />
+        ) : (
+          <div className="w-12 h-12 rounded-lg border border-gray-200 dark:border-slate-700 bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
+            <Wine className="w-6 h-6 text-gray-400 dark:text-slate-500" />
+          </div>
+        )}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="dark:text-slate-400 text-sm font-regular">
@@ -75,7 +75,7 @@ export default function ProductRow({
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300">
-          {getCategoryName(product.CategoryID)}
+          {product.CategoryName || 'N/A'}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">

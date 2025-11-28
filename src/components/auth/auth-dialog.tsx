@@ -2,7 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, Phone, Calendar, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, User, Phone, Calendar, Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,19 +18,24 @@ import {
   signInSchema,
   signUpSchema,
   forgotPasswordSchema,
+  otpSchema,
   type SignInInput,
   type SignUpInput,
   type ForgotPasswordInput,
+  type OtpInput,
 } from "@/validations/auth";
 import { useAppStore } from "@/store/auth";
-import { signIn, signUp } from "@/services/auth/api";
+import { signIn, signUp, verifyOtp, resendOtp } from "@/services/auth/api";
 import { useState } from "react";
+import { useLocale } from "@/contexts/LocaleContext";
+
+type AuthMode = "signin" | "signup" | "forgot" | "otp";
 
 interface AuthDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  mode: "signin" | "signup" | "forgot";
-  onModeChange: (mode: "signin" | "signup" | "forgot") => void;
+  mode: AuthMode;
+  onModeChange: (mode: AuthMode) => void;
 }
 
 export function AuthDialog({
@@ -40,10 +45,13 @@ export function AuthDialog({
   onModeChange,
 }: AuthDialogProps) {
   const { setTokens } = useAppStore();
+  const { t } = useLocale();
 
   const [showSignInPassword, setShowSignInPassword] = useState(false);
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
-  // Sign In Form
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailForOtp, setEmailForOtp] = useState("");
+
   const signInForm = useForm<SignInInput>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
@@ -53,23 +61,29 @@ export function AuthDialog({
     },
   });
 
-  // Sign Up Form
   const signUpForm = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
       UserName: "",
       Email: "",
       Password: "",
+      ConfirmPassword: "",
       PhoneNumber: "+84",
       Birthday: "",
     },
   });
 
-  // Forgot Password Form
   const forgotPasswordForm = useForm<ForgotPasswordInput>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
       email: "",
+    },
+  });
+
+  const otpForm = useForm<OtpInput>({
+    resolver: zodResolver(otpSchema),
+    defaultValues: {
+      otp: "",
     },
   });
 
@@ -84,12 +98,12 @@ export function AuthDialog({
       if (error.response?.status === 401) {
         signInForm.setError("root", {
           type: "manual",
-          message: "Invalid email or password.",
+          message: t("auth.signInDialog.errors.invalidCredentials"),
         });
       } else {
         signInForm.setError("root", {
           type: "manual",
-          message: "An unexpected error occurred. Please try again.",
+          message: t("auth.signInDialog.errors.unexpectedError"),
         });
       }
     }
@@ -97,24 +111,50 @@ export function AuthDialog({
 
   const onSignUpSubmit = async (data: SignUpInput) => {
     try {
-      const { accessToken, refreshToken } = await signUp(data);
-      setTokens(accessToken, refreshToken);
-      signUpForm.reset();
-      onOpenChange(true);
-      onModeChange("signin");
+      const apiData = { ...data, RoleID: data.RoleID || 3 };
+      await signUp(apiData);
+      setEmailForOtp(data.Email);
+      onModeChange("otp");
     } catch (error: any) {
       console.error("Sign up error:", error);
-      if (error.response?.data?.message) {
+      if (error.response?.status === 409) {
         signUpForm.setError("root", {
           type: "manual",
-          message: error.response.data.message,
+          message: t("auth.signUpDialog.errors.emailExists"),
         });
       } else {
         signUpForm.setError("root", {
           type: "manual",
-          message: "An unexpected error occurred. Please try again.",
+          message: error.response?.data?.message || t("auth.signUpDialog.errors.unexpectedError"),
         });
       }
+    }
+  };
+
+  const onOtpSubmit = async (data: OtpInput) => {
+    try {
+      const { accessToken, refreshToken } = await verifyOtp(emailForOtp, data.otp);
+      setTokens(accessToken, refreshToken);
+      onOpenChange(false);
+      otpForm.reset();
+      signUpForm.reset();
+    } catch (error: any) {
+      console.error("OTP verification error:", error);
+      otpForm.setError("root", {
+        type: "manual",
+        message: "Invalid OTP. Please try again.",
+      });
+    }
+  };
+
+  const handleResendOtp = async () => {
+    try {
+      await resendOtp(emailForOtp);
+      // Optionally, show a success message to the user
+      console.log("OTP resent successfully");
+    } catch (error) {
+      console.error("Resend OTP error:", error);
+      // Optionally, show an error message
     }
   };
 
@@ -130,15 +170,15 @@ export function AuthDialog({
   };
 
   const handleForgotPassword = () => {
-    console.log("[v0] Forgot password clicked");
     signInForm.reset();
     onModeChange("forgot");
   };
 
-  const handleModeChange = (newMode: "signin" | "signup" | "forgot") => {
+  const handleModeChange = (newMode: AuthMode) => {
     signInForm.reset();
     signUpForm.reset();
     forgotPasswordForm.reset();
+    otpForm.reset();
     onModeChange(newMode);
   };
 
@@ -147,6 +187,7 @@ export function AuthDialog({
       signInForm.reset();
       signUpForm.reset();
       forgotPasswordForm.reset();
+      otpForm.reset();
     }
     onOpenChange(open);
   };
@@ -157,21 +198,51 @@ export function AuthDialog({
         <DialogHeader>
           <DialogTitle className="text-2xl">
             {mode === "signin"
-              ? "Sign In"
+              ? t("auth.signInDialog.title")
               : mode === "signup"
-                ? "Create Account"
-                : "Reset Password"}
+                ? t("auth.signUpDialog.title")
+                : mode === "otp"
+                  ? "Verify your email"
+                  : t("auth.forgotPasswordDialog.title")}
           </DialogTitle>
           <DialogDescription>
             {mode === "signin"
-              ? "Enter your credentials to access your account"
+              ? t("auth.signInDialog.description")
               : mode === "signup"
-                ? "Join us to unlock exclusive wine experiences"
-                : "Enter your email address and we'll send you a link to reset your password"}
+                ? t("auth.signUpDialog.description")
+                : mode === "otp"
+                  ? "We've sent a 6-digit code to your email. Please enter it below."
+                  : t("auth.forgotPasswordDialog.description")}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Sign In Form */}
+        {mode === "otp" && (
+          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="otp">OTP Code</Label>
+              <Input
+                id="otp"
+                type="text"
+                maxLength={6}
+                {...otpForm.register("otp")}
+              />
+              {otpForm.formState.errors.otp && (
+                <p className="text-sm text-red-500">{otpForm.formState.errors.otp.message}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full">Verify</Button>
+            {otpForm.formState.errors.root && (
+              <p className="text-sm text-red-500 text-center">{otpForm.formState.errors.root.message}</p>
+            )}
+            <div className="text-center text-sm">
+              Didn't receive the code?{" "}
+              <button type="button" onClick={handleResendOtp} className="text-primary hover:underline">
+                Resend OTP
+              </button>
+            </div>
+          </form>
+        )}
+
         {mode === "signin" && (
           <form
             onSubmit={signInForm.handleSubmit(onSignInSubmit)}
@@ -180,12 +251,12 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="identifier" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                Email Address
+                {t("auth.signInDialog.emailLabel")}
               </Label>
               <Input
                 id="identifier"
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("auth.signInDialog.emailPlaceholder")}
                 {...signInForm.register("identifier")}
                 className={
                   signInForm.formState.errors.identifier ? "border-red-500" : ""
@@ -201,14 +272,14 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="password" className="flex items-center gap-2">
                 <Lock className="w-4 h-4" />
-                Password
+                {t("auth.signInDialog.passwordLabel")}
               </Label>
 
               <div className="relative">
                 <Input
                   id="password"
                   type={showSignInPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("auth.signInDialog.passwordPlaceholder")}
                   {...signInForm.register("password")}
                   className={`${signInForm.formState.errors.password ? "border-red-500" : ""} pr-10`}
                 />
@@ -246,7 +317,7 @@ export function AuthDialog({
                   htmlFor="rememberMe"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
-                  Remember me
+                  {t("auth.signInDialog.rememberMe")}
                 </Label>
               </div>
               <button
@@ -254,7 +325,7 @@ export function AuthDialog({
                 onClick={handleForgotPassword}
                 className="text-sm text-primary hover:underline"
               >
-                Forgot password?
+                {t("auth.signInDialog.forgotPassword")}
               </button>
             </div>
 
@@ -263,7 +334,7 @@ export function AuthDialog({
               className="w-full bg-primary hover:bg-primary/90"
               disabled={signInForm.formState.isSubmitting}
             >
-              {signInForm.formState.isSubmitting ? "Processing..." : "Sign In"}
+              {signInForm.formState.isSubmitting ? t("auth.signInDialog.processing") : t("auth.signInDialog.signInButton")}
             </Button>
             {signInForm.formState.errors.root && (
               <p className="text-sm text-red-500 text-center">
@@ -273,7 +344,6 @@ export function AuthDialog({
           </form>
         )}
 
-        {/* Sign Up Form */}
         {mode === "signup" && (
           <form
             onSubmit={signUpForm.handleSubmit(onSignUpSubmit)}
@@ -282,7 +352,7 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="UserName" className="flex items-center gap-2">
                 <User className="w-4 h-4" />
-                Full Name
+                {t("auth.signUpDialog.fullNameLabel")}
               </Label>
               <Input
                 id="UserName"
@@ -301,7 +371,7 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="Email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                Email Address
+                {t("auth.signUpDialog.emailLabel")}
               </Label>
               <Input
                 id="Email"
@@ -321,14 +391,14 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="Password" className="flex items-center gap-2">
                 <Lock className="w-4 h-4" />
-                Password
+                {t("auth.signUpDialog.passwordLabel")}
               </Label>
 
               <div className="relative">
                 <Input
                   id="Password"
                   type={showSignUpPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder={t("auth.signUpDialog.passwordPlaceholder")}
                   {...signUpForm.register("Password")}
                   className={`${signUpForm.formState.errors.Password ? "border-red-500" : ""} pr-10`}
                 />
@@ -355,9 +425,52 @@ export function AuthDialog({
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="ConfirmPassword" className="flex items-center gap-2">
+                <Lock className="w-4 h-4" />
+                {t("auth.signUpDialog.confirmPasswordLabel")}
+              </Label>
+
+              <div className="relative">
+                <Input
+                  id="ConfirmPassword"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder={t("auth.signUpDialog.passwordPlaceholder")}
+                  {...signUpForm.register("ConfirmPassword")}
+                  className={`${signUpForm.formState.errors.ConfirmPassword ? "border-red-500" : ""} pr-20`}
+                />
+
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                  {signUpForm.watch("Password") &&
+                    signUpForm.watch("ConfirmPassword") &&
+                    signUpForm.watch("Password") === signUpForm.watch("ConfirmPassword") &&
+                    !signUpForm.formState.errors.ConfirmPassword && (
+                      <Check className="w-5 h-5 text-green-500" />
+                    )}
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="text-gray-500 hover:text-gray-700 dark:hover:text-primary"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff size={18} />
+                    ) : (
+                      <Eye size={18} />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {signUpForm.formState.errors.ConfirmPassword && (
+                <p className="text-sm text-red-500">
+                  {signUpForm.formState.errors.ConfirmPassword.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="PhoneNumber" className="flex items-center gap-2">
                 <Phone className="w-4 h-4" />
-                Phone Number
+                {t("auth.signUpDialog.phoneLabel")}
               </Label>
               <Input
                 id="PhoneNumber"
@@ -379,7 +492,7 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="Birthday" className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                Birthday
+                {t("auth.signUpDialog.birthdayLabel")}
               </Label>
               <Input
                 id="Birthday"
@@ -403,8 +516,8 @@ export function AuthDialog({
               disabled={signUpForm.formState.isSubmitting}
             >
               {signUpForm.formState.isSubmitting
-                ? "Processing..."
-                : "Create Account"}
+                ? t("auth.signUpDialog.processing")
+                : t("auth.signUpDialog.createButton")}
             </Button>
             {signUpForm.formState.errors.root && (
               <p className="text-sm text-red-500 text-center">
@@ -414,7 +527,6 @@ export function AuthDialog({
           </form>
         )}
 
-        {/* Forgot Password Form */}
         {mode === "forgot" && (
           <form
             onSubmit={forgotPasswordForm.handleSubmit(onForgotPasswordSubmit)}
@@ -423,7 +535,7 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4" />
-                Email Address
+                {t("auth.forgotPasswordDialog.emailLabel")}
               </Label>
               <Input
                 id="email"
@@ -448,8 +560,8 @@ export function AuthDialog({
               disabled={forgotPasswordForm.formState.isSubmitting}
             >
               {forgotPasswordForm.formState.isSubmitting
-                ? "Processing..."
-                : "Send Reset Link"}
+                ? t("auth.forgotPasswordDialog.processing")
+                : t("auth.forgotPasswordDialog.sendButton")}
             </Button>
           </form>
         )}
@@ -457,31 +569,31 @@ export function AuthDialog({
         <div className="border-t pt-4">
           {mode === "forgot" ? (
             <p className="text-sm text-muted-foreground text-center">
-              Remember your password?{" "}
+              {t("auth.forgotPasswordDialog.rememberPassword")}{" "}
               <button
                 onClick={() => handleModeChange("signin")}
                 className="text-primary hover:underline font-medium"
               >
-                Back to Sign In
+                {t("auth.forgotPasswordDialog.backToSignIn")}
               </button>
             </p>
           ) : (
             <p className="text-sm text-muted-foreground text-center">
               {mode === "signin"
-                ? "Don't have an account? "
-                : "Already have an account? "}
+                ? t("auth.signInDialog.noAccount")
+                : t("auth.signUpDialog.haveAccount")}{" "}
               <button
                 onClick={() =>
                   handleModeChange(mode === "signin" ? "signup" : "signin")
                 }
                 className="text-primary hover:underline font-medium"
               >
-                {mode === "signin" ? "Sign Up" : "Sign In"}
+                {mode === "signin" ? t("auth.signInDialog.signUpLink") : t("auth.signUpDialog.signInLink")}
               </button>
             </p>
           )}
         </div>
       </DialogContent>
-    </Dialog>
+    </Dialog >
   );
 }

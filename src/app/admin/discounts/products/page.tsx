@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Package } from "lucide-react";
-import { discountProducts, DiscountProduct } from "@/data/discount_product";
+import { DiscountProduct } from "@/data/discount_product";
+import discountProductsRepository from "@/api/discountProductsRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductsTable from "@/components/discount-products/ProductsTable";
 import Pagination from "@/components/admin/pagination/Pagination";
 import ProductsToolbar from "@/components/discount-products/ProductsToolbar";
 import { CreateDiscountProduct } from "@/components/discount-products/(modal)/CreateDiscountProduct";
 import { DeleteConfirmDialog } from "@/components/discount-products/(modal)/DeleteConfirmDialog";
+import { toast } from "sonner";
 
 export default function DiscountProductsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +24,44 @@ export default function DiscountProductsPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
     const [dateFrom, setDateFrom] = useState<string>("");
     const [dateTo, setDateTo] = useState<string>("");
+    const [discountProducts, setDiscountProducts] = useState<DiscountProduct[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch discount products from API
+    const loadDiscountProducts = async () => {
+        try {
+            setIsLoading(true);
+            const response = await discountProductsRepository.getDiscountProducts();
+            if (response.success && response.data) {
+                setDiscountProducts(response.data as any);
+            } else {
+                console.error('Failed to load discount products:', response.message);
+            }
+        } catch (err) {
+            console.error('Error loading discount products:', err);
+            toast.error('Failed to load discount products');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDiscountProducts();
+    }, []);
+
+    // Reload data when page becomes visible again
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                loadDiscountProducts();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     // Get status based on dates
     const getProductStatus = (timeStart: string, timeEnd: string) => {
@@ -79,7 +119,7 @@ export default function DiscountProductsPage() {
         }
 
         return products;
-    }, [searchTerm, selectedStatuses, dateFrom, dateTo]);
+    }, [searchTerm, selectedStatuses, dateFrom, dateTo, discountProducts]);
 
     // Handler for applying filters
     const handleApplyFilters = (filters: { statuses: number[]; dateFrom: string; dateTo: string }) => {
@@ -169,29 +209,41 @@ export default function DiscountProductsPage() {
     };
 
     const handleCreateProduct = async (data: Omit<DiscountProduct, "DiscountProductID" | "CreatedAt" | "UpdatedAt">) => {
-        console.log("Creating new product discount:", data);
-        // TODO: Implement API call to create product discount
-        // Example:
-        // await fetch('/api/discount-products', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
+        try {
+            const response = await discountProductsRepository.createDiscountProduct({
+                DiscountID: (data as any).DiscountID,
+                ProductID: (data as any).ProductID
+            });
 
-        alert("Product discount created successfully!");
+            if (response.success) {
+                toast.success("Product discount created successfully!");
+                await loadDiscountProducts();
+            } else {
+                toast.error(response.message || "Failed to create product discount");
+            }
+        } catch (error) {
+            console.error('Error creating product discount:', error);
+            toast.error("An error occurred while creating the product discount");
+        }
     };
 
     const handleUpdateProduct = async (id: number, data: Omit<DiscountProduct, "DiscountProductID" | "CreatedAt" | "UpdatedAt">) => {
-        console.log(`Updating product discount ${id}:`, data);
-        // TODO: Implement API call to update product discount
-        // Example:
-        // await fetch(`/api/discount-products/${id}`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
+        try {
+            const response = await discountProductsRepository.updateDiscountProduct(id, {
+                DiscountID: (data as any).DiscountID,
+                ProductID: (data as any).ProductID
+            });
 
-        alert(`Product discount ${id} updated successfully!`);
+            if (response.success) {
+                toast.success(`Product discount updated successfully!`);
+                await loadDiscountProducts();
+            } else {
+                toast.error(response.message || "Failed to update product discount");
+            }
+        } catch (error) {
+            console.error('Error updating product discount:', error);
+            toast.error("An error occurred while updating the product discount");
+        }
     };
 
     return (
@@ -203,38 +255,46 @@ export default function DiscountProductsPage() {
             />
 
             {/* Toolbar with Search and Create Button */}
-            <ProductsToolbar
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                searchPlaceholder="Search by product name..."
-                onCreateProduct={handleCreateProduct}
-                createButtonLabel="Create Discount"
-                selectedStatuses={selectedStatuses}
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onApplyFilters={handleApplyFilters}
-            />
+            {isLoading ? (
+                <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                </div>
+            ) : (
+                <>
+                    <ProductsToolbar
+                        searchTerm={searchTerm}
+                        onSearchChange={handleSearchChange}
+                        searchPlaceholder="Search by product name..."
+                        onCreateProduct={handleCreateProduct}
+                        createButtonLabel="Create Discount"
+                        selectedStatuses={selectedStatuses}
+                        dateFrom={dateFrom}
+                        dateTo={dateTo}
+                        onApplyFilters={handleApplyFilters}
+                    />
 
-            {/* Products Table */}
-            <ProductsTable
-                products={currentProducts}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                getProductStatus={getProductStatus}
-                formatDate={formatDate}
-                emptyMessage={searchTerm ? `No products found matching "${searchTerm}"` : "No product discounts found"}
-            />
+                    {/* Products Table */}
+                    <ProductsTable
+                        products={currentProducts}
+                        onView={handleView}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        getProductStatus={getProductStatus}
+                        formatDate={formatDate}
+                        emptyMessage={searchTerm ? `No products found matching "${searchTerm}"` : "No product discounts found"}
+                    />
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredProducts.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={handleItemsPerPageChange}
-            />
+                    {/* Pagination */}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredProducts.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                    />
+                </>
+            )}
 
             {/* Edit Product Modal */}
             <CreateDiscountProduct

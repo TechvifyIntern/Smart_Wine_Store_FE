@@ -4,9 +4,10 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface OverviewCardProps {
   data: OverviewCardType;
+  isLoading?: boolean;
 }
 
-export function OverviewCard({ data }: OverviewCardProps) {
+export function OverviewCard({ data, isLoading = false }: OverviewCardProps) {
   const { title, value, trend, trendPercentage, icon: Icon, iconColor } = data;
 
   return (
@@ -16,21 +17,30 @@ export function OverviewCard({ data }: OverviewCardProps) {
         <Icon className={`h-5 w-5 ${iconColor}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center gap-1 mt-1">
-          {trend === "up" ? (
-            <TrendingUp className="h-4 w-4 text-green-600" />
-          ) : (
-            <TrendingDown className="h-4 w-4 text-red-600" />
-          )}
-          <span
-            className={`text-xs font-medium ${trend === "up" ? "text-green-600" : "text-red-600"
-              }`}
-          >
-            {trendPercentage}%
-          </span>
-          <span className="text-xs text-muted-foreground">vs last period</span>
-        </div>
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900 dark:border-white"></div>
+            <span className="text-sm text-muted-foreground">Loading...</span>
+          </div>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">{value}</div>
+            <div className="flex items-center gap-1 mt-1">
+              {trend === "up" ? (
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-600" />
+              )}
+              <span
+                className={`text-xs font-medium ${trend === "up" ? "text-green-600" : "text-red-600"
+                  }`}
+              >
+                {trendPercentage}%
+              </span>
+              <span className="text-xs text-muted-foreground">vs last period</span>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   );

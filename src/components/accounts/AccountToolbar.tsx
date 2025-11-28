@@ -2,22 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { Filter } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
 import SearchBar from "@/components/discount-events/SearchBar";
 import CreateAccountButton from "./CreateAccountButton";
 import { CreateAccountModal } from "./(modal)/CreateAccountModal";
 import { FilterDialog } from "./(modal)/FilterDialog";
 import { Account } from "@/data/accounts";
+import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
+import { signUp } from "@/services/auth/api";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { signUp } from "@/services/auth/api";
-import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
 
 interface AccountToolbarProps {
     searchTerm?: string;
+    onSearchChange?: (value: string) => void;
     searchPlaceholder?: string;
-    onSearchChange?: (searchTerm: string) => void;
-    onCreateAccount?: (data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "StatusName"> | CreateAccountFormData) => void | Promise<void>;
+    onCreateAccount?: (data: CreateAccountFormData) => void | Promise<void>;
     createButtonLabel?: string;
     selectedRoles?: number[];
     selectedTiers?: number[];
@@ -36,10 +36,10 @@ export default function AccountToolbar({
     selectedStatuses = [],
     onApplyFilters,
 }: AccountToolbarProps) {
+    const { toast } = useToast();
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
-    const { toast } = useToast();
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
@@ -62,9 +62,9 @@ export default function AccountToolbar({
                 Email: data.Email,
                 PhoneNumber: phoneNumber,
                 Password: data.Password,
+                ConfirmPassword: data.ConfirmPassword,
                 Birthday: data.Birthday,
-                ImageURL: data.ImageURL || undefined,
-                RoleID: data.RoleID || undefined,
+                RoleID: data.RoleID,
             };
 
             await signUp(registerData);
@@ -82,7 +82,7 @@ export default function AccountToolbar({
             console.error("Error creating account:", error);
 
             // Extract specific error message from API response
-            const errorMessage = (error as any)?.response?.data?.message || "Failed to create account. Please try again.";
+            const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || "Failed to create account. Please try again.";
 
             toast({
                 title: "Error",

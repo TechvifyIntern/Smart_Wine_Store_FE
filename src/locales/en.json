@@ -1,0 +1,314 @@
+{
+    "header": {
+        "user": "User",
+        "userPage": "User Page",
+        "storeManagement": "Store Management",
+        "accountManagement": "Account Management",
+        "language": "Language",
+        "logout": "Logout",
+        "signIn": "Sign In",
+        "signUp": "Sign Up"
+    },
+    "languages": {
+        "vi": "Tiếng Việt",
+        "en": "English"
+    },
+    "auth": {
+        "signInDialog": {
+            "title": "Sign In",
+            "description": "Enter your credentials to access your account",
+            "emailLabel": "Email Address",
+            "emailPlaceholder": "you@example.com",
+            "passwordLabel": "Password",
+            "passwordPlaceholder": "••••••••",
+            "rememberMe": "Remember me",
+            "forgotPassword": "Forgot password?",
+            "signInButton": "Sign In",
+            "processing": "Processing...",
+            "noAccount": "Don't have an account?",
+            "signUpLink": "Sign Up",
+            "errors": {
+                "invalidCredentials": "Invalid email or password.",
+                "unexpectedError": "An unexpected error occurred. Please try again."
+            }
+        },
+        "signUpDialog": {
+            "title": "Create Account",
+            "description": "Join us to unlock exclusive wine experiences",
+            "fullNameLabel": "Full Name",
+            "emailLabel": "Email Address",
+            "passwordLabel": "Password",
+            "confirmPasswordLabel": "Confirm Password",
+            "passwordPlaceholder": "••••••••",
+            "phoneLabel": "Phone Number",
+            "birthdayLabel": "Birthday",
+            "createButton": "Create Account",
+            "processing": "Processing...",
+            "haveAccount": "Already have an account?",
+            "signInLink": "Sign In",
+            "errors": {
+                "emailExists": "This email or username is already registered. Please use a different one or sign in.",
+                "invalidData": "Invalid registration data. Please check your information.",
+                "unexpectedError": "An unexpected error occurred. Please try again."
+            }
+        },
+        "forgotPasswordDialog": {
+            "title": "Reset Password",
+            "description": "Enter your email address and we'll send you a link to reset your password",
+            "emailLabel": "Email Address",
+            "sendButton": "Send Reset Link",
+            "processing": "Processing...",
+            "rememberPassword": "Remember your password?",
+            "backToSignIn": "Back to Sign In"
+        },
+        "otpVerification": {
+            "title": "Verify Your Email",
+            "description": "We've sent a verification code to",
+            "enterCode": "Enter 6-digit code",
+            "timeRemaining": "Time remaining",
+            "codeExpired": "Code expired. Please request a new one.",
+            "verifyButton": "Verify OTP",
+            "verifying": "Verifying...",
+            "didntReceive": "Didn't receive the code?",
+            "resendOTP": "Resend OTP",
+            "errors": {
+                "enterAllDigits": "Please enter all 6 digits",
+                "invalidOTP": "Invalid OTP. Please try again.",
+                "resendFailed": "Failed to resend OTP"
+            }
+        },
+        "successDialog": {
+            "title": "Registration Successful!",
+            "message": "Your account has been created successfully. Welcome to WINEICY!",
+            "continueButton": "Continue Shopping",
+            "closeButton": "Close"
+        }
+    },
+    "home": {
+        "hero": {
+            "slide1": "Exceptional Wines Every Occasion",
+            "slide2": "Each Wine Has Its Own Recipe",
+            "slide3": "The Art of Wine Tasting",
+            "shopNow": "Shop now"
+        }
+    },
+    "newsletter": {
+        "stayUpdated": "Stay Updated",
+        "title": "Join Our Newsletter",
+        "description": "Subscribe to receive exclusive updates about new releases, tastings, and special events.",
+        "emailPlaceholder": "Enter your email",
+        "subscribeButton": "Subscribe",
+        "privacyNote": "We respect your privacy. Unsubscribe at any time."
+    },
+    "footer": {
+        "brandDescription": "Premium wines crafted with passion and dedication to excellence.",
+        "collections": {
+            "title": "Collections",
+            "redWines": "Red Wines",
+            "whiteWines": "White Wines",
+            "roseWines": "Rosé Wines"
+        },
+        "company": {
+            "title": "Company",
+            "aboutUs": "About Us",
+            "events": "Events",
+            "contact": "Contact"
+        },
+        "followUs": "Follow Us",
+        "copyright": "© 2025 Ville Noir. All rights reserved.",
+        "privacyPolicy": "Privacy Policy",
+        "termsOfService": "Terms of Service"
+    },
+    "navigation": {
+        "products": "Products",
+        "events": "Events",
+        "blog": "Blog",
+        "contact": "Contact",
+        "search": "Search..."
+    },
+    "statistics": {
+        "qualityWines": "Quality wines in catalog",
+        "yearsExperience": "Total years experience",
+        "customerSatisfaction": "Customer satisfaction"
+    },
+    "testimonials": {
+        "title": "What Our Subscribers Say"
+    },
+    "collections": {
+        "categoryName": "Collections",
+        "featuredProducts": "Featured Products"
+    },
+    "parallax": {
+        "ourStory": "Our Story",
+        "story1": "In the late 1800s, most Tasmanian vineyards were removed as the region was considered too cold for wine production, and many workers left for the Victorian gold rush. The industry remained dormant until the mid-1950s, when Wineicy founder",
+        "founderName": "Alessandro Vieri",
+        "story2": "revived local viticulture by planting 90 Riesling vines sourced from pioneering South Australian growers.",
+        "story3": "In 1986, the owner of the historic Lowestoft property invited Wineicy to plant and supply Pinot Noir fruit to its estate winery. The 3-hectare block, planted exclusively with Pinot Noir, later became an important source for Wineicy's reserve releases under renowned viticulturist",
+        "viticulturistName": "Fred Peacock",
+        "story4": "In 2017, Wineicy Group Executive Chairman",
+        "chairmanName": "Peter Fogarty",
+        "story5": "began exploring Tasmania's historic vineyard sites and recognised the significance of Lowestoft and its surrounding terroir. Wineicy acquired the estate in 2019, along with Strelley Farm and Gilling Brook, ushering in a new era of Tasmanian cool-climate winemaking for the brand.",
+        "timeline": {
+            "firstVines": "First Vines",
+            "pinotNoir": "Pinot Noir",
+            "newEra": "New Era"
+        },
+        "elevateEvenings": "Elevate Evenings Fine Wine"
+    },
+    "events": {
+        "hero": {
+            "title": "Events & Experiences",
+            "subtitle": "Join us for exclusive tastings, workshops, and special events"
+        },
+        "featured": "Featured Event",
+        "bookNow": "Book Now",
+        "filters": {
+            "all": "All Events",
+            "tasting": "Tastings",
+            "workshop": "Workshops",
+            "dinner": "Dinners",
+            "festival": "Festivals"
+        },
+        "details": {
+            "date": "Date",
+            "time": "Time",
+            "location": "Location",
+            "price": "Price",
+            "availableSeats": "Available Seats"
+        }
+    },
+    "blog": {
+        "hero": {
+            "title": "Wine Blog",
+            "subtitle": "Discover the world of wine through articles, guides, and expert insights"
+        },
+        "latestPost": "Latest Post",
+        "readMore": "Read More",
+        "readTime": "min read",
+        "searchPlaceholder": "Search articles...",
+        "filters": {
+            "all": "All Posts",
+            "education": "Education",
+            "travel": "Travel",
+            "pairing": "Food Pairing",
+            "storage": "Storage",
+            "science": "Science"
+        },
+        "newsletter": {
+            "title": "Never Miss a Post",
+            "description": "Subscribe to get the latest articles and wine tips delivered to your inbox",
+            "subscribe": "Subscribe Now"
+        }
+    },
+    "contact": {
+        "hero": {
+            "title": "Contact Us",
+            "subtitle": "We'd love to hear from you. Get in touch with our team"
+        },
+        "info": {
+            "visit": {
+                "title": "Visit Us",
+                "address": "123 Wine Street, Downtown\nSan Francisco, CA 94102"
+            },
+            "call": {
+                "title": "Call Us",
+                "phones": "+1 (555) 123-4567\n+1 (555) 987-6543"
+            },
+            "email": {
+                "title": "Email Us",
+                "addresses": "info@wineicy.com\nsupport@wineicy.com"
+            },
+            "hours": {
+                "title": "Business Hours",
+                "schedule": "Mon - Fri: 9AM - 8PM\nSat - Sun: 10AM - 6PM"
+            }
+        },
+        "form": {
+            "title": "Send us a Message",
+            "description": "Have a question or feedback? Fill out the form below and we'll get back to you as soon as possible.",
+            "fullName": "Full Name",
+            "fullNamePlaceholder": "John Doe",
+            "email": "Email Address",
+            "emailPlaceholder": "john@example.com",
+            "phone": "Phone Number",
+            "phonePlaceholder": "+1 (555) 000-0000",
+            "subject": "Subject",
+            "subjectPlaceholder": "How can we help?",
+            "message": "Message",
+            "messagePlaceholder": "Tell us more about your inquiry...",
+            "sendButton": "Send Message",
+            "sending": "Sending...",
+            "required": "*"
+        },
+        "whyVisit": {
+            "title": "Why Visit Us?",
+            "items": {
+                "consultation": {
+                    "title": "Expert Consultation",
+                    "description": "Get personalized wine recommendations from our sommeliers"
+                },
+                "tastingRoom": {
+                    "title": "Tasting Room",
+                    "description": "Sample our premium collection in our elegant tasting room"
+                },
+                "privateEvents": {
+                    "title": "Private Events",
+                    "description": "Book our venue for special occasions and celebrations"
+                }
+            }
+        },
+        "followUs": "Follow Us",
+        "faq": {
+            "title": "Frequently Asked Questions",
+            "subtitle": "Find quick answers to common questions",
+            "items": {
+                "shipping": {
+                    "q": "What are your shipping policies?",
+                    "a": "We offer free shipping on orders over $150 within the US. International shipping is available with rates calculated at checkout."
+                },
+                "tastings": {
+                    "q": "Do you offer wine tastings?",
+                    "a": "Yes! We host regular wine tasting events. Check our Events page for upcoming sessions and book your spot."
+                },
+                "returns": {
+                    "q": "Can I return a wine if I don't like it?",
+                    "a": "We have a 30-day satisfaction guarantee. If you're not happy with your purchase, contact us for a full refund or exchange."
+                },
+                "states": {
+                    "q": "Do you ship to all states?",
+                    "a": "We ship to most US states. Due to local regulations, some restrictions may apply. Check availability during checkout."
+                }
+            }
+        }
+    },
+    "cart": {
+        "title": "Your Cart",
+        "itemCount": "You have {{count}} items in your cart.",
+        "table": {
+            "product": "Product",
+            "price": "Price",
+            "quantity": "Quantity",
+            "total": "Total",
+            "action": "Action"
+        },
+        "summary": {
+            "title": "Order Summary",
+            "subtotal": "Subtotal",
+            "discount": "Discount",
+            "tax": "Tax",
+            "total": "Total",
+            "promoCode": "Promo Code",
+            "promoPlaceholder": "Enter promo code",
+            "applyButton": "Apply",
+            "checkoutButton": "Checkout",
+            "clearCartButton": "Clear Cart"
+        },
+        "toast": {
+            "quantityUpdated": "Quantity updated successfully!",
+            "itemRemoved": "Item removed from cart.",
+            "cartCleared": "Cart cleared successfully!",
+            "promoApplied": "Promo code applied successfully!",
+            "invalidPromo": "Invalid promo code."
+        }
+    }
+}

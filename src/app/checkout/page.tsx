@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 import {
   CreditCard,
   Truck,
-  Banknote,
+  QrCode,
   MapPin,
   ShieldCheck,
   ChevronLeft,
   Lock,
-  Loader2, // Icon loading
+  Loader2,
 } from "lucide-react";
 
-// Shadcn UI Components
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,23 +26,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Cart } from "@/types/cart";
+import { toast } from "@/hooks/use-toast";
 import { getCartItems } from "@/services/cart/api";
 import { getProfile, getUserAddress } from "@/services/profile/api";
+import { checkout, CheckoutPayload } from "@/services/checkout/api";
+import { Cart, CartItem } from "@/types/cart";
 import { UserAddress, UserProfile } from "@/types/profile";
 import { formatCurrency } from "@/lib/utils";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const [paymentMethod, setPaymentMethod] = useState<
-    "card" | "cod" | "banking"
-  >("card");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
 
-  // State quản lý dữ liệu và trạng thái tải
-  const [cartData, setCartData] = useState<Cart | null>(null);
+  const [cartData, setCartData] = useState<
+    (Cart & { discountId?: number | null }) | null
+  >(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [shippingForm, setShippingForm] = useState({
@@ -54,45 +54,49 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  // --- LOGIC FETCH DATA ---
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [cartReponse, userProfileResponse, addressResponse] =
+        const [cartResponse, userProfileResponse, addressResponse] =
           await Promise.all([getCartItems(), getProfile(), getUserAddress()]);
 
-        if (!userProfileResponse.success)
+        if (!userProfileResponse.success) {
           throw new Error(userProfileResponse.message);
+        }
         setUserProfile(userProfileResponse.data);
 
-        if (userProfileResponse) {
-          setShippingForm((prev) => ({
-            ...prev,
-            userName: userProfileResponse.data.UserName,
-            email: userProfileResponse.data.Email,
-            phone: userProfileResponse.data.PhoneNumber,
-          }));
+        setShippingForm((prev) => ({
+          ...prev,
+          userName: userProfileResponse.data.UserName,
+          email: userProfileResponse.data.Email,
+          phone: userProfileResponse.data.PhoneNumber,
+        }));
+
+        if (addressResponse.success && addressResponse.data.length > 0) {
+          const addresses: UserAddress[] = addressResponse.data;
+          const defaultAddr = addresses.find((addr) => addr.IsDefault);
+          if (defaultAddr) {
+            setShippingForm((prev) => ({
+              ...prev,
+              address: defaultAddr.StreetAddress,
+              city: `${defaultAddr.Ward}, ${defaultAddr.Province}`,
+            }));
+          }
         }
 
-        if (!addressResponse.success) throw new Error(addressResponse.message);
-        const addresses: UserAddress[] = addressResponse.data;
-        setUserAddresses(cartReponse.data);
-
-        const defaultAddr = addresses.find((addr) => addr.IsDefault);
-        if (defaultAddr) {
-          setShippingForm((prev) => ({
-            ...prev,
-            address: defaultAddr.StreetAddress,
-            city: `${defaultAddr.Ward}, ${defaultAddr.Province}`,
-          }));
+        if (!cartResponse.success) {
+          throw new Error(cartResponse.message);
         }
-
-        if (!cartReponse.success) throw new Error(cartReponse.message);
-        setCartData(cartReponse.data);
+        setCartData(cartResponse.data);
       } catch (err: any) {
-        console.error("Failed to fetch cart:", err);
+        console.error("Failed to fetch page data:", err);
         setError(err.message || "Something went wrong");
+        toast({
+          title: "Error",
+          description: err.message || "Failed to load checkout data.",
+          variant: "destructive",
+        });
       } finally {
         setLoading(false);
       }
@@ -106,7 +110,73 @@ export default function CheckoutPage() {
     setShippingForm((prev) => ({ ...prev, [id]: value }));
   };
 
-  // --- RENDER LOADING STATE ---
+  const handlePlaceOrder = async () => {
+    const { userName, address, city, phone } = shippingForm;
+    if (!userName || !address || !city || !phone) {
+      toast({
+        title: "Missing Information",
+        description:
+          "Please fill out all shipping fields before placing your order.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!cartData || !userProfile) {
+      toast({
+        title: "Error",
+        description: "Your session might have expired. Please refresh.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsCheckingOut(true);
+
+    const cityParts = shippingForm.city.split(",").map((s) => s.trim());
+    const orderWard = cityParts[0] || "";
+    const orderProvince = cityParts[1] || "";
+    const orderDistrict = cityParts[2] || "";
+
+    const payload: CheckoutPayload = {
+      UserName: shippingForm.userName,
+      Email: userProfile.Email,
+      PhoneNumber: shippingForm.phone,
+      OrderStreetAddress: shippingForm.address,
+      OrderWard: orderWard,
+      OrderDistrict: orderDistrict,
+      OrderProvince: orderProvince,
+      Items: cartData.items.map((item: CartItem) => ({
+        ProductID: item.ProductID,
+        Quantity: item.Quantity,
+      })),
+      DiscountID: cartData.discountId || null,
+      PaymentMethodID: paymentMethod === "cod" ? 1 : 2,
+    };
+
+    try {
+      const response = await checkout(payload);
+      if (response.success) {
+        toast({
+          title: "Order Placed!",
+          description: "Thank you for your purchase.",
+        });
+        router.push("/profile");
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (err: any) {
+      console.error("Checkout failed:", err);
+      toast({
+        title: "Checkout Failed",
+        description: err.message || "An unexpected error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -115,36 +185,31 @@ export default function CheckoutPage() {
     );
   }
 
-  // --- RENDER ERROR OR EMPTY STATE ---
   if (error || !cartData || cartData.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
-        <h2 className="text-2xl font-bold">Your cart is empty</h2>
+        <h2 className="text-2xl font-bold">
+          {error ? "An Error Occurred" : "Your Cart is Empty"}
+        </h2>
         <p className="text-muted-foreground mt-2">
-          {error || "Add some wine to your cart first!"}
+          {error || "Add some wine to your cart before proceeding."}
         </p>
-        <Button className="mt-4" onClick={() => router.push("/cart")}>
+        <Button className="mt-4" onClick={() => router.push("/products")}>
           Back to Shop
         </Button>
       </div>
     );
   }
 
-  // Tính toán lại subtotal từ items để đảm bảo chính xác (phòng trường hợp BE chưa tính)
   const calculatedSubtotal = cartData.items.reduce(
     (acc, item) => acc + item.product.SalePrice * item.Quantity,
     0
   );
-
-  const shippingFee = calculatedSubtotal * 0.2;
-  const tax = calculatedSubtotal * 0.1;
   const discount = cartData.discount || 0;
-
-  const finalTotal = calculatedSubtotal + shippingFee - discount + tax;
+  const finalTotal = calculatedSubtotal - discount;
 
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen bg-background mt-10">
-      {/* Breadcrumb / Back Button */}
       <div className="mb-8">
         <Button
           variant="ghost"
@@ -157,9 +222,7 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* --- LEFT COLUMN: Shipping & Payment --- */}
         <div className="lg:col-span-7 space-y-6">
-          {/* 1. Shipping Information */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -168,54 +231,55 @@ export default function CheckoutPage() {
               <CardDescription>Enter your delivery address.</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Customer Name</Label>
-                  <Input
-                    className="dark:border-white/20"
-                    id="name"
-                    placeholder="John"
-                    value={shippingForm.userName}
-                    onChange={handleInputChange}
-                  />
-                </div>
+              <div className="grid gap-2">
+                <Label htmlFor="userName">Customer Name</Label>
+                <Input
+                  id="userName"
+                  placeholder="John Doe"
+                  value={shippingForm.userName}
+                  onChange={handleInputChange}
+                  className="dark:border-white/20"
+                  required
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="address">Address</Label>
                 <Input
-                  className="dark:border-white/20"
                   id="address"
                   placeholder="123 Wine St..."
                   value={shippingForm.address}
                   onChange={handleInputChange}
+                  className="dark:border-white/20"
+                  required
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">City/Province</Label>
                   <Input
-                    className="dark:border-white/20"
                     id="city"
-                    placeholder="New York"
+                    placeholder="Ward, District, Province"
                     value={shippingForm.city}
                     onChange={handleInputChange}
+                    className="dark:border-white/20"
+                    required
                   />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
-                    className="dark:border-white/20"
                     id="phone"
-                    placeholder="+1 (555) 000-0000"
+                    placeholder="+84123456789"
                     value={shippingForm.phone}
                     onChange={handleInputChange}
+                    className="dark:border-white/20"
+                    required
                   />
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* 2. Payment Method */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -227,31 +291,10 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent>
               <RadioGroup
-                defaultValue="card"
+                value={paymentMethod}
                 onValueChange={(value) => setPaymentMethod(value as any)}
                 className="grid gap-4"
               >
-                {/* Option: Banking */}
-                <div>
-                  <RadioGroupItem
-                    value="banking"
-                    id="banking"
-                    className="peer sr-only"
-                  />
-                  <Label
-                    htmlFor="banking"
-                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Banknote className="h-5 w-5" />
-                      <span className="font-semibold">
-                        Bank Transfer (QR Code)
-                      </span>
-                    </div>
-                  </Label>
-                </div>
-
-                {/* Option: COD */}
                 <div>
                   <RadioGroupItem
                     value="cod"
@@ -270,12 +313,27 @@ export default function CheckoutPage() {
                     </div>
                   </Label>
                 </div>
+                <div>
+                  <RadioGroupItem
+                    value="vnpay"
+                    id="vnpay"
+                    className="peer sr-only"
+                  />
+                  <Label
+                    htmlFor="vnpay"
+                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <QrCode className="h-5 w-5" />
+                      <span className="font-semibold">Thanh toán VNPay</span>
+                    </div>
+                  </Label>
+                </div>
               </RadioGroup>
             </CardContent>
           </Card>
         </div>
 
-        {/* --- RIGHT COLUMN: Order Summary --- */}
         <div className="lg:col-span-5">
           <Card className="sticky top-8 bg-muted/30 border-muted">
             <CardHeader>
@@ -285,37 +343,25 @@ export default function CheckoutPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              {/* Product List */}
-              <div className="space-y-4">
+              <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
                 {cartData.items.map((item) => (
                   <div
                     key={item.CartItemID}
                     className="flex items-center gap-4"
                   >
                     <div className="relative h-16 w-16 overflow-hidden rounded-md border bg-background shrink-0">
-                      {/* Xử lý hiển thị ảnh với fallback nếu không có ImageURL */}
-                      {item.product.ImageURL ? (
-                        <img
-                          src={item.product.ImageURL}
-                          alt={item.product.ProductName}
-                          className="object-fit h-full w-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-xs">
-                          No Img
-                        </div>
-                      )}
+                      <img
+                        src={item.product.ImageURL || "/fallback-image.jpg"}
+                        alt={item.product.ProductName}
+                        className="object-cover h-full w-full"
+                      />
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
                       <h4 className="text-sm font-medium leading-none line-clamp-1">
                         {item.product.ProductName}
                       </h4>
-                      {/* Hiển thị Category hoặc Vintage nếu có trong detail */}
                       <p className="text-xs text-muted-foreground">
-                        Category: {item.product.CategoryName}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Quantity: {item.Quantity}
+                        Qty: {item.Quantity}
                       </p>
                     </div>
                     <div className="font-medium text-sm whitespace-nowrap">
@@ -327,19 +373,10 @@ export default function CheckoutPage() {
 
               <Separator className="my-2" />
 
-              {/* Calculations */}
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(calculatedSubtotal)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span>{formatCurrency(shippingFee)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Tax</span>
-                  <span>{formatCurrency(tax)}</span>
                 </div>
                 {cartData.discount > 0 && (
                   <div className="flex justify-between text-green-600">
@@ -351,18 +388,29 @@ export default function CheckoutPage() {
 
               <Separator className="my-2" />
 
-              <div className="flex justify-between items-center">
-                <span className="text-base font-bold">Total</span>
-                <span className="text-xl font-bold text-primary">
+              <div className="flex justify-between items-center font-bold">
+                <span className="text-base">Total</span>
+                <span className="text-xl text-primary">
                   {formatCurrency(finalTotal)}
                 </span>
               </div>
             </CardContent>
 
             <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full py-6 text-lg shadow-lg" size="lg">
-                <Lock className="mr-2 h-4 w-4" /> Place Order (
-                {formatCurrency(finalTotal)})
+              <Button
+                className="w-full py-6 text-lg shadow-lg"
+                size="lg"
+                onClick={handlePlaceOrder}
+                disabled={isCheckingOut}
+              >
+                {isCheckingOut ? (
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                ) : (
+                  <Lock className="mr-2 h-4 w-4" />
+                )}
+                {isCheckingOut
+                  ? "Placing Order..."
+                  : `Place Order (${formatCurrency(finalTotal)})`}
               </Button>
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">

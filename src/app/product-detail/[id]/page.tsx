@@ -32,7 +32,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
       <main className="min-h-screen mt-28">
         <div className="max-w-7xl mx-auto px-4 py-12 text-center">
           <h1 className="text-2xl font-bold">Product not found</h1>
-          <p>Sorry, we couldn't find the product you're looking for.</p>
+          <p>Sorry, we couldn&apos;t find the product you&apos;re looking for.</p>
         </div>
       </main>
     );

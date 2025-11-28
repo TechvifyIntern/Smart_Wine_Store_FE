@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Calendar } from "lucide-react";
-import { discountEvents, DiscountEvent } from "@/data/discount_event";
+import { DiscountEvent } from "@/data/discount_event";
+import discountEventsRepository from "@/api/discountEventsRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import EventsTable from "@/components/discount-events/EventsTable";
 import Pagination from "@/components/admin/pagination/Pagination";
 import EventsToolbar from "@/components/discount-events/EventsToolbar";
 import { CreateDiscountEvent } from "@/components/discount-events/(modal)/CreateDiscountEvent";
 import { DeleteConfirmDialog } from "@/components/discount-events/(modal)/DeleteConfirmDialog";
+import { toast } from "sonner";
 
 export default function EventsPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +24,44 @@ export default function EventsPage() {
     const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
     const [dateFrom, setDateFrom] = useState<string>("");
     const [dateTo, setDateTo] = useState<string>("");
+    const [discountEvents, setDiscountEvents] = useState<DiscountEvent[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch discount events from API
+    const loadDiscountEvents = async () => {
+        try {
+            setIsLoading(true);
+            const response = await discountEventsRepository.getDiscountEvents();
+            if (response.success && response.data) {
+                console.log('Loaded discount events:', response.data);
+                setDiscountEvents(response.data as any);
+            } else {
+                console.error('Failed to load discount events:', response.message);
+            }
+        } catch (err) {
+            console.error('Error loading discount events:', err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDiscountEvents();
+    }, []);
+
+    // Reload data when page becomes visible again
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                loadDiscountEvents();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
+    }, []);
 
     // Get status based on dates
     const getEventStatus = (timeStart: string, timeEnd: string) => {
@@ -46,6 +86,11 @@ export default function EventsPage() {
 
     // Filter events based on search term and filters
     const filteredEvents = useMemo(() => {
+        console.log('Filtering events. Total events:', discountEvents.length);
+        console.log('Search term:', searchTerm);
+        console.log('Selected statuses:', selectedStatuses);
+        console.log('Date range:', { dateFrom, dateTo });
+
         let events = discountEvents;
 
         // Search filter
@@ -78,8 +123,9 @@ export default function EventsPage() {
             });
         }
 
+        console.log('Filtered events:', events.length);
         return events;
-    }, [searchTerm, selectedStatuses, dateFrom, dateTo]);
+    }, [searchTerm, selectedStatuses, dateFrom, dateTo, discountEvents]);
 
     // Handler for applying filters
     const handleApplyFilters = (filters: { statuses: number[]; dateFrom: string; dateTo: string }) => {
@@ -169,16 +215,27 @@ export default function EventsPage() {
     };
 
     const handleCreateEvent = async (data: Omit<DiscountEvent, "DiscountEventID" | "CreatedAt" | "UpdatedAt">) => {
-        console.log("Creating new event:", data);
-        // TODO: Implement API call to create event
-        // Example:
-        // await fetch('/api/discount-events', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
+        try {
+            const response = await discountEventsRepository.createDiscountEvent({
+                EventName: data.EventName,
+                DiscountPercentage: data.DiscountValue ?? 0,
+                StartDate: data.TimeStart,
+                EndDate: data.TimeEnd,
+                Description: data.Description,
+                isActive: true
+            });
 
-        alert("Event created successfully!");
+            if (response.success) {
+                toast.success("Event created successfully!");
+                // Reload the list to show the new event
+                await loadDiscountEvents();
+            } else {
+                toast.error(response.message || "Failed to create event");
+            }
+        } catch (error) {
+            console.error('Error creating event:', error);
+            toast.error("An error occurred while creating the event");
+        }
     };
 
     const handleUpdateEvent = async (id: number, data: Omit<DiscountEvent, "DiscountEventID" | "CreatedAt" | "UpdatedAt">) => {
@@ -202,39 +259,50 @@ export default function EventsPage() {
                 iconColor="text-black"
             />
 
-            {/* Toolbar with Search and Create Button */}
-            <EventsToolbar
-                searchTerm={searchTerm}
-                onSearchChange={handleSearchChange}
-                searchPlaceholder="Search by event name..."
-                onCreateEvent={handleCreateEvent}
-                createButtonLabel="Create Event"
-                selectedStatuses={selectedStatuses}
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                onApplyFilters={handleApplyFilters}
-            />
+            {isLoading ? (
+                <div className="flex items-center justify-center min-h-[400px]">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+                        <p className="text-gray-600 dark:text-gray-400">Loading discount events...</p>
+                    </div>
+                </div>
+            ) : (
+                <>
+                    {/* Toolbar with Search and Create Button */}
+                    <EventsToolbar
+                        searchTerm={searchTerm}
+                        onSearchChange={handleSearchChange}
+                        searchPlaceholder="Search by event name..."
+                        onCreateEvent={handleCreateEvent}
+                        createButtonLabel="Create Event"
+                        selectedStatuses={selectedStatuses}
+                        dateFrom={dateFrom}
+                        dateTo={dateTo}
+                        onApplyFilters={handleApplyFilters}
+                    />
 
-            {/* Events Table */}
-            <EventsTable
-                events={currentEvents}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                getEventStatus={getEventStatus}
-                formatDate={formatDate}
-                emptyMessage={searchTerm ? `No events found matching "${searchTerm}"` : "No events found"}
-            />
+                    {/* Events Table */}
+                    <EventsTable
+                        events={currentEvents}
+                        onView={handleView}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                        getEventStatus={getEventStatus}
+                        formatDate={formatDate}
+                        emptyMessage={searchTerm ? `No events found matching "${searchTerm}"` : "No events found"}
+                    />
 
-            {/* Pagination */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                totalItems={filteredEvents.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
-                onItemsPerPageChange={handleItemsPerPageChange}
-            />
+                    {/* Pagination */}
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        totalItems={filteredEvents.length}
+                        itemsPerPage={itemsPerPage}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={handleItemsPerPageChange}
+                    />
+                </>
+            )}
 
             {/* Edit Event Modal */}
             <CreateDiscountEvent

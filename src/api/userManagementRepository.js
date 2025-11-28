@@ -1,5 +1,5 @@
 import { api } from '@/services/api';
-import BaseRepository from './baseRepository.js';
+import BaseRepository from './baseRepository';
 
 class UserManagementRepository extends BaseRepository {
   constructor() {
@@ -39,6 +39,7 @@ class UserManagementRepository extends BaseRepository {
     }
   }
 
+  
   /**
    * Get user by ID
    * @param {number} id - User ID

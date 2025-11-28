@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -8,9 +11,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { recentOrders } from "@/data/dashboard/recentOrders";
+import { Loader2 } from "lucide-react";
+import ordersRepository from "@/api/ordersRepository";
 
 export function RecentOrdersTable() {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadRecentOrders = async () => {
+      try {
+        setIsLoading(true);
+        const response = await ordersRepository.getOrders();
+        if (response.success && response.data && Array.isArray(response.data.data)) {
+          // Sort by CreatedAt descending and take first 10
+          const sortedOrders = response.data.data
+            .sort((a: any, b: any) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
+            .slice(0, 10);
+          setOrders(sortedOrders);
+        }
+      } catch (error) {
+        console.error('Error loading recent orders:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    loadRecentOrders();
+  }, []);
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Paid":
@@ -43,41 +70,51 @@ export function RecentOrdersTable() {
         <CardTitle className="text-base font-semibold">Recent Orders</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">Order ID</TableHead>
-                <TableHead>Customer Name</TableHead>
-                <TableHead>Product</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
-                <TableHead className="w-[110px]">Date</TableHead>
-                <TableHead className="w-[100px] text-center">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {recentOrders.map((order) => (
-                <TableRow key={order.orderId}>
-                  <TableCell className="font-medium">{order.orderId}</TableCell>
-                  <TableCell>{order.customerName}</TableCell>
-                  <TableCell>{order.product}</TableCell>
-                  <TableCell className="text-right">
-                    {formatAmount(order.amount)}
-                  </TableCell>
-                  <TableCell>{formatDate(order.date)}</TableCell>
-                  <TableCell className="text-center">
-                    <Badge
-                      variant="secondary"
-                      className={`w-[85px] justify-center ${getStatusColor(order.status)}`}
-                    >
-                      {order.status}
-                    </Badge>
-                  </TableCell>
+        {isLoading ? (
+          <div className="flex items-center justify-center h-[400px]">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="flex items-center justify-center h-[400px] text-muted-foreground">
+            No orders found
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[120px]">Order ID</TableHead>
+                  <TableHead>User ID</TableHead>
+                  <TableHead>Shipping Address</TableHead>
+                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="w-[110px]">Date</TableHead>
+                  <TableHead className="w-[100px] text-center">Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow key={order.OrderID}>
+                    <TableCell className="font-medium">#{order.OrderID}</TableCell>
+                    <TableCell>User #{order.UserID}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{order.ShippingAddress || 'N/A'}</TableCell>
+                    <TableCell className="text-right">
+                      {formatAmount(order.TotalAmount)}
+                    </TableCell>
+                    <TableCell>{formatDate(order.CreatedAt)}</TableCell>
+                    <TableCell className="text-center">
+                      <Badge
+                        variant="secondary"
+                        className={`w-[85px] justify-center ${getStatusColor(order.Status)}`}
+                      >
+                        {order.Status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { stats } from "@/data/statistics";
+import { useLocale } from "@/contexts/LocaleContext";
 
 export function Statistics() {
+  const { t } = useLocale();
   const [counts, setCounts] = useState<number[]>(stats.map(() => 0));
   const [hasStarted, setHasStarted] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
@@ -50,15 +52,15 @@ export function Statistics() {
   }, [hasStarted]);
 
   return (
-    <section ref={sectionRef} className="py-16 md:py-24 px-4 sm:px-6 lg:px-8">
+    <section ref={sectionRef} className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           {stats.map((stat, idx) => (
             <div key={idx} className="text-center space-y-2">
-              <p className="text-5xl md:text-6xl font-serif text-primary">
+              <p className="text-4xl sm:text-5xl md:text-6xl font-serif text-primary">
                 {counts[idx]}
               </p>
-              <p className="text-lg text-muted-foreground">{stat.label}</p>
+              <p className="text-base sm:text-lg text-muted-foreground">{t(`statistics.${stat.key}`)}</p>
             </div>
           ))}
         </div>

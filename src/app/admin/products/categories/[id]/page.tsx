@@ -6,8 +6,6 @@ import { ArrowLeft, Edit, Save, X, Wine, FolderOpen, Star, ShoppingBag } from "l
 import productCategories from "@/data/product_categories";
 import products from "@/data/products";
 import categoriesRepository from "@/api/categoriesRepository";
-import { Category } from "@/types/category";
-import { Products } from "@/types/products";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +19,8 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import type { Category } from "@/types/category";
+import type { Product } from "@/data/products";
 
 export default function CategoryDetailPage() {
     const params = useParams();
@@ -30,21 +30,17 @@ export default function CategoryDetailPage() {
 
     const { toast } = useToast();
 
-    // State management for category data
-    const [category, setCategory] = useState<Category | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // State management for category products
-    const [categoryProducts, setCategoryProducts] = useState<Products[]>([]);
-
     // Check if we should start in edit mode
     const shouldStartEditing = searchParams.get('edit') === '1';
 
     // State management
+    const [category, setCategory] = useState<Category | null>(null);
+    const [categoryProducts, setCategoryProducts] = useState<Product[]>([]);
     const [isEditing, setIsEditing] = useState(shouldStartEditing);
     const [showSaveDialog, setShowSaveDialog] = useState(false);
     const [showInactiveDialog, setShowInactiveDialog] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Fetch category data from API
     useEffect(() => {
@@ -88,7 +84,7 @@ export default function CategoryDetailPage() {
                 console.error('Failed to fetch products for category:', error);
                 // Fallback to static filtering if API fails
                 const fallbackProducts = products.filter(product => product.CategoryID === categoryId);
-                setCategoryProducts(fallbackProducts);
+                setCategoryProducts(fallbackProducts as Product[]);
             }
         };
 
@@ -115,7 +111,7 @@ export default function CategoryDetailPage() {
             const updateData = {
                 CategoryName: category.CategoryName,
                 Description: category.Description,
-                CategoryParentID: category.CategoryParentID || 0
+                CategoryParentID: category.CategoryParentID === 0 || !category.CategoryParentID ? null : category.CategoryParentID
             };
 
             await categoriesRepository.updateCategory(category.CategoryID, updateData);
@@ -128,12 +124,7 @@ export default function CategoryDetailPage() {
             setIsEditing(false);
             setShowSaveDialog(false);
         } catch (error) {
-            console.error("Error updating category:", error);
-            toast({
-                title: "Error",
-                description: "Failed to update category. Please try again.",
-                variant: "destructive"
-            });
+            console.error("Error saving category:", error);
         }
     };
 
@@ -145,18 +136,39 @@ export default function CategoryDetailPage() {
         setShowInactiveDialog(true);
     };
 
-    const handleInactiveConfirm = () => {
+    const handleInactiveConfirm = async () => {
         if (!category) return;
 
-        // In a real app, this would be an API call to delete the category
-        console.log("Deleting category:", category.CategoryID);
+        try {
+            // Double-check that the category has no products (safety check)
+            if (categoryProducts.length > 0) {
+                toast({
+                    title: "Cannot Delete Category",
+                    description: `The category "${category.CategoryName}" contains ${categoryProducts.length} products. Please move or delete all products first.`,
+                    variant: "destructive",
+                });
+                setShowInactiveDialog(false);
+                return;
+            }
 
-        toast({
-            title: "Category Deleted",
-            description: `The category ${category.CategoryName} has been successfully deleted.`,
-        });
+            await categoriesRepository.deleteCategory(category.CategoryID);
 
-        setShowInactiveDialog(false);
+            toast({
+                title: "Category Deleted",
+                description: `The category "${category.CategoryName}" has been successfully deleted.`,
+            });
+
+            setShowInactiveDialog(false);
+            // Navigate back to categories list
+            router.push('/admin/products/categories');
+        } catch (error) {
+            console.error("Error deleting category:", error);
+            toast({
+                title: "Error",
+                description: "Failed to delete category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleInactiveCancel = () => {
@@ -174,6 +186,37 @@ export default function CategoryDetailPage() {
             currency: 'VND'
         }).format(amount);
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-gray-200 dark:border-slate-600 border-t-[#ad8d5e] rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Loading category...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Category</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Categories
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!category) {
         return (
@@ -292,55 +335,18 @@ export default function CategoryDetailPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Category Name</p>
-                                        {isEditing ? (
-                                            <input
-                                                type="text"
-                                                value={category.CategoryName}
-                                                onChange={(e) => setCategory({ ...category, CategoryName: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="Enter category name"
-                                            />
-                                        ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
-                                        )}
+                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
+                                <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600 md:col-span-2">
                                     <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
                                         <Star className="w-4 h-4 text-green-600 dark:text-green-400" />
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Description</p>
-                                        {isEditing ? (
-                                            <textarea
-                                                value={category.Description}
-                                                onChange={(e) => setCategory({ ...category, Description: e.target.value })}
-                                                className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[100px] resize-vertical"
-                                                placeholder="Enter category description"
-                                            />
-                                        ) : (
-                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
-                                        )}
+                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
                                     </div>
                                 </div>
-                                {isEditing && (
-                                    <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
-                                        <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center">
-                                            <span className="text-xs font-bold text-purple-600 dark:text-purple-400">#</span>
-                                        </div>
-                                        <div className="flex-1">
-                                            <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Parent Category ID</p>
-                                            <input
-                                                type="number"
-                                                value={category.CategoryParentID || 0}
-                                                onChange={(e) => setCategory({ ...category, CategoryParentID: parseInt(e.target.value) || 0 })}
-                                                className="w-32 px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                placeholder="0"
-                                                min="0"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </div>
 
@@ -423,6 +429,7 @@ export default function CategoryDetailPage() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleSaveConfirm}
+                            disabled={isEditing}
                             className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white"
                         >
                             Đồng ý
