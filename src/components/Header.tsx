@@ -99,7 +99,7 @@ export function Header() {
     router.push("/");
   };
 
-  const handleAuthModeChange = (mode: "signin" | "signup" | "forgot") =>
+  const handleAuthModeChange = (mode: "signin" | "signup" | "forgot" | "otp") =>
     setAuthMode(mode);
 
   useEffect(() => {
@@ -488,7 +488,7 @@ interface MobileMenuProps {
   t: any;
   setLocale: (locale: Locale) => void;
   handleLogout: () => void;
-  setAuthMode: (mode: "signin" | "signup" | "forgot") => void;
+  setAuthMode: (mode: "signin" | "signup" | "forgot" | "otp") => void;
   setAuthOpen: (open: boolean) => void;
   setIsMobileMenuOpen: (open: boolean) => void;
   router: any;

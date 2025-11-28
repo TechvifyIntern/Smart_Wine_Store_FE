@@ -1,5 +1,5 @@
 import { api } from '@/services/api';
-import BaseRepository from './baseRepository.js';
+import BaseRepository from './baseRepository';
 import type {
   GetProductsResponse,
   GetProductByIdResponse,

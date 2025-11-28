@@ -1,4 +1,4 @@
-import BaseRepository from './baseRepository.js';
+import BaseRepository from './baseRepository';
 
 interface ApiResponse<T = unknown> {
     success: boolean;

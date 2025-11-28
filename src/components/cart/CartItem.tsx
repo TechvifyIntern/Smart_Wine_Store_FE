@@ -37,7 +37,9 @@ export default function CartItem({
           <span className="line-clamp-2">{item.product.ProductName}</span>
         </Link>
       </TableCell>
-      <TableCell className="text-xs sm:text-sm">{formatCurrency(price)}</TableCell>
+      <TableCell className="text-xs sm:text-sm">
+        {formatCurrency(price)}
+      </TableCell>
       <TableCell>
         <div className="flex items-center">
           <button
