@@ -23,9 +23,9 @@ export function RecentOrdersTable() {
       try {
         setIsLoading(true);
         const response = await ordersRepository.getOrders();
-        if (response.success && response.data && Array.isArray(response.data.data)) {
+        if (response.success && response.data && Array.isArray(response.data)) {
           // Sort by CreatedAt descending and take first 10
-          const sortedOrders = response.data.data
+          const sortedOrders = response.data
             .sort((a: any, b: any) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
             .slice(0, 10);
           setOrders(sortedOrders);
@@ -38,9 +38,21 @@ export function RecentOrdersTable() {
     };
     loadRecentOrders();
   }, []);
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Paid":
+  const getStatusText = (statusID: number): string => {
+    const statusMap: Record<number, string> = {
+      1: "Pending",
+      2: "Processing",
+      3: "Shipped",
+      4: "Delivered",
+      5: "Cancelled",
+    };
+    return statusMap[statusID] || "Unknown";
+  };
+
+  const getStatusColor = (statusID: number) => {
+    const statusText = getStatusText(statusID);
+    switch (statusText) {
+      case "Delivered":
         return "bg-[#00B69B]/30 text-[#00B69B] dark:bg-[#00B69B]/15 dark:text-[#00B69B]/70";
       case "Pending":
         return "bg-[#6226EF]/30 text-[#6226EF] dark:bg-[#6226EF]/15 dark:text-[#6226EF]/70";
@@ -49,6 +61,11 @@ export function RecentOrdersTable() {
       default:
         return "bg-gray-100 text-gray-800 dark:bg-gray-800/50 dark:text-gray-400";
     }
+  };
+
+  const getFormattedAddress = (order: any): string => {
+    const parts = [order.OrderStreetAddress, order.OrderWard, order.OrderProvince].filter(Boolean);
+    return parts.join(", ") || 'N/A';
   };
 
   const formatDate = (dateString: string) => {
@@ -96,17 +113,17 @@ export function RecentOrdersTable() {
                   <TableRow key={order.OrderID}>
                     <TableCell className="font-medium">#{order.OrderID}</TableCell>
                     <TableCell>User #{order.UserID}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{order.ShippingAddress || 'N/A'}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">{getFormattedAddress(order)}</TableCell>
                     <TableCell className="text-right">
-                      {formatAmount(order.TotalAmount)}
+                      {formatAmount(order.FinalTotal)}
                     </TableCell>
                     <TableCell>{formatDate(order.CreatedAt)}</TableCell>
                     <TableCell className="text-center">
                       <Badge
                         variant="secondary"
-                        className={`w-[85px] justify-center ${getStatusColor(order.Status)}`}
+                        className={`w-[85px] justify-center ${getStatusColor(order.StatusID)}`}
                       >
-                        {order.Status}
+                        {getStatusText(order.StatusID)}
                       </Badge>
                     </TableCell>
                   </TableRow>

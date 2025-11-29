@@ -4,12 +4,32 @@ import BaseRepository from './baseRepository';
 export interface Order {
     OrderID: number;
     UserID: number;
-    TotalAmount: number;
-    Status: string;
-    ShippingAddress: string;
-    PaymentMethod: string;
+    UserName?: string;
+    Email?: string;
+    PhoneNumber?: string;
+    OrderStreetAddress?: string;
+    OrderWard?: string;
+    OrderProvince?: string;
     CreatedAt: string;
-    UpdatedAt: string;
+    Subtotal: number;
+    DiscountTierValue?: number;
+    DiscountEventValue?: number;
+    FinalTotal: number;
+    StatusID: number;
+    DiscountID?: number;
+    Details?: OrderDetail[];
+}
+
+// Interface for Order Detail
+export interface OrderDetail {
+    DetailID: number;
+    OrderID: number;
+    ProductID: number;
+    ProductName: string;
+    Quantity: number;
+    UnitPrice: number;
+    DiscountValue: number;
+    FinalItemPrice: number;
 }
 
 // Interface for API response
@@ -26,8 +46,8 @@ class OrdersRepository extends BaseRepository {
     }
 
     // Get all orders with optional params
-    async getOrders(params = {}): Promise<ApiResponse<{ data: Order[]; total: number }>> {
-        return this.getAll(params) as Promise<ApiResponse<{ data: Order[]; total: number }>>;
+    async getOrders(params = {}): Promise<ApiResponse<Order[]>> {
+        return this.getAll(params) as Promise<ApiResponse<Order[]>>;
     }
 
     // Get order by ID

@@ -56,8 +56,8 @@ export default function AccountToolbar({
                 phoneNumber = '+84' + phoneNumber.substring(1);
             }
 
-            // Call the register API directly
-            const registerData = {
+            // Prepare data for admin account creation
+            const accountData = {
                 UserName: data.UserName,
                 Email: data.Email,
                 PhoneNumber: phoneNumber,
@@ -65,9 +65,14 @@ export default function AccountToolbar({
                 ConfirmPassword: data.ConfirmPassword,
                 Birthday: data.Birthday,
                 RoleID: data.RoleID,
+                TierID: data.TierID,
+                StreetAddress: data.StreetAddress || "",
+                Ward: data.Ward || "",
+                Province: data.Province || "",
             };
 
-            await signUp(registerData);
+            // Use auth service to register account
+            await signUp(accountData);
 
             // If there's a parent handler, call it too (for the page to handle)
             if (onCreateAccount) {

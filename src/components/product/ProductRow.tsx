@@ -10,6 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppStore } from "@/store/auth";
+import { getProductPermissions } from "@/lib/permissions";
 
 interface ProductRowProps {
   product: Product;
@@ -44,6 +46,8 @@ export default function ProductRow({
   formatCurrency,
 }: ProductRowProps) {
   const router = useRouter();
+  const { user } = useAppStore();
+  const permissions = getProductPermissions(user?.roleId);
 
   return (
     <tr
@@ -122,16 +126,18 @@ export default function ProductRow({
       <td className="px-6 py-4">
         <div className="flex items-center justify-center">
           {/* Edit Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              router.push(`/admin/products/${product.ProductID}?edit=true`);
-            }}
-            title="Edit product"
-            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#ad8d5e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#ad8d5e]/50 dark:text-slate-400 dark:hover:text-[#ad8d5e]"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
+          {permissions.canEdit && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                router.push(`/admin/products/${product.ProductID}?edit=true`);
+              }}
+              title="Edit product"
+              className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#ad8d5e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#ad8d5e]/50 dark:text-slate-400 dark:hover:text-[#ad8d5e]"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
       </td>
     </tr>

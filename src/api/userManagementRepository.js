@@ -19,7 +19,20 @@ class UserManagementRepository extends BaseRepository {
    */
   async getUsers(params = {}) {
     const response = await this.getAll(params);
-    return response.data.data; // Extract the data array from the paginated response
+    // Ensure all required fields are present with defaults
+    const users = response.data.data.map(user => ({
+      ...user,
+      MinimumPoint: user.MinimumPoint ?? 0,
+      StreetAddress: user.StreetAddress ?? '',
+      Ward: user.Ward ?? '',
+      Province: user.Province ?? '',
+      Point: user.Point ?? 0,
+      StatusName: user.StatusID === 1 ? 'Active' : user.StatusID === 2 ? 'Inactive' : user.StatusName
+    }));
+    return {
+      data: users, // Extract the data array from the paginated response
+      total: response.data.total // Extract the total count
+    };
   }
 
   /**
@@ -84,12 +97,20 @@ class UserManagementRepository extends BaseRepository {
    * Update user status
    * @param {number} id - User ID
    * @param {number} statusId - New status ID
+   * @param {string | undefined} reason - Reason for status change (required when banning)
    */
-  async updateUserStatus(id, statusId) {
+  async updateUserStatus(id, statusId, reason = undefined) {
     try {
-      const response = await api.put(`${this.endpoint}/${id}/status`, {
-        statusId
-      });
+      const payload = {
+        StatusID: statusId
+      };
+
+      // Add reason when banning (StatusID = 2)
+      if (statusId === 2 && reason) {
+        payload.Reason = reason;
+      }
+
+      const response = await api.put(`${this.endpoint}/${id}/status`, payload);
       return response.data;
     } catch (error) {
       throw new Error(`Failed to update user status: ${error.message}`);

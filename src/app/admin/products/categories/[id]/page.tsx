@@ -8,6 +8,8 @@ import products from "@/data/products";
 import categoriesRepository from "@/api/categoriesRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -104,6 +106,22 @@ export default function CategoryDetailPage() {
         }
     };
 
+    const handleCategoryNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!category) return;
+        setCategory({
+            ...category,
+            CategoryName: e.target.value
+        });
+    };
+
+    const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        if (!category) return;
+        setCategory({
+            ...category,
+            Description: e.target.value
+        });
+    };
+
     const handleSaveConfirm = async () => {
         if (!category) return;
 
@@ -123,8 +141,19 @@ export default function CategoryDetailPage() {
 
             setIsEditing(false);
             setShowSaveDialog(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error saving category:", error);
+
+            let errorMessage = "Failed to update category. Please try again.";
+            if (error.message) {
+                errorMessage = error.message;
+            }
+
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
         }
     };
 
@@ -335,7 +364,16 @@ export default function CategoryDetailPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Category Name</p>
-                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
+                                        {isEditing ? (
+                                            <Input
+                                                value={category.CategoryName}
+                                                onChange={handleCategoryNameChange}
+                                                className="mt-1 bg-white dark:bg-slate-600 border-gray-300 dark:border-slate-500"
+                                                placeholder="Enter category name"
+                                            />
+                                        ) : (
+                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.CategoryName}</p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600 md:col-span-2">
@@ -344,7 +382,16 @@ export default function CategoryDetailPage() {
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">Description</p>
-                                        <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
+                                        {isEditing ? (
+                                            <Textarea
+                                                value={category.Description}
+                                                onChange={handleDescriptionChange}
+                                                className="mt-1 bg-white dark:bg-slate-600 border-gray-300 dark:border-slate-500 min-h-[80px] resize-none"
+                                                placeholder="Enter category description"
+                                            />
+                                        ) : (
+                                            <p className="font-medium text-gray-900 dark:text-slate-100">{category.Description}</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -372,8 +419,8 @@ export default function CategoryDetailPage() {
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-200 dark:divide-slate-600">
-                                                {categoryProducts.map((product) => (
-                                                    <tr key={product.ProductID} className="hover:bg-gray-50 dark:hover:bg-slate-600/50">
+                                                {categoryProducts.map((product, index) => (
+                                                    <tr key={`product-${product.ProductID}-${index}`} className="hover:bg-gray-50 dark:hover:bg-slate-600/50">
                                                         <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-slate-100">
                                                             #{product.ProductID}
                                                         </td>
@@ -429,7 +476,6 @@ export default function CategoryDetailPage() {
                         </AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleSaveConfirm}
-                            disabled={isEditing}
                             className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white"
                         >
                             Đồng ý

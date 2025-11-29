@@ -64,12 +64,12 @@ export default function Dashboard() {
         const response = await ordersRepository.getOrders();
         if (response.success && response.data) {
           // Calculate orders and revenue for this month
-          if (Array.isArray(response.data.data)) {
+          if (Array.isArray(response.data)) {
             const now = new Date();
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
 
-            const ordersThisMonth = response.data.data.filter((order: any) => {
+            const ordersThisMonth = response.data.filter((order: any) => {
               if (order.CreatedAt) {
                 const orderDate = new Date(order.CreatedAt);
                 return orderDate.getMonth() === currentMonth &&
@@ -82,7 +82,7 @@ export default function Dashboard() {
 
             // Calculate total revenue this month
             const revenueThisMonth = ordersThisMonth.reduce((sum: number, order: any) => {
-              return sum + (order.TotalAmount || 0);
+              return sum + (order.FinalTotal || 0);
             }, 0);
             setTotalRevenueThisMonth(revenueThisMonth);
           } else {

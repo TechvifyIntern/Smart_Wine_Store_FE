@@ -8,10 +8,12 @@ export const api = axios.create({
 // Request interceptor to add the Authorization header
 api.interceptors.request.use(
   (config) => {
-    // Get the accessToken from the store using getState()
-    const accessToken = useAppStore.getState().accessToken;
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    // Get the accessToken from localStorage (only in browser)
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem("token");
+      if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -47,7 +49,12 @@ api.interceptors.response.use(
         // Try to refresh the token
         const response = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
-          { refreshToken }
+          { refreshToken },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
         );
 
         console.log("Refresh response:", response.data);
@@ -77,6 +84,10 @@ api.interceptors.response.use(
       } catch (refreshError) {
         // Refresh failed, logout user
         console.error("Token refresh failed:", refreshError);
+        if (axios.isAxiosError(refreshError)) {
+          console.error("Refresh error response:", refreshError.response?.data);
+          console.error("Refresh error status:", refreshError.response?.status);
+        }
         useAppStore.getState().logout();
         return Promise.reject(refreshError);
       }

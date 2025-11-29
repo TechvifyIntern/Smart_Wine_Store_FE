@@ -2,6 +2,7 @@
     "header": {
         "user": "Người dùng",
         "userPage": "Trang người dùng",
+        "systemManagement": "Quản lý hệ thống",
         "storeManagement": "Quản lý cửa hàng",
         "accountManagement": "Quản lý tài khoản cá nhân",
         "language": "Ngôn ngữ",
@@ -12,6 +13,9 @@
     "languages": {
         "vi": "Tiếng Việt",
         "en": "English"
+    },
+    "common": {
+        "back": "Quay lại"
     },
     "auth": {
         "signInDialog": {
@@ -71,6 +75,7 @@
             "verifying": "Đang xác thực...",
             "didntReceive": "Không nhận được mã?",
             "resendOTP": "Gửi lại OTP",
+            "resending": "Đang gửi lại...",
             "errors": {
                 "enterAllDigits": "Vui lòng nhập đủ 6 chữ số",
                 "invalidOTP": "OTP không hợp lệ. Vui lòng thử lại.",
@@ -309,6 +314,61 @@
             "cartCleared": "Đã xóa giỏ hàng thành công!",
             "promoApplied": "Đã áp dụng mã khuyến mãi thành công!",
             "invalidPromo": "Mã khuyến mãi không hợp lệ."
+        }
+    },
+    "admin": {
+        "orders": {
+            "title": "Quản Lý Đơn Hàng",
+            "searchPlaceholder": "Tìm kiếm theo Mã đơn hàng, Trạng thái, hoặc Địa chỉ...",
+            "exportButton": "Xuất",
+            "tableHeaders": {
+                "orderId": "Mã Đơn Hàng",
+                "customerId": "Mã Khách Hàng",
+                "totalAmount": "Tổng Tiền",
+                "status": "Trạng Thái",
+                "paymentMethod": "Phương Thức Thanh Toán",
+                "createdAt": "Ngày Tạo"
+            },
+            "status": {
+                "pending": "Chờ Xử Lý",
+                "processing": "Đang Xử Lý",
+                "shipped": "Đã Gửi",
+                "delivered": "Đã Giao",
+                "cancelled": "Đã Hủy"
+            },
+            "noOrders": "Không tìm thấy đơn hàng nào",
+            "noOrdersSearch": "Không tìm thấy đơn hàng nào phù hợp với tìm kiếm của bạn",
+            "loading": "Đang tải đơn hàng...",
+            "clickToViewDetails": "Nhấp để xem chi tiết đơn hàng",
+            "exportSuccess": "Đã xuất đơn hàng thành công",
+            "exportError": "Lỗi khi xuất đơn hàng"
+        },
+        "orderDetail": {
+            "title": "Chi Tiết Đơn Hàng",
+            "subtitle": "Xem và quản lý thông tin đơn hàng",
+            "backToOrders": "Quay Lại Danh Sách Đơn Hàng",
+            "exportPdf": "Xuất PDF",
+            "orderId": "Mã Đơn Hàng",
+            "customerId": "Mã Khách Hàng",
+            "totalAmount": "Tổng Tiền",
+            "status": "Trạng Thái",
+            "paymentMethod": "Phương Thức Thanh Toán",
+            "createdAt": "Ngày Tạo",
+            "customerInfo": "Thông Tin Khách Hàng",
+            "customerName": "Tên Khách Hàng",
+            "email": "Email",
+            "shippingAddress": "Địa Chỉ Giao Hàng",
+            "orderItems": "Sản Phẩm Đặt Hàng",
+            "quantity": "Số Lượng",
+            "unitPrice": "Đơn Giá",
+            "finalPrice": "Thành Tiền",
+            "saveChanges": "Lưu Thay Đổi",
+            "saving": "Đang Lưu...",
+            "cancel": "Hủy",
+            "orderNotFound": "Không Tìm Thấy Đơn Hàng",
+            "loadingOrder": "Đang Tải Chi Tiết Đơn Hàng...",
+            "updateSuccess": "Cập nhật đơn hàng thành công!",
+            "updateError": "Lỗi khi cập nhật đơn hàng"
         }
     }
 }
