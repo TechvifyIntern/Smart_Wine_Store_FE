@@ -32,9 +32,6 @@ export const createAccountSchema = z.object({
     ConfirmPassword: z
         .string()
         .min(1, "Please confirm your password"),
-    StatusID: z
-        .number()
-        .min(1, "Status is required"),
     StreetAddress: z
         .string()
         .optional(),

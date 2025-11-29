@@ -18,6 +18,7 @@ import {
 import { useAppStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -28,6 +29,11 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
   const { user, logout } = useAppStore();
   const { locale, setLocale, t } = useLocale();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -67,14 +73,15 @@ export default function Header({ onMenuClick }: HeaderProps) {
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             title="Toggle theme"
-            suppressHydrationWarning={true}
             variant="ghost"
             size="icon"
           >
-            {theme === "dark" ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
+            {mounted && (
+              theme === "dark" ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )
             )}
           </Button>
 

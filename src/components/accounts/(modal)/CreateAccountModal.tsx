@@ -45,11 +45,7 @@ const tiers = [
     { id: 3, name: "Gold", minPoints: 5000 },
 ];
 
-const statuses = [
-    { id: 1, name: "Active" },
-    { id: 2, name: "Banned" },
-    { id: 3, name: "Pending" },
-];
+
 
 export function CreateAccountModal({
     open,
@@ -88,7 +84,6 @@ export function CreateAccountModal({
             TierID: 1,
             Password: "",
             ConfirmPassword: "",
-            StatusID: 1,
             StreetAddress: "",
             Ward: "",
             Province: "",
@@ -97,7 +92,6 @@ export function CreateAccountModal({
 
     const roleID = watch("RoleID");
     const tierID = watch("TierID");
-    const statusID = watch("StatusID");
 
     const onSubmit = async (data: CreateAccountFormData) => {
         try {
@@ -193,8 +187,8 @@ export function CreateAccountModal({
                                 )}
                             </div>
 
-                            {/* Role, Tier, Status */}
-                            <div className="grid grid-cols-3 gap-4">
+                            {/* Role and Tier */}
+                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label className="text-sm font-medium text-gray-900!">
                                         Role <span className="text-red-500">*</span>
@@ -231,27 +225,6 @@ export function CreateAccountModal({
                                             {tiers.map((tier) => (
                                                 <SelectItem key={tier.id} value={tier.id.toString()}>
                                                     {tier.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label className="text-sm font-medium text-gray-900!">
-                                        Status <span className="text-red-500">*</span>
-                                    </Label>
-                                    <Select
-                                        value={statusID.toString()}
-                                        onValueChange={(value) => setValue("StatusID", parseInt(value))}
-                                    >
-                                        <SelectTrigger className="bg-white! border-gray-300! text-gray-900!">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent className="bg-white! border-gray-200!">
-                                            {statuses.map((status) => (
-                                                <SelectItem key={status.id} value={status.id.toString()}>
-                                                    {status.name}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>

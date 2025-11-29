@@ -2,6 +2,8 @@ import { useRouter } from "next/navigation";
 import { Trash2, Edit2 } from "lucide-react";
 import { DiscountEvent } from "@/data/discount_event";
 import StatusBadge from "./StatusBadge";
+import { useAppStore } from "@/store/auth";
+import { getDiscountPermissions } from "@/lib/permissions";
 
 interface EventRowProps {
     event: DiscountEvent;
@@ -19,6 +21,8 @@ export default function EventRow({
     formatDate,
 }: EventRowProps) {
     const router = useRouter();
+    const { user } = useAppStore();
+    const permissions = getDiscountPermissions(user?.roleId);
     const getDiscountColor = (discount: number) => {
         if (discount >= 25) return "text-pink-400";
         if (discount >= 20) return "text-purple-400";
@@ -67,40 +71,44 @@ export default function EventRow({
             <td className="px-6 py-5">
                 <div className="flex items-center justify-center gap-2">
                     {/* Edit Button - Disabled for Expired, enabled for others */}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (!isExpired) {
-                                onEdit(event.DiscountEventID);
-                            }
-                        }}
-                        disabled={isExpired}
-                        title={isExpired ? "Cannot edit expired events" : "Edit event"}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
+                    {permissions.canEdit && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (!isExpired) {
+                                    onEdit(event.DiscountEventID);
+                                }
+                            }}
+                            disabled={isExpired}
+                            title={isExpired ? "Cannot edit expired events" : "Edit event"}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
                                 ? "opacity-40 cursor-not-allowed text-gray-400 dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
                                 : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
-                            }`}
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
+                                }`}
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                    )}
 
                     {/* Delete Button - Disabled for Active and Expired, enabled only for Scheduled */}
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            if (status === "Scheduled") {
-                                onDelete(event.DiscountEventID);
-                            }
-                        }}
-                        disabled={status !== "Scheduled"}
-                        title={status === "Scheduled" ? "Delete event" : status === "Active" ? "Cannot delete active events" : "Cannot delete expired events"}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${status === "Scheduled"
+                    {permissions.canDelete && (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                if (status === "Scheduled") {
+                                    onDelete(event.DiscountEventID);
+                                }
+                            }}
+                            disabled={status !== "Scheduled"}
+                            title={status === "Scheduled" ? "Delete event" : status === "Active" ? "Cannot delete active events" : "Cannot delete expired events"}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${status === "Scheduled"
                                 ? "text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
                                 : "opacity-40 cursor-not-allowed text-gray-400 dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
-                            }`}
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                                }`}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </td>
         </tr>

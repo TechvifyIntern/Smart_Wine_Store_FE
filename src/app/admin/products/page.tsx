@@ -25,6 +25,13 @@ export default function ProductsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
 
+    // Filter states
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]); // Default range
+
+    // Calculate max price from products
+    const maxPrice = products.length > 0 ? Math.max(...products.map(p => p.SalePrice)) : 1000000;
+
     // Load categories on mount
     useEffect(() => {
         const loadCategories = async () => {
@@ -54,6 +61,9 @@ export default function ProductsPage() {
 
                 if (response.success && response.data) {
                     setProducts(response.data);
+                    // Update max price for slider
+                    const maxPrice = Math.max(...response.data.map(p => p.SalePrice), 1000000);
+                    setPriceRange([0, maxPrice]);
                 } else {
                     console.error('Failed to load products:', response.message);
                 }
@@ -71,7 +81,23 @@ export default function ProductsPage() {
         return () => clearTimeout(timeoutId);
     }, [searchTerm]);
 
-    const filteredProducts = products;
+    // Filter products based on category and price range
+    const filteredProducts = products.filter((product) => {
+        // Category filter
+        if (selectedCategoryId !== "all") {
+            const categoryId = parseInt(selectedCategoryId);
+            if (product.CategoryID !== categoryId) {
+                return false;
+            }
+        }
+
+        // Price range filter
+        if (product.SalePrice < priceRange[0] || product.SalePrice > priceRange[1]) {
+            return false;
+        }
+
+        return true;
+    });
 
     const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -79,7 +105,7 @@ export default function ProductsPage() {
     const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
     const handleView = (id: number) => {
-        router.push(`/product/${id}`);
+        router.push(`/admin/products/${id}`);
     };
 
     const handleEdit = (id: number) => {
@@ -195,6 +221,16 @@ export default function ProductsPage() {
         setCurrentPage(1);
     };
 
+    const handleCategoryChange = (categoryId: string) => {
+        setSelectedCategoryId(categoryId);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
+
+    const handlePriceRangeChange = (range: [number, number]) => {
+        setPriceRange(range);
+        setCurrentPage(1); // Reset to first page when filtering
+    };
+
     // Currency formatter
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('vi-VN').format(amount);
@@ -215,6 +251,12 @@ export default function ProductsPage() {
                 searchPlaceholder="Search by name or ID..."
                 onCreateProduct={handleCreateProduct}
                 createButtonLabel="Add Product"
+                categories={categories}
+                selectedCategoryId={selectedCategoryId}
+                onCategoryChange={handleCategoryChange}
+                priceRange={priceRange}
+                onPriceRangeChange={handlePriceRangeChange}
+                maxPrice={maxPrice}
             />
 
             {/* Products Table */}

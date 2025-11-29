@@ -48,8 +48,8 @@ export function RevenueChart() {
         setIsLoading(true);
         const response = await ordersRepository.getOrders();
 
-        if (response.success && response.data && Array.isArray(response.data.data)) {
-          const orders = response.data.data;
+if (response.success && response.data && Array.isArray(response.data)) {
+const orders = response.data;
           const now = new Date();
 
           if (filter === "day") {
@@ -59,7 +59,7 @@ export function RevenueChart() {
               const orderDate = new Date(order.CreatedAt);
               if (orderDate.toDateString() === now.toDateString()) {
                 const hour = orderDate.getHours();
-                hourlyRevenue[hour] += order.TotalAmount || 0;
+                hourlyRevenue[hour] += order.FinalTotal || 0;
               }
             });
 
@@ -81,7 +81,7 @@ export function RevenueChart() {
               const orderDate = new Date(order.CreatedAt);
               const daysDiff = Math.floor((orderDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
               if (daysDiff >= 0 && daysDiff < 7) {
-                dailyRevenue[daysDiff] += order.TotalAmount || 0;
+                dailyRevenue[daysDiff] += order.FinalTotal || 0;
               }
             });
 
@@ -97,7 +97,7 @@ export function RevenueChart() {
               if (orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear()) {
                 const weekNum = Math.floor((orderDate.getDate() - 1) / 7);
                 if (weekNum < 5) {
-                  weeklyRevenue[weekNum] += order.TotalAmount || 0;
+                  weeklyRevenue[weekNum] += order.FinalTotal || 0;
                 }
               }
             });

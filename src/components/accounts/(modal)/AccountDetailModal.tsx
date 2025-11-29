@@ -16,7 +16,7 @@ interface AccountDetailModalProps {
     account: Account | null;
 }
 
-export function AccountDetailModal({
+export default function AccountDetailModal({
     open,
     onOpenChange,
     account,

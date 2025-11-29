@@ -5,6 +5,8 @@ import SearchBar from "@/components/discount-events/SearchBar";
 import CreateOrderButton from "./CreateOrderButton";
 import { CreateDiscountOrder } from "./(modal)/CreateDiscountOrder";
 import { DiscountOrder } from "@/data/discount_order";
+import { useAppStore } from "@/store/auth";
+import { getDiscountPermissions } from "@/lib/permissions";
 
 interface OrdersToolbarProps {
     searchTerm?: string;
@@ -23,6 +25,8 @@ export default function OrdersToolbar({
 }: OrdersToolbarProps) {
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const { user } = useAppStore();
+    const permissions = getDiscountPermissions(user?.roleId);
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
@@ -50,10 +54,12 @@ export default function OrdersToolbar({
                     placeholder={searchPlaceholder}
                 />
 
-                <CreateOrderButton
-                    onClick={() => setIsCreateModalOpen(true)}
-                    label={createButtonLabel}
-                />
+                {permissions.canCreate && (
+                    <CreateOrderButton
+                        onClick={() => setIsCreateModalOpen(true)}
+                        label={createButtonLabel}
+                    />
+                )}
             </div>
 
             <CreateDiscountOrder

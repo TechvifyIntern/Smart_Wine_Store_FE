@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Tag } from "lucide-react";
 import productCategories, { ProductCategory } from "@/data/product_categories";
 import categoriesRepository from "@/api/categoriesRepository";
+import { Category } from "@/types/category";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/discount-events/PageHeader";
 import ProductCategoriesTable from "@/components/categories/ProductCategoriesTable";
@@ -23,24 +24,58 @@ export default function ProductCategoriesPage() {
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<ProductCategory | null>(null);
     const [categoryToDelete, setCategoryToDelete] = useState<ProductCategory | null>(null);
+    const [categories, setCategories] = useState<ProductCategory[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    // Fetch categories from API
+    const fetchCategories = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            const response = await categoriesRepository.getCategories();
+            const transformedCategories: ProductCategory[] = (response.data || []).map((category: Category) => ({
+                CategoryID: category.CategoryID,
+                CategoryName: category.CategoryName,
+                Description: category.Description,
+                ParentCategoryID: category.CategoryParentID,
+                ParentCategoryName: null, // Could be fetched separately if needed
+                ProductCount: 0, // Could be calculated from API if available
+            }));
+
+            setCategories(transformedCategories);
+        } catch (error) {
+            console.error('Failed to fetch categories:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to load categories';
+            setError(errorMessage);
+
+            // Fallback to static data
+            setCategories(productCategories);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Fetch categories from API on component mount
+    useEffect(() => {
+        fetchCategories();
+    }, [fetchCategories]);
 
     // Filter categories based on search term (CategoryName only)
     const filteredCategories = useMemo(() => {
+        const dataToFilter = categories.length > 0 ? categories : productCategories;
+
         if (!searchTerm.trim()) {
-            return productCategories;
+            return dataToFilter;
         }
 
         const lowerSearchTerm = searchTerm.toLowerCase().trim();
 
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/categories/search?name=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
-
-        return productCategories.filter((category) =>
+        return dataToFilter.filter((category) =>
             category.CategoryName.toLowerCase().includes(lowerSearchTerm)
         );
-    }, [searchTerm]);
+    }, [searchTerm, categories]);
 
     // Calculate pagination
     const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
@@ -55,7 +90,8 @@ export default function ProductCategoriesPage() {
     };
 
     const handleDelete = (id: number) => {
-        const category = productCategories.find((c) => c.CategoryID === id);
+        const dataToSearch = categories.length > 0 ? categories : productCategories;
+        const category = dataToSearch.find((c) => c.CategoryID === id);
         if (category) {
             setCategoryToDelete(category);
             setIsDeleteDialogOpen(true);
@@ -83,8 +119,8 @@ export default function ProductCategoriesPage() {
                     title: "Success",
                     description: `Category "${categoryToDelete.CategoryName}" deleted successfully!`,
                 });
-                // Refresh the page to show updated data
-                router.refresh();
+                // Refresh categories data from API
+                await fetchCategories();
                 setIsDeleteDialogOpen(false);
                 setCategoryToDelete(null);
             } catch (error) {
@@ -109,30 +145,84 @@ export default function ProductCategoriesPage() {
     };
 
     const handleCreateCategory = async (data: Omit<ProductCategory, "CategoryID" | "ProductCount">) => {
-        console.log("Creating new category:", data);
-        // TODO: Implement API call to create category
-        // Example:
-        // await fetch('/api/categories', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
-        alert("Category created successfully!");
+        try {
+            // Transform ProductCategory data to Category format for API
+            const apiData = {
+                CategoryName: data.CategoryName,
+                Description: data.Description,
+                CategoryParentID: data.ParentCategoryID ?? null
+            };
+            await categoriesRepository.createCategory(apiData);
+            toast({
+                title: "Success",
+                description: `Category "${data.CategoryName}" created successfully!`,
+            });
+            // Refresh categories data from API
+            await fetchCategories();
+        } catch (error) {
+            console.error("Error creating category:", error);
+            toast({
+                title: "Error",
+                description: "Failed to create category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
 
     const handleUpdateCategory = async (id: number, data: Omit<ProductCategory, "CategoryID" | "ProductCount">) => {
-        console.log(`Updating category ${id}:`, data);
-        // TODO: Implement API call to update category
-        // Example:
-        // await fetch(`/api/categories/${id}`, {
-        //   method: 'PUT',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
-
-        alert(`Category ${id} updated successfully!`);
+        try {
+            // Transform ProductCategory data to Category format for API
+            const apiData = {
+                CategoryName: data.CategoryName,
+                Description: data.Description,
+                CategoryParentID: data.ParentCategoryID ?? null
+            };
+            await categoriesRepository.updateCategory(id, apiData);
+            toast({
+                title: "Success",
+                description: `Category "${data.CategoryName}" updated successfully!`,
+            });
+            // Refresh categories data from API
+            await fetchCategories();
+        } catch (error) {
+            console.error("Error updating category:", error);
+            toast({
+                title: "Error",
+                description: "Failed to update category. Please try again.",
+                variant: "destructive",
+            });
+        }
     };
+
+    // Loading state
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-gray-200 dark:border-slate-600 border-t-[#ad8d5e] rounded-full animate-spin mx-auto mb-4"></div>
+                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Loading categories...</h2>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Categories</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <button
+                        onClick={fetchCategories}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div>

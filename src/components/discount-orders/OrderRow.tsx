@@ -1,6 +1,8 @@
 import { useRouter } from "next/navigation";
 import { Edit2, Trash2 } from "lucide-react";
 import { DiscountOrder } from "@/data/discount_order";
+import { useAppStore } from "@/store/auth";
+import { getDiscountPermissions } from "@/lib/permissions";
 
 interface OrderRowProps {
     order: DiscountOrder;
@@ -18,6 +20,8 @@ export default function OrderRow({
     formatCurrency,
 }: OrderRowProps) {
     const router = useRouter();
+    const { user } = useAppStore();
+    const permissions = getDiscountPermissions(user?.roleId);
 
     const getDiscountColor = (discount: number) => {
         if (discount >= 25) return "text-pink-400";
@@ -54,22 +58,26 @@ export default function OrderRow({
             <td className="px-6 py-5">
                 <div className="flex items-center justify-center gap-2">
                     {/* Edit Button */}
-                    <button
-                        onClick={() => onEdit(order.DiscountOrderID)}
-                        title="Edit order discount"
-                        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
+                    {permissions.canEdit && (
+                        <button
+                            onClick={() => onEdit(order.DiscountOrderID)}
+                            title="Edit order discount"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                    )}
 
                     {/* Delete Button */}
-                    <button
-                        onClick={() => onDelete(order.DiscountOrderID)}
-                        title="Delete order discount"
-                        className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                    {permissions.canDelete && (
+                        <button
+                            onClick={() => onDelete(order.DiscountOrderID)}
+                            title="Delete order discount"
+                            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </td>
         </tr>

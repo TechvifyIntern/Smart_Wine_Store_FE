@@ -2,6 +2,7 @@
     "header": {
         "user": "User",
         "userPage": "User Page",
+        "systemManagement": "System Management",
         "storeManagement": "Store Management",
         "accountManagement": "Account Management",
         "language": "Language",
@@ -12,6 +13,9 @@
     "languages": {
         "vi": "Tiếng Việt",
         "en": "English"
+    },
+    "common": {
+        "back": "Back"
     },
     "auth": {
         "signInDialog": {
@@ -71,6 +75,7 @@
             "verifying": "Verifying...",
             "didntReceive": "Didn't receive the code?",
             "resendOTP": "Resend OTP",
+            "resending": "Resending...",
             "errors": {
                 "enterAllDigits": "Please enter all 6 digits",
                 "invalidOTP": "Invalid OTP. Please try again.",
@@ -309,6 +314,59 @@
             "cartCleared": "Cart cleared successfully!",
             "promoApplied": "Promo code applied successfully!",
             "invalidPromo": "Invalid promo code."
+        }
+    },
+    "admin": {
+        "orders": {
+            "title": "Order Management",
+            "searchPlaceholder": "Search by Order ID, Status, or Address...",
+            "exportButton": "Export",
+            "tableHeaders": {
+                "orderId": "Order ID",
+                "customerId": "Customer ID",
+                "totalAmount": "Total Amount",
+                "status": "Status",
+                "paymentMethod": "Payment Method",
+                "createdAt": "Created At"
+            },
+            "status": {
+                "pending": "Pending",
+                "processing": "Processing",
+                "shipped": "Shipped",
+                "delivered": "Delivered",
+                "cancelled": "Cancelled"
+            },
+            "noOrders": "No orders found",
+            "noOrdersSearch": "No orders match your search",
+            "loading": "Loading orders...",
+            "clickToViewDetails": "Click to view order details",
+            "exportSuccess": "Orders exported successfully",
+            "exportError": "Error exporting orders"
+        },
+        "orderDetail": {
+            "title": "Order Details",
+            "subtitle": "View and manage order information",
+            "backToOrders": "Back to Orders List",
+            "exportPdf": "Export PDF",
+            "orderId": "Order ID",
+            "customerId": "Customer ID",
+            "totalAmount": "Total Amount",
+            "status": "Status",
+            "paymentMethod": "Payment Method",
+            "createdAt": "Created At",
+            "customerInfo": "Customer Information",
+            "customerName": "Customer Name",
+            "email": "Email",
+            "shippingAddress": "Shipping Address",
+            "orderItems": "Order Items",
+            "quantity": "Quantity",
+            "unitPrice": "Unit Price",
+            "subtotal": "Subtotal",
+            "saveButton": "Save Changes",
+            "cancelButton": "Cancel",
+            "saving": "Saving...",
+            "updateSuccess": "Order updated successfully",
+            "updateError": "Failed to update order"
         }
     }
 }

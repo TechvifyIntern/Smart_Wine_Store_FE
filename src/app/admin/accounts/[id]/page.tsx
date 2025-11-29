@@ -5,10 +5,10 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, UserCog, Edit, Save, UserX } from "lucide-react";
-import accounts from "@/data/accounts";
-import { User, Mail, Phone, Calendar, MapPin, Award, Coins, Shield } from "lucide-react";
+import { User, Mail, Phone, Calendar, MapPin, Award, Coins, Shield, Loader2 } from "lucide-react";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { useToast } from "@/hooks/use-toast";
+import userManagementRepository from "@/api/userManagementRepository";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,7 +44,10 @@ export default function AccountDetailPage() {
     const accountId = parseInt(params.id as string);
     const { toast } = useToast();
 
-    const account = accounts.find((a) => a.UserID === accountId);
+    // State for account data and loading
+    const [account, setAccount] = useState<Account | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     // State management - start in edit mode if edit=true in URL
     const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
@@ -68,6 +71,32 @@ export default function AccountDetailPage() {
     const roleID = watch("RoleID");
     const tierID = watch("TierID");
     const statusID = watch("StatusID");
+
+    // Fetch account data on component mount
+    useEffect(() => {
+        const fetchAccount = async () => {
+            try {
+                setIsLoading(true);
+                setError(null);
+                const accountData = await userManagementRepository.getUserById(accountId);
+                setAccount(accountData);
+            } catch (err) {
+                console.error('Error fetching account:', err);
+                setError('Failed to load account details');
+                toast({
+                    title: "Error",
+                    description: "Failed to load account details. Please try again.",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (accountId) {
+            fetchAccount();
+        }
+    }, [accountId, toast]);
 
     // Initialize form when account changes or edit mode toggles
     useEffect(() => {
@@ -119,30 +148,73 @@ export default function AccountDetailPage() {
         if (!account) return;
 
         try {
-            // In a real app, this would be an API call
             const formData = getValues();
-            console.log("Saving account data:", formData);
 
-            // Update the local account data (in a real app, this would come from the API response)
-            account.UserName = formData.UserName;
-            account.Email = formData.Email;
-            account.PhoneNumber = formData.PhoneNumber;
-            account.Birthday = formData.Birthday;
-            account.RoleID = formData.RoleID;
-            account.RoleName = roles.find(r => r.id === formData.RoleID)?.name || account.RoleName;
-            account.TierID = formData.TierID;
-            account.TierName = tiers.find(t => t.id === formData.TierID)?.name || account.TierName;
-            account.StatusID = formData.StatusID;
-            account.StatusName = statuses.find(s => s.id === formData.StatusID)?.name || account.StatusName;
-            account.StreetAddress = formData.StreetAddress || '';
-            account.Ward = formData.Ward || '';
-            account.Province = formData.Province || '';
+            // Transform phone number to international format if it starts with 0
+            let phoneNumber = formData.PhoneNumber;
+            if (phoneNumber.startsWith('0')) {
+                // Remove leading 0 and prepend +84
+                phoneNumber = '+84' + phoneNumber.substring(1);
+            }
+
+            // Prepare the data for API call
+            const updateData = {
+                UserName: formData.UserName,
+                Email: formData.Email,
+                PhoneNumber: phoneNumber,
+                Birthday: formData.Birthday,
+                RoleID: formData.RoleID,
+                TierID: formData.TierID,
+                StatusID: formData.StatusID,
+                StreetAddress: formData.StreetAddress || '',
+                Ward: formData.Ward || '',
+                Province: formData.Province || '',
+            };
+
+            console.log("Updating account:", { accountId, updateData });
+
+            // Call the API to update user
+            const response = await userManagementRepository.updateUser(accountId, updateData);
+            console.log("Update response:", response);
+
+            // Update local state with the new data
+            const updatedAccount = {
+                ...account,
+                ...updateData,
+                RoleName: roles.find(r => r.id === formData.RoleID)?.name || account.RoleName,
+                TierName: tiers.find(t => t.id === formData.TierID)?.name || account.TierName,
+                StatusName: statuses.find(s => s.id === formData.StatusID)?.name || account.StatusName,
+            };
+
+            setAccount(updatedAccount);
 
             setIsEditing(false);
             setShowSaveDialog(false);
             reset();
-        } catch (error) {
+
+            toast({
+                title: "Success",
+                description: "Account updated successfully",
+            });
+        } catch (error: any) {
             console.error("Error saving account:", error);
+            // Extract more detailed error information
+            const errorMessage = error.message || "Failed to update account";
+            const statusCode = error.response?.status;
+            const errorData = error.response?.data;
+
+            console.error("Detailed error info:", {
+                message: errorMessage,
+                statusCode,
+                errorData,
+                fullError: error
+            });
+
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
         }
     };
 
@@ -150,28 +222,77 @@ export default function AccountDetailPage() {
         setShowSaveDialog(false);
     };
 
-    const handleInactiveClick = () => {
+    const handleStatusChangeClick = () => {
         setShowInactiveDialog(true);
     };
 
-    const handleInactiveConfirm = () => {
+    const handleStatusChangeConfirm = async () => {
         if (!account) return;
 
-        // In a real app, this would be an API call to activate the account
-        console.log("Activating account:", account.UserID);
-        account.StatusID = 1; // Active
-        account.StatusName = "Active";
+        try {
+            const isCurrentlyActive = account.StatusID === 1;
+            const newStatusId = isCurrentlyActive ? 2 : 1; // 2 = Banned, 1 = Active
+            const newStatusName = isCurrentlyActive ? "Banned" : "Active";
 
-        setShowInactiveDialog(false);
+            console.log(`Changing account status for ${account.UserID} from ${account.StatusName} to ${newStatusName}`);
 
-        toast({
-            title: "Account Activated",
-            description: `The account ${account.UserName} has been successfully activated.`,
-        });
+            // Call the API to update user status
+            const reason = newStatusId === 2 ? "Violation of terms and conditions" : undefined;
+            await userManagementRepository.updateUserStatus(account.UserID, newStatusId, reason);
+
+            // Update local state
+            setAccount({
+                ...account,
+                StatusID: newStatusId,
+                StatusName: newStatusName,
+            });
+
+            setShowInactiveDialog(false);
+
+            toast({
+                title: "Success",
+                description: `Account status updated to ${newStatusName}`,
+            });
+        } catch (error: any) {
+            console.error("Error updating account status:", error);
+            const errorMessage = error.message || "Failed to update account status";
+            toast({
+                title: "Error",
+                description: errorMessage,
+                variant: "destructive",
+            });
+        }
     };
 
-    const handleInactiveCancel = () => {
+    const handleStatusChangeCancel = () => {
         setShowInactiveDialog(false);
+    };
+
+    // Helper functions for status change UI
+    const getStatusChangeButtonText = () => {
+        if (!account) return "Change Status";
+        return account.StatusID === 1 ? "Inactive" : "Active";
+    };
+
+    const getStatusChangeButtonColor = () => {
+        if (!account) return "bg-red-600 hover:bg-red-700";
+        return account.StatusID === 1 ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700";
+    };
+
+    const getStatusChangeDialogTitle = () => {
+        if (!account) return "Change Status";
+        return account.StatusID === 1 ? "Inactive người dùng" : "Active người dùng";
+    };
+
+    const getStatusChangeDialogDescription = () => {
+        if (!account) return "";
+        const action = account.StatusID === 1 ? "inactive" : "active";
+        return `Bạn có muốn ${action} người dùng <strong class="text-gray-900 dark:text-slate-100">${account.UserName}</strong> không?`;
+    };
+
+    const getNextStatusName = () => {
+        if (!account) return "";
+        return account.StatusID === 1 ? "Banned" : "Active";
     };
 
     const handleCancelEdit = () => {
@@ -179,6 +300,39 @@ export default function AccountDetailPage() {
         reset();
     };
 
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <Loader2 className="w-8 h-8 animate-spin text-[#ad8d5e] mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Loading Account Details</h2>
+                    <p className="text-gray-600 dark:text-gray-400">Please wait while we fetch the account information.</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Error state
+    if (error) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error Loading Account</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-6">{error}</p>
+                    <button
+                        onClick={() => router.back()}
+                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Back to Accounts
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Account not found
     if (!account) {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -265,7 +419,7 @@ export default function AccountDetailPage() {
                                     Account Details
                                 </h1>
                                 <p className="text-white/90">
-                                    Detailed information for <span className="font-medium">{account.UserName}</span>
+                                    <span className="font-medium">{account.UserName}</span> • {account.RoleName}
                                 </p>
                             </div>
                         </div>
@@ -298,12 +452,12 @@ export default function AccountDetailPage() {
                                 </Button>
                             )}
                             <Button
-                                onClick={handleInactiveClick}
+                                onClick={handleStatusChangeClick}
                                 disabled={isSubmitting || isEditing}
-                                className="bg-red-600 hover:bg-red-700 text-white"
+                                className={`text-white ${getStatusChangeButtonColor()}`}
                             >
                                 <UserX className="w-4 h-4 mr-2" />
-                                Inactive
+                                {getStatusChangeButtonText()}
                             </Button>
                         </div>
                     </div>
@@ -599,29 +753,31 @@ export default function AccountDetailPage() {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Inactive Confirmation Dialog */}
+            {/* Status Change Confirmation Dialog */}
             <AlertDialog open={showInactiveDialog} onOpenChange={setShowInactiveDialog}>
                 <AlertDialogContent className="bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-gray-900 dark:text-slate-100">
-                            Inactive người dùng
+                            {getStatusChangeDialogTitle()}
                         </AlertDialogTitle>
-                        <AlertDialogDescription className="text-gray-600 dark:text-slate-400">
-                            Bạn có muốn inactive người dùng <strong className="text-gray-900 dark:text-slate-100">{account?.UserName}</strong> không?
-                        </AlertDialogDescription>
+                        <AlertDialogDescription
+                            className="text-gray-600 dark:text-slate-400"
+                            dangerouslySetInnerHTML={{ __html: getStatusChangeDialogDescription() }}
+                        />
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel
-                            onClick={handleInactiveCancel}
+                            onClick={handleStatusChangeCancel}
                             className="bg-gray-100 dark:bg-slate-700 text-gray-900 dark:text-slate-100 hover:bg-gray-200 dark:hover:bg-slate-600"
                         >
                             Huỷ
                         </AlertDialogCancel>
                         <AlertDialogAction
-                            onClick={handleInactiveConfirm}
-                            className="bg-red-600 hover:bg-red-700 text-white"
+                            onClick={handleStatusChangeConfirm}
+                            disabled={isSubmitting}
+                            className={`${getStatusChangeButtonColor().replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} text-white`}
                         >
-                            Đồng ý
+                            {isSubmitting ? "Đang xử lý..." : "Đồng ý"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
