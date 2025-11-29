@@ -2,6 +2,8 @@ import { useRouter } from "next/navigation";
 import { Edit2, Trash2 } from "lucide-react";
 import { DiscountProduct } from "@/data/discount_product";
 import StatusBadge from "@/components/discount-events/StatusBadge";
+import { useAppStore } from "@/store/auth";
+import { getDiscountPermissions } from "@/lib/permissions";
 
 interface ProductRowProps {
     product: DiscountProduct;
@@ -19,6 +21,8 @@ export default function ProductRow({
     formatDate,
 }: ProductRowProps) {
     const router = useRouter();
+    const { user } = useAppStore();
+    const permissions = getDiscountPermissions(user?.roleId);
     const getDiscountColor = (discount: number) => {
         if (discount >= 25) return "text-pink-400";
         if (discount >= 20) return "text-purple-400";
@@ -72,30 +76,34 @@ export default function ProductRow({
             <td className="px-6 py-5">
                 <div className="flex items-center justify-center gap-2">
                     {/* Edit Button */}
-                    <button
-                        onClick={() => onEdit(product.DiscountProductID)}
-                        disabled={isExpired}
-                        title={isExpired ? "Cannot edit expired product discounts" : "Edit product discount"}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
-                            ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
-                            : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#8c6b3e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#8c6b3e]/50 dark:text-slate-400 dark:hover:text-[#8c6b3e]"
-                        }`}
-                    >
-                        <Edit2 className="w-4 h-4" />
-                    </button>
+                    {permissions.canEdit && (
+                        <button
+                            onClick={() => onEdit(product.DiscountProductID)}
+                            disabled={isExpired}
+                            title={isExpired ? "Cannot edit expired product discounts" : "Edit product discount"}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${isExpired
+                                ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
+                                : "text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#8c6b3e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#8c6b3e]/50 dark:text-slate-400 dark:hover:text-[#8c6b3e]"
+                                }`}
+                        >
+                            <Edit2 className="w-4 h-4" />
+                        </button>
+                    )}
 
                     {/* Delete Button */}
-                    <button
-                        onClick={() => onDelete(product.DiscountProductID)}
-                        disabled={!canDelete}
-                        title={getDeleteTooltip()}
-                        className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${!canDelete
-                            ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
-                            : "text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
-                        }`}
-                    >
-                        <Trash2 className="w-4 h-4" />
-                    </button>
+                    {permissions.canDelete && (
+                        <button
+                            onClick={() => onDelete(product.DiscountProductID)}
+                            disabled={!canDelete}
+                            title={getDeleteTooltip()}
+                            className={`w-9 h-9 flex items-center justify-center rounded-lg transition-all ${!canDelete
+                                ? "opacity-40 cursor-not-allowed dark:bg-slate-800/30 dark:border dark:border-slate-700/30 dark:text-slate-600"
+                                : "text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
+                                }`}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
             </td>
         </tr>

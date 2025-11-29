@@ -37,14 +37,58 @@ class BaseRepository {
       const response = await api.put(`${this.endpoint}/${id}`, data);
       return response.data;
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message;
+      // Enhanced error handling with better debugging
       const statusCode = error.response?.status;
+      const errorData = error.response?.data;
+      let errorMessage = 'Unknown error occurred';
+
+      // Try to extract meaningful error message
+      if (errorData?.message) {
+        errorMessage = errorData.message;
+      } else if (errorData?.error) {
+        errorMessage = errorData.error;
+      } else if (typeof errorData === 'string') {
+        errorMessage = errorData;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (statusCode) {
+        // Fallback to status code based messages
+        switch (statusCode) {
+          case 400:
+            errorMessage = 'Invalid data provided';
+            break;
+          case 401:
+            errorMessage = 'Authentication required';
+            break;
+          case 403:
+            errorMessage = 'Permission denied';
+            break;
+          case 404:
+            errorMessage = 'Resource not found';
+            break;
+          case 409:
+            errorMessage = 'Conflict with existing data';
+            break;
+          case 422:
+            errorMessage = 'Validation failed';
+            break;
+          case 500:
+            errorMessage = 'Internal server error';
+            break;
+          default:
+            errorMessage = `Request failed with status ${statusCode}`;
+        }
+      }
+
       console.error(`Failed to update ${this.endpoint.slice(1)}:`, {
         statusCode,
         message: errorMessage,
-        error: error.response?.data
+        requestData: data,
+        responseData: errorData,
+        fullError: error
       });
-      throw new Error(`Failed to update ${this.endpoint.slice(1)}: ${errorMessage} (Status: ${statusCode})`);
+
+      throw new Error(`Failed to update ${this.endpoint.slice(1)}: ${errorMessage}`);
     }
   }
 

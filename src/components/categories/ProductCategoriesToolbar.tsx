@@ -5,6 +5,8 @@ import SearchBar from "@/components/discount-events/SearchBar";
 import CreateCategoryButton from "./CreateCategoryButton";
 import { CreateCategory } from "./(modal)/CreateCategory";
 import { ProductCategory } from "@/data/product_categories";
+import { useAppStore } from "@/store/auth";
+import { getCategoryPermissions } from "@/lib/permissions";
 
 interface ProductCategoriesToolbarProps {
     searchTerm?: string;
@@ -23,6 +25,8 @@ export default function ProductCategoriesToolbar({
 }: ProductCategoriesToolbarProps) {
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const { user } = useAppStore();
+    const permissions = getCategoryPermissions(user?.roleId);
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
@@ -50,10 +54,12 @@ export default function ProductCategoriesToolbar({
                     placeholder={searchPlaceholder}
                 />
 
-                <CreateCategoryButton
-                    onClick={() => setIsCreateModalOpen(true)}
-                    label={createButtonLabel}
-                />
+                {permissions.canCreate && (
+                    <CreateCategoryButton
+                        onClick={() => setIsCreateModalOpen(true)}
+                        label={createButtonLabel}
+                    />
+                )}
             </div>
 
             <CreateCategory

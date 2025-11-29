@@ -4,14 +4,11 @@ import { Products } from "@/types/products";
 import { ApiResponse } from "@/types/responses";
 
 export const getAllProducts = async (
-  Cursor: number,
-  Size: number
+  Cursor?: number,
+  Size?: number
 ): Promise<ApiResponse<Product[]>> => {
   const response = await api.get("/products", {
-    params: {
-      Cursor,
-      Size,
-    },
+    params: Cursor !== undefined && Size !== undefined ? { Cursor, Size } : undefined,
   });
   return response.data;
 };

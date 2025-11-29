@@ -52,7 +52,7 @@ const statuses = [
     { id: 3, name: "Pending" },
 ];
 
-export function EditAccountModal({
+export default function EditAccountModal({
     open,
     onOpenChange,
     account,

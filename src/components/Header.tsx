@@ -91,7 +91,9 @@ export function Header() {
   const { locale, setLocale, t } = useLocale();
 
   // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
-  const isAdminOrSeller = user?.roleId === '1' || user?.roleId === '2';
+  const userRoleId = user?.roleId ? parseInt(user.roleId) : undefined;
+  const isAdmin = userRoleId === 1;
+  const isAdminOrSeller = userRoleId === 1 || userRoleId === 2;
   const isInAdminPage = pathname?.startsWith('/admin');
 
   const handleLogout = () => {
@@ -159,6 +161,7 @@ export function Header() {
                     childrenCategories={childrenCategories}
                     isAuthenticated={isAuthenticated}
                     user={user}
+                    isAdmin={isAdmin}
                     isAdminOrSeller={isAdminOrSeller}
                     isInAdminPage={isInAdminPage}
                     locale={locale}
@@ -379,8 +382,28 @@ export function Header() {
 
                     <DropdownMenuSeparator />
 
-                    {/* Quản lý cửa hàng / Trang người dùng */}
-                    {isAdminOrSeller && (
+                    {/* Quản lý hệ thống - chỉ dành cho admin (roleId: 1) */}
+                    {isAdmin && (
+                      <DropdownMenuItem
+                        onClick={() => router.push(isInAdminPage ? "/" : "/admin")}
+                        className="flex items-center cursor-pointer"
+                      >
+                        {isInAdminPage ? (
+                          <>
+                            <Home className="mr-2 h-4 w-4" />
+                            {t("header.userPage")}
+                          </>
+                        ) : (
+                          <>
+                            <Store className="mr-2 h-4 w-4" />
+                            {t("header.systemManagement")}
+                          </>
+                        )}
+                      </DropdownMenuItem>
+                    )}
+
+                    {/* Quản lý cửa hàng - dành cho seller (roleId: 2) */}
+                    {!isAdmin && isAdminOrSeller && (
                       <DropdownMenuItem
                         onClick={() => router.push(isInAdminPage ? "/" : "/admin")}
                         className="flex items-center cursor-pointer"
@@ -447,17 +470,19 @@ export function Header() {
               )}
 
               {/* Theme toggle */}
-              <button
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="p-1.5 sm:p-2 hover:bg-muted rounded-full transition-colors"
-                title="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                ) : (
-                  <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
-                )}
-              </button>
+              {mounted && (
+                <button
+                  onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                  className="p-1.5 sm:p-2 hover:bg-muted rounded-full transition-colors"
+                  title="Toggle theme"
+                >
+                  {theme === "dark" ? (
+                    <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                  ) : (
+                    <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -482,6 +507,7 @@ interface MobileMenuProps {
   childrenCategories: Record<number, Category[]>;
   isAuthenticated: boolean;
   user: any;
+  isAdmin: boolean;
   isAdminOrSeller: boolean;
   isInAdminPage: boolean;
   locale: Locale;
@@ -500,6 +526,7 @@ function MobileMenu({
   childrenCategories,
   isAuthenticated,
   user,
+  isAdmin,
   isAdminOrSeller,
   isInAdminPage,
   locale,
@@ -616,7 +643,31 @@ function MobileMenu({
               </div>
             </div>
 
-            {isAdminOrSeller && (
+            {/* Quản lý hệ thống - chỉ dành cho admin (roleId: 1) */}
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={() => {
+                  handleNavigation(isInAdminPage ? "/" : "/admin");
+                }}
+              >
+                {isInAdminPage ? (
+                  <>
+                    <Home className="mr-2 h-4 w-4" />
+                    {t("header.userPage")}
+                  </>
+                ) : (
+                  <>
+                    <Store className="mr-2 h-4 w-4" />
+                    {t("header.systemManagement")}
+                  </>
+                )}
+              </Button>
+            )}
+
+            {/* Quản lý cửa hàng - dành cho seller (roleId: 2) */}
+            {!isAdmin && isAdminOrSeller && (
               <Button
                 variant="ghost"
                 className="w-full justify-start"

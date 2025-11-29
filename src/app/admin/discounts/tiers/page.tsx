@@ -5,6 +5,7 @@ import Link from "next/link";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Users, Edit2, Crown, Gem, Medal, Info } from "lucide-react";
 import { DiscountTier } from "@/data/discount_tier";
+import { discountTiers } from "@/data/discount_tier";
 import discountTiersRepository from "@/api/discountTiersRepository";
 import { toast } from "sonner";
 
@@ -30,7 +31,7 @@ const tierStyles: Record<string, any> = {
 };
 
 export default function TierPage() {
-  const [discountTiers, setDiscountTiers] = useState<DiscountTier[]>([]);
+  const [tiersData, setTiersData] = useState<DiscountTier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch discount tiers from API
@@ -41,14 +42,20 @@ export default function TierPage() {
         const response = await discountTiersRepository.getDiscountTiers();
         if (response.success && response.data) {
           console.log('Loaded discount tiers:', response.data); // Debug: see what API returns
-          setDiscountTiers(response.data as any);
+          setTiersData(response.data as any);
         } else {
-          console.error('Failed to load discount tiers:', response.message);
-          toast.error('Failed to load discount tiers');
+          console.error('Failed to load discount tiers from API:', response.message);
+          // Use fallback sample data
+          console.log('Using fallback sample data');
+          setTiersData(discountTiers);
+          toast.warning('Using sample data as API is unavailable');
         }
       } catch (err) {
-        console.error('Error loading discount tiers:', err);
-        toast.error('Failed to load discount tiers');
+        console.error('Error loading discount tiers from API:', err);
+        // Use fallback sample data
+        console.log('Using fallback sample data');
+        setTiersData(discountTiers);
+        toast.warning('Using sample data as API is unavailable');
       } finally {
         setIsLoading(false);
       }
@@ -58,7 +65,7 @@ export default function TierPage() {
 
   // Tính tổng thành viên
   // (fake demo: random userCount)
-  const tiersWithUsers = discountTiers.map((tier) => {
+  const tiersWithUsers = tiersData.map((tier) => {
     // Map DiscountTierID to tier name
     let tierName: "Bronze" | "Silver" | "Gold" = "Bronze";
     if (tier.DiscountTierID === 1) tierName = "Bronze";

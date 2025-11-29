@@ -55,16 +55,25 @@ export const useAppStore = create<AppState>()(
       setTokens: (accessToken, refreshToken) => {
         const user = decodeToken(accessToken);
         set({ user, accessToken, refreshToken });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("token", accessToken);
+        }
         setAuthToken(accessToken);
         fetchCartAndSetStore();
       },
       setAccessToken: (accessToken) => {
         const user = decodeToken(accessToken);
         set({ user, accessToken });
+        if (typeof window !== 'undefined') {
+          localStorage.setItem("token", accessToken);
+        }
         setAuthToken(accessToken);
       },
       logout: () => {
         set({ user: null, accessToken: null, refreshToken: null });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem("token");
+        }
         setAuthToken("");
         useCartStore.getState().clearCart();
       },

@@ -9,6 +9,8 @@ import { DiscountProduct } from "@/data/discount_product";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { FilterDialog } from "@/components/discount-events/(modal)/FilterDialog";
+import { useAppStore } from "@/store/auth";
+import { getDiscountPermissions } from "@/lib/permissions";
 
 interface ProductsToolbarProps {
     searchTerm?: string;
@@ -36,6 +38,8 @@ export default function ProductsToolbar({
     const [internalSearchTerm, setInternalSearchTerm] = useState("");
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [filterOpen, setFilterOpen] = useState(false);
+    const { user } = useAppStore();
+    const permissions = getDiscountPermissions(user?.roleId);
 
     // Use external state if provided, otherwise use internal state
     const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
@@ -113,10 +117,12 @@ export default function ProductsToolbar({
                         </Popover>
                     )}
 
-                    <CreateProductButton
-                        onClick={() => setIsCreateModalOpen(true)}
-                        label={createButtonLabel}
-                    />
+                    {permissions.canCreate && (
+                        <CreateProductButton
+                            onClick={() => setIsCreateModalOpen(true)}
+                            label={createButtonLabel}
+                        />
+                    )}
                 </div>
             </div>
 
