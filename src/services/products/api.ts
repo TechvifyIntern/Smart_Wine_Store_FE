@@ -8,7 +8,8 @@ export const getAllProducts = async (
   Size?: number
 ): Promise<ApiResponse<Product[]>> => {
   const response = await api.get("/products", {
-    params: Cursor !== undefined && Size !== undefined ? { Cursor, Size } : undefined,
+    params:
+      Cursor !== undefined && Size !== undefined ? { Cursor, Size } : undefined,
   });
   return response.data;
 };
@@ -20,6 +21,8 @@ export const getFilteredProducts = async (params: {
   maxAbv?: number;
   minSalePrice?: number;
   maxSalePrice?: number;
+  Cursor?: number;
+  Size?: number;
 }): Promise<ApiResponse<Products[]>> => {
   const response = await api.get("/products/filter", { params });
   return response.data;

@@ -1,13 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { CollectionSection } from "./CollectionSection";
-import { Product } from "@/types/product-detail";
 import { getAllProducts } from "@/services/products/api";
+import { useQuery } from "@tanstack/react-query";
+import { Spinner } from "@/components/ui/spinner";
 
 export function CollectionsContainer() {
   const carouselRefs = useRef<HTMLDivElement[]>([]);
-  const [featuredProduct, setFeaturedProduct] = useState<Product[]>([]);
+
+  const {
+    data: featuredProduct,
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["featuredProducts"],
+    queryFn: () => getAllProducts(0, 9),
+    select: (data) => data.data,
+  });
 
   useEffect(() => {
     const intervals = carouselRefs.current.map((carousel) => {
@@ -29,18 +39,21 @@ export function CollectionsContainer() {
     return () => intervals.forEach((i) => i && clearInterval(i));
   }, []);
 
-  useEffect(() => {
-    const fetchFeaturedProducts = async () => {
-      try {
-        const products = await getAllProducts(0, 9);
-        setFeaturedProduct(products.data);
-      } catch (err) {
-        console.error("Error fetching products:", err);
-      }
-    };
+  if (isLoading) {
+    return (
+      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-card flex justify-center">
+        <Spinner />
+      </section>
+    );
+  }
 
-    fetchFeaturedProducts();
-  }, []);
+  if (isError || !featuredProduct) {
+    return (
+      <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-card text-center">
+        <p>Error loading products. Please try again later.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="py-16 md:py-24 px-4 sm:px-6 lg:px-8 bg-card">

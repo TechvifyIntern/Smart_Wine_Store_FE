@@ -6,9 +6,6 @@ import { ChevronDown } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-
-// --- MOCK DATA ---
-import { wineCategories, whiskyCategories } from "@/data/shop";
 import { formatCurrency } from "@/lib/utils";
 
 const origins = [
@@ -111,13 +108,6 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
     return params.includes(value);
   };
 
-  const displayCategories =
-    category === "Wine"
-      ? wineCategories
-      : category === "Whisky"
-        ? whiskyCategories
-        : [];
-
   // Helper render Header
   const renderHeader = (title: string, key: keyof typeof openSections) => (
     <h3
@@ -127,8 +117,9 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       <span>{title}</span>
       <ChevronDown
         size={16}
-        className={`transform transition-transform duration-200 ${openSections[key] ? "rotate-180" : ""
-          }`}
+        className={`transform transition-transform duration-200 ${
+          openSections[key] ? "rotate-180" : ""
+        }`}
       />
     </h3>
   );
@@ -149,42 +140,6 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
           </Button>
         )}
       </div>
-
-      {/* 1. CATEGORY */}
-      {displayCategories.length > 0 && (
-        <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
-          {renderHeader("Categories", "category")}
-          {openSections.category && (
-            <ul className="space-y-1">
-              {displayCategories.map((cat) => (
-                <li
-                  key={cat.id}
-                  className={`flex justify-between cursor-pointer p-2 rounded transition-colors text-sm ${searchParams.get("subcategory") === cat.name
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "hover:bg-muted text-foreground"
-                    }`}
-                  onClick={() =>
-                    updateParam(
-                      "subcategory",
-                      cat.name === searchParams.get("subcategory")
-                        ? null
-                        : cat.name
-                    )
-                  }
-                >
-                  <span>{cat.name}</span>
-                  {cat.count && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {cat.count}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
       {/* 2. ORIGIN */}
       <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
         {renderHeader("Origin / Region", "origin")}

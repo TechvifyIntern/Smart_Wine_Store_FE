@@ -42,7 +42,7 @@ export default function CartSummary({
           <span>{formatCurrency(cart.total)}</span>
         </div>
       </div>
-      <div className="p-6">
+      {/* <div className="p-6">
         <div className="grid gap-2">
           <Label htmlFor="promo">Promo Code</Label>
           <div className="flex space-x-2">
@@ -62,7 +62,7 @@ export default function CartSummary({
             </Button>
           </div>
         </div>
-      </div>
+      </div> */}
       <div className="p-6">
         <Button className="w-full" disabled={isPending} onClick={onCheckout}>
           Checkout

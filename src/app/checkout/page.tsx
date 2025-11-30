@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueries } from "@tanstack/react-query";
 import {
   CreditCard,
   Truck,
@@ -30,21 +31,52 @@ import { toast } from "@/hooks/use-toast";
 import { getCartItems } from "@/services/cart/api";
 import { getProfile, getUserAddress } from "@/services/profile/api";
 import { checkout, CheckoutPayload } from "@/services/checkout/api";
-import { Cart, CartItem } from "@/types/cart";
-import { UserAddress, UserProfile } from "@/types/profile";
+import { CartItem } from "@/types/cart";
+import { UserAddress } from "@/types/profile";
 import { formatCurrency } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
-
-  const [cartData, setCartData] = useState<
-    (Cart & { discountId?: number | null }) | null
-  >(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ["cart"],
+        queryFn: getCartItems,
+      },
+      {
+        queryKey: ["profile"],
+        queryFn: getProfile,
+      },
+      {
+        queryKey: ["address"],
+        queryFn: getUserAddress,
+      },
+    ],
+  });
+
+  const cartResult = results[0];
+  const profileResult = results[1];
+  const addressResult = results[2];
+
+  const {
+    data: cartData,
+    isLoading: isCartLoading,
+    isError: isCartError,
+  } = cartResult;
+  const {
+    data: userProfileData,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+  } = profileResult;
+  const {
+    data: addressData,
+    isLoading: isAddressLoading,
+    isError: isAddressError,
+  } = addressResult;
 
   const [shippingForm, setShippingForm] = useState({
     userName: "",
@@ -55,55 +87,30 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [cartResponse, userProfileResponse, addressResponse] =
-          await Promise.all([getCartItems(), getProfile(), getUserAddress()]);
+    if (userProfileData?.success) {
+      const user = userProfileData.data;
+      setShippingForm((prev) => ({
+        ...prev,
+        userName: user.UserName,
+        email: user.Email,
+        phone: user.PhoneNumber,
+      }));
+    }
+  }, [userProfileData]);
 
-        if (!userProfileResponse.success) {
-          throw new Error(userProfileResponse.message);
-        }
-        setUserProfile(userProfileResponse.data);
-
+  useEffect(() => {
+    if (addressData?.success && addressData.data.length > 0) {
+      const addresses: UserAddress[] = addressData.data;
+      const defaultAddr = addresses.find((addr) => addr.IsDefault);
+      if (defaultAddr) {
         setShippingForm((prev) => ({
           ...prev,
-          userName: userProfileResponse.data.UserName,
-          email: userProfileResponse.data.Email,
-          phone: userProfileResponse.data.PhoneNumber,
+          address: defaultAddr.StreetAddress,
+          city: `${defaultAddr.Ward}, ${defaultAddr.Province}`,
         }));
-
-        if (addressResponse.success && addressResponse.data.length > 0) {
-          const addresses: UserAddress[] = addressResponse.data;
-          const defaultAddr = addresses.find((addr) => addr.IsDefault);
-          if (defaultAddr) {
-            setShippingForm((prev) => ({
-              ...prev,
-              address: defaultAddr.StreetAddress,
-              city: `${defaultAddr.Ward}, ${defaultAddr.Province}`,
-            }));
-          }
-        }
-
-        if (!cartResponse.success) {
-          throw new Error(cartResponse.message);
-        }
-        setCartData(cartResponse.data);
-      } catch (err: any) {
-        console.error("Failed to fetch page data:", err);
-        setError(err.message || "Something went wrong");
-        toast({
-          title: "Error",
-          description: err.message || "Failed to load checkout data.",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
       }
-    };
-
-    fetchData();
-  }, []);
+    }
+  }, [addressData]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -122,7 +129,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (!cartData || !userProfile) {
+    if (!cartData?.data || !userProfileData?.data) {
       toast({
         title: "Error",
         description: "Your session might have expired. Please refresh.",
@@ -140,17 +147,17 @@ export default function CheckoutPage() {
 
     const payload: CheckoutPayload = {
       UserName: shippingForm.userName,
-      Email: userProfile.Email,
+      Email: userProfileData.data.Email,
       PhoneNumber: shippingForm.phone,
       OrderStreetAddress: shippingForm.address,
       OrderWard: orderWard,
       OrderDistrict: orderDistrict,
       OrderProvince: orderProvince,
-      Items: cartData.items.map((item: CartItem) => ({
+      Items: cartData.data.items.map((item: CartItem) => ({
         ProductID: item.ProductID,
         Quantity: item.Quantity,
       })),
-      DiscountID: cartData.discountId || null,
+      DiscountID: cartData.data.discountId || null,
       PaymentMethodID: paymentMethod === "cod" ? 1 : 2,
     };
 
@@ -177,22 +184,32 @@ export default function CheckoutPage() {
     }
   };
 
-  if (loading) {
+  if (isCartLoading || isProfileLoading || isAddressLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Spinner />
       </div>
     );
   }
 
-  if (error || !cartData || cartData.items.length === 0) {
+  const error =
+    isCartError ||
+    isProfileError ||
+    isAddressError ||
+    !cartData?.success ||
+    !userProfileData?.success;
+  const cartItems: CartItem[] = cartData?.data?.items ?? [];
+
+  if (error || !cartItems || cartItems.length === 0) {
     return (
       <div className="container mx-auto px-4 py-20 text-center">
         <h2 className="text-2xl font-bold">
           {error ? "An Error Occurred" : "Your Cart is Empty"}
         </h2>
         <p className="text-muted-foreground mt-2">
-          {error || "Add some wine to your cart before proceeding."}
+          {error
+            ? "Failed to load checkout data."
+            : "Add some wine to your cart before proceeding."}
         </p>
         <Button className="mt-4" onClick={() => router.push("/products")}>
           Back to Shop
@@ -201,13 +218,14 @@ export default function CheckoutPage() {
     );
   }
 
-  const calculatedSubtotal = cartData.items.reduce(
-    (acc, item) => acc + item.product.SalePrice * item.Quantity,
+  const calculatedSubtotal = cartItems.reduce(
+    (acc: number, item: CartItem) =>
+      acc + item.product.SalePrice * item.Quantity,
     0
   );
-  const discount = cartData.discount || 0;
-  const finalTotal = calculatedSubtotal - discount;
 
+  const discount = cartData?.data?.discount || 0;
+  const finalTotal = calculatedSubtotal - discount;
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen bg-background mt-10">
       <div className="mb-8">
@@ -344,7 +362,7 @@ export default function CheckoutPage() {
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
-                {cartData.items.map((item) => (
+                {cartItems.map((item) => (
                   <div
                     key={item.CartItemID}
                     className="flex items-center gap-4"
@@ -353,7 +371,7 @@ export default function CheckoutPage() {
                       <img
                         src={item.product.ImageURL || "/fallback-image.jpg"}
                         alt={item.product.ProductName}
-                        className="object-cover h-full w-full"
+                        className="object-contain h-full w-full"
                       />
                     </div>
                     <div className="flex-1 space-y-1 min-w-0">
@@ -378,7 +396,7 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(calculatedSubtotal)}</span>
                 </div>
-                {cartData.discount > 0 && (
+                {cartData?.data?.discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span className="">Discount</span>
                     <span>-{formatCurrency(discount)}</span>

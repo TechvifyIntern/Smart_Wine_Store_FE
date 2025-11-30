@@ -1,94 +1,211 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import SidebarFilters from "@/components/shop/SidebarFilters";
-import ProductsGrid from "@/components/shop/ProductsGrid";
-import Pagination from "@/components/shop/Pagination";
-import { Products } from "@/types/products";
+import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import ProductsGrid from "@/components/shop/ProductsGrid";
+import { Products } from "@/types/products";
 import { getSearchedProducts } from "@/services/products/api";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
+
+const pageSize = 12;
 
 export default function PageClient() {
-  const pageSize = 9;
-  const [currentPage, setCurrentPage] = useState(1);
-  const [products, setProducts] = useState<Products[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
-
   const searchParams = useSearchParams();
-
   const keywords = searchParams.get("keywords") || undefined;
-
   const category = searchParams.get("category") || undefined;
-  const origin = searchParams.get("origin") || undefined;
-  const minAbv = Number(searchParams.get("minAbv")) || 0;
-  const maxAbv = Number(searchParams.get("maxAbv")) || 60;
-  const minPrice = Number(searchParams.get("minPrice")) || 0;
-  const maxPrice = Number(searchParams.get("maxPrice")) || 10000000;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getSearchedProducts({
-          name: keywords,
-        });
+  const [currentPage, setCurrentPage] = useState(1);
 
-        if (response.success) {
-          const fetchedProducts = response.data || [];
-          setProducts(fetchedProducts);
-          setTotalPages(Math.ceil(fetchedProducts.length / pageSize));
-          setCurrentPage(1);
-        } else {
-          setProducts([]);
-          setTotalPages(1);
-        }
-      } catch (error) {
-        console.error("Fetch products error", error);
-        setProducts([]);
-        setTotalPages(1);
+  const {
+    data: allProducts,
+    isLoading,
+    isError,
+  } = useQuery<Products[], Error>({
+    queryKey: ["products", keywords],
+    queryFn: async () => {
+      const response = await getSearchedProducts({
+        name: keywords,
+      });
+
+      if (response.success && response.data) {
+        return response.data;
       }
-    };
 
-    fetchData();
-  }, [keywords]);
+      throw new Error(response.message || "Failed to fetch products");
+    },
+    enabled: !!keywords,
+    staleTime: 300000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
-      // if (origin && product.origin !== origin) return false;
+  const totalPages = useMemo(() => {
+    if (!allProducts) return 0;
+    return Math.ceil(allProducts.length / pageSize);
+  }, [allProducts]);
 
-      if (minAbv && Number(product.ABV) < minAbv) return false;
-      if (maxAbv && Number(product.ABV) > maxAbv) return false;
-
-      const price = product.SalePrice ?? product.CostPrice;
-
-      if (minPrice !== undefined && price < minPrice) return false;
-      if (maxPrice !== undefined && price > maxPrice) return false;
-
-      console.log(products, minAbv, maxAbv, minPrice, maxPrice);
-
-      return true;
-    });
-  }, [products, minAbv, maxAbv, minPrice, maxPrice]);
+  const paginatedProducts = useMemo(() => {
+    if (!allProducts) return [];
+    return allProducts.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    );
+  }, [allProducts, currentPage]);
 
   return (
-    <main className="mx-30 flex mt-28 min-h-screen">
-      <SidebarFilters />
-      <div className="flex-1 flex flex-col">
-        <ProductsGrid
-          products={filteredProducts}
-          currentPage={currentPage}
-          pageSize={pageSize}
-        />
-        {totalPages > 1 && (
-          <Pagination
+    <main className="flex flex-col md:flex-row mt-16 sm:mt-20 md:mt-28 min-h-screen">
+      <div className="flex-1 flex flex-col max-w-7xl mx-auto w-full">
+        <div className="px-4 sm:px-6 md:px-8 lg:px-10 pt-4 sm:pt-6">
+          <h1 className="font-bold text-2xl sm:text-3xl mb-2 capitalize text-primary tracking-widest">
+            Search Results
+          </h1>
+          <p className="mb-3 sm:mb-4 dark:text-gray-400 text-xs sm:text-sm">
+            Showing {allProducts?.length || 0} results for:{" "}
+            <strong>{keywords}</strong>
+          </p>
+        </div>
+
+        {isLoading ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Spinner size="lg" />
+          </div>
+        ) : isError ? (
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-red-500">Failed to load products.</p>
+          </div>
+        ) : (
+          <ProductsGrid products={paginatedProducts} />
+        )}
+
+        {allProducts && allProducts.length > pageSize && (
+          <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={(page) => {
               setCurrentPage(page);
-              window.scrollTo(0, 0);
+              window.scrollTo({ top: 0, behavior: "smooth" });
             }}
           />
         )}
       </div>
     </main>
+  );
+}
+
+function PaginationControls({
+  currentPage,
+  totalPages,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}) {
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5;
+    const half = Math.floor(maxPagesToShow / 2);
+
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      pageNumbers.push(1);
+      if (currentPage > half + 2) {
+        pageNumbers.push("...");
+      }
+
+      let start = Math.max(2, currentPage - half);
+      let end = Math.min(totalPages - 1, currentPage + half);
+
+      if (currentPage <= half + 1) {
+        end = maxPagesToShow - 1;
+      }
+      if (currentPage >= totalPages - half) {
+        start = totalPages - maxPagesToShow + 2;
+      }
+
+      for (let i = start; i <= end; i++) {
+        pageNumbers.push(i);
+      }
+
+      if (currentPage < totalPages - half - 1) {
+        pageNumbers.push("...");
+      }
+      pageNumbers.push(totalPages);
+    }
+    return pageNumbers;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  return (
+    <div className="flex flex-col items-center my-8 space-y-4">
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage > 1) onPageChange(currentPage - 1);
+              }}
+              className={
+                currentPage === 1
+                  ? "pointer-events-none text-muted-foreground"
+                  : ""
+              }
+            />
+          </PaginationItem>
+          {pageNumbers.map((num, index) => (
+            <PaginationItem key={index}>
+              {typeof num === "number" ? (
+                <PaginationLink
+                  href="#"
+                  isActive={currentPage === num}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onPageChange(num);
+                  }}
+                  className={currentPage === num ? "bg-primary" : ""}
+                >
+                  {num}
+                </PaginationLink>
+              ) : (
+                <PaginationEllipsis />
+              )}
+            </PaginationItem>
+          ))}
+          <PaginationItem>
+            <PaginationNext
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                if (currentPage < totalPages) onPageChange(currentPage + 1);
+              }}
+              className={
+                currentPage === totalPages
+                  ? "pointer-events-none text-muted-foreground"
+                  : ""
+              }
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+      <div className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </div>
+    </div>
   );
 }

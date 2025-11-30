@@ -9,7 +9,7 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Get the accessToken from localStorage (only in browser)
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
       if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
@@ -44,26 +44,20 @@ api.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        console.log("Attempting to refresh token...");
-
         // Try to refresh the token
         const response = await axios.post(
           `${api.defaults.baseURL}/auth/refresh`,
           { refreshToken },
           {
             headers: {
-              'Content-Type': 'application/json'
-            }
+              "Content-Type": "application/json",
+            },
           }
         );
-
-        console.log("Refresh response:", response.data);
 
         if (response.data.success && response.data.data?.accessToken) {
           const newAccessToken = response.data.data.accessToken;
           const newRefreshToken = response.data.data.refreshToken;
-
-          console.log("Token refreshed successfully");
 
           // Update the tokens in store
           if (newRefreshToken) {

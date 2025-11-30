@@ -40,8 +40,10 @@ export default function InventoryProductsPage() {
     useState<InventoryProduct | null>(null);
   const [inventories, setInventories] = useState<InventoryProduct[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<'Quantity' | 'LastUpdated' | 'ProductID'>('ProductID');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [sortBy, setSortBy] = useState<
+    "Quantity" | "LastUpdated" | "ProductID"
+  >("ProductID");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const loadInventories = async (filters?: {
     minQuantity?: number;
@@ -54,33 +56,35 @@ export default function InventoryProductsPage() {
       const response = await inventoriesRepository.getInventories({
         sortBy,
         sortOrder,
-        ...filters
+        ...filters,
       });
 
       if (response.success && response.data) {
         // Map API response to InventoryProduct format
-        const mappedData: InventoryProduct[] = response.data.map((item: Inventory) => ({
-          ProductID: item.ProductID.toString(),
-          ProductName: item.ProductName || `Product ${item.ProductID}`,
-          ImageURL: '', // Add image URL if available from API
-          Quantity: item.Quantity,
-          CostPrice: 0, // Add cost price if available from API
-          SalePrice: 0, // Add sale price if available from API
-          WarehouseID: item.WarehouseID,
-          WarehouseName: item.WarehouseName,
-          LastUpdated: item.LastUpdated
-        }));
+        const mappedData: InventoryProduct[] = response.data.map(
+          (item: Inventory) => ({
+            ProductID: item.ProductID.toString(),
+            ProductName: item.ProductName || `Product ${item.ProductID}`,
+            ImageURL: "", // Add image URL if available from API
+            Quantity: item.Quantity,
+            CostPrice: 0, // Add cost price if available from API
+            SalePrice: 0, // Add sale price if available from API
+            WarehouseID: item.WarehouseID,
+            WarehouseName: item.WarehouseName,
+            LastUpdated: item.LastUpdated,
+          })
+        );
 
         setInventories(mappedData);
         toast.success(`Loaded ${mappedData.length} inventory items`);
       } else {
-        console.error('Failed to load inventories:', response.message);
-        toast.error(response.message || 'Failed to load inventories');
+        console.error("Failed to load inventories:", response.message);
+        toast.error(response.message || "Failed to load inventories");
         setInventories([]);
       }
     } catch (err) {
-      console.error('Error loading inventories:', err);
-      toast.error('An error occurred while loading inventories');
+      console.error("Error loading inventories:", err);
+      toast.error("An error occurred while loading inventories");
       setInventories([]);
     } finally {
       setIsLoading(false);
@@ -153,9 +157,7 @@ export default function InventoryProductsPage() {
     setCurrentPage(1);
   };
 
-  const handleCreateProduct = async (
-    data: CreateInventoryProductFormData
-  ) => {
+  const handleCreateProduct = async (data: CreateInventoryProductFormData) => {
     try {
       // Validate product ID if it exists
       if (!data.Quantity || data.Quantity < 0) {
@@ -164,9 +166,9 @@ export default function InventoryProductsPage() {
       }
 
       const response = await inventoriesRepository.createInventory({
-        ProductID: parseInt(data.ProductID || '0'),
+        ProductID: parseInt(data.ProductID || "0"),
         WarehouseID: 1, // Default warehouse
-        Quantity: data.Quantity
+        Quantity: data.Quantity,
       });
 
       if (response.success) {
@@ -177,8 +179,9 @@ export default function InventoryProductsPage() {
         toast.error(response.message || "Failed to create inventory");
       }
     } catch (error) {
-      console.error('Error creating inventory:', error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      console.error("Error creating inventory:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       toast.error(errorMessage);
     }
   };
@@ -187,7 +190,6 @@ export default function InventoryProductsPage() {
     id: string,
     data: Omit<InventoryProduct, "ProductID">
   ) => {
-    console.log(`Updating product ${id}:`, data);
     // TODO: Implement API call to update product
     alert(`Product ${id} updated successfully!`);
   };
@@ -203,14 +205,14 @@ export default function InventoryProductsPage() {
         return;
       }
 
-      const product = inventories.find(p => p.ProductID === productId);
+      const product = inventories.find((p) => p.ProductID === productId);
       const warehouseId = product?.WarehouseID || 1;
 
       const response = await inventoriesRepository.importInventory({
         ProductID: parseInt(productId),
         WarehouseID: warehouseId,
         Quantity: quantity,
-        Notes: `Import stock - Cost: ${formatCurrency(costPrice)}`
+        Notes: `Import stock - Cost: ${formatCurrency(costPrice)}`,
       });
 
       if (response.success) {
@@ -222,8 +224,9 @@ export default function InventoryProductsPage() {
         toast.error(response.message || "Failed to import stock");
       }
     } catch (error) {
-      console.error('Error importing stock:', error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      console.error("Error importing stock:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       toast.error(errorMessage);
     }
   };
@@ -239,10 +242,12 @@ export default function InventoryProductsPage() {
         return;
       }
 
-      const product = inventories.find(p => p.ProductID === productId);
+      const product = inventories.find((p) => p.ProductID === productId);
 
       if (product && quantity > product.Quantity) {
-        toast.error(`Cannot export ${quantity} units. Only ${product.Quantity} available in stock.`);
+        toast.error(
+          `Cannot export ${quantity} units. Only ${product.Quantity} available in stock.`
+        );
         return;
       }
 
@@ -252,7 +257,7 @@ export default function InventoryProductsPage() {
         ProductID: parseInt(productId),
         WarehouseID: warehouseId,
         Quantity: quantity,
-        Notes: reason || 'Stock export'
+        Notes: reason || "Stock export",
       });
 
       if (response.success) {
@@ -264,8 +269,9 @@ export default function InventoryProductsPage() {
         toast.error(response.message || "Failed to export stock");
       }
     } catch (error) {
-      console.error('Error exporting stock:', error);
-      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      console.error("Error exporting stock:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred";
       toast.error(errorMessage);
     }
   };
@@ -281,7 +287,9 @@ export default function InventoryProductsPage() {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Loading inventories...</p>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading inventories...
+            </p>
           </div>
         </div>
       </div>
