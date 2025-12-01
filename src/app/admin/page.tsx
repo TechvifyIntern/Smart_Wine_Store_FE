@@ -12,9 +12,15 @@ import ordersRepository from "@/api/ordersRepository";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
-  const [newUsersThisMonth, setNewUsersThisMonth] = useState<number | null>(null);
-  const [totalOrdersThisMonth, setTotalOrdersThisMonth] = useState<number | null>(null);
-  const [totalRevenueThisMonth, setTotalRevenueThisMonth] = useState<number | null>(null);
+  const [newUsersThisMonth, setNewUsersThisMonth] = useState<number | null>(
+    null
+  );
+  const [totalOrdersThisMonth, setTotalOrdersThisMonth] = useState<
+    number | null
+  >(null);
+  const [totalRevenueThisMonth, setTotalRevenueThisMonth] = useState<
+    number | null
+  >(null);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [isLoadingOrders, setIsLoadingOrders] = useState(true);
 
@@ -38,8 +44,10 @@ export default function Dashboard() {
             const newUsers = response.data.data.filter((user: any) => {
               if (user.CreatedAt) {
                 const createdDate = new Date(user.CreatedAt);
-                return createdDate.getMonth() === currentMonth &&
-                  createdDate.getFullYear() === currentYear;
+                return (
+                  createdDate.getMonth() === currentMonth &&
+                  createdDate.getFullYear() === currentYear
+                );
               }
               return false;
             });
@@ -48,7 +56,7 @@ export default function Dashboard() {
           }
         }
       } catch (error) {
-        console.error('Error loading users:', error);
+        console.error("Error loading users:", error);
       } finally {
         setIsLoadingUsers(false);
       }
@@ -72,8 +80,10 @@ export default function Dashboard() {
             const ordersThisMonth = response.data.filter((order: any) => {
               if (order.CreatedAt) {
                 const orderDate = new Date(order.CreatedAt);
-                return orderDate.getMonth() === currentMonth &&
-                  orderDate.getFullYear() === currentYear;
+                return (
+                  orderDate.getMonth() === currentMonth &&
+                  orderDate.getFullYear() === currentYear
+                );
               }
               return false;
             });
@@ -81,9 +91,12 @@ export default function Dashboard() {
             setTotalOrdersThisMonth(ordersThisMonth.length);
 
             // Calculate total revenue this month
-            const revenueThisMonth = ordersThisMonth.reduce((sum: number, order: any) => {
-              return sum + (order.FinalTotal || 0);
-            }, 0);
+            const revenueThisMonth = ordersThisMonth.reduce(
+              (sum: number, order: any) => {
+                return sum + (order.FinalTotal || 0);
+              },
+              0
+            );
             setTotalRevenueThisMonth(revenueThisMonth);
           } else {
             // If data is not array or empty, set to 0
@@ -96,7 +109,7 @@ export default function Dashboard() {
           setTotalRevenueThisMonth(0);
         }
       } catch (error) {
-        console.error('Error loading orders:', error);
+        console.error("Error loading orders:", error);
         setTotalOrdersThisMonth(0);
         setTotalRevenueThisMonth(0);
       } finally {
@@ -139,9 +152,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h2 className="text-3xl font-bold  dark:text-white">
-          Dashboard
-        </h2>
+        <h2 className="text-3xl font-bold  dark:text-white">Dashboard</h2>
         <p className="text-gray-600 dark:text-gray-400 mt-2">
           Welcome to the Wine Store Admin Dashboard
         </p>
@@ -154,9 +165,11 @@ export default function Dashboard() {
             key={index}
             data={data}
             isLoading={
-              (index === 0 || index === 1) ? isLoadingUsers :
-                (index === 2 || index === 3) ? isLoadingOrders :
-                  false
+              index === 0 || index === 1
+                ? isLoadingUsers
+                : index === 2 || index === 3
+                  ? isLoadingOrders
+                  : false
             }
           />
         ))}

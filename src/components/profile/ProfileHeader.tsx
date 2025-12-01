@@ -66,9 +66,6 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
 
               const url = result?.info?.secure_url;
               if (!url) return toast.error("Upload failed!");
-
-              console.log(url);
-
               await onSave({ ImageURL: url });
               toast.success("Avatar updated!");
             }}

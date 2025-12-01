@@ -4,8 +4,9 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Nunito } from "next/font/google";
 import AuthInitializer from "@/components/auth/AuthInitializer";
-import { QueryProvider } from "@/components/providers/QueryProvider";
+import QueryProvider from "@/components/providers/QueryProvider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
+import { Chatbot } from "@/components/chatbot/Chatbot";
 
 export const metadata: Metadata = {
   title: "WINEICY",
@@ -44,6 +45,7 @@ export default function RootLayout({
             >
               <AuthInitializer>{children}</AuthInitializer>
               <Toaster />
+              <Chatbot />
             </ThemeProvider>
           </LocaleProvider>
         </QueryProvider>

@@ -14,236 +14,254 @@ import { formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 
 export default function DiscountOrdersPage() {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState<DiscountOrder | null>(null);
-    const [orderToDelete, setOrderToDelete] = useState<DiscountOrder | null>(null);
-    const [discountOrders, setDiscountOrders] = useState<DiscountOrder[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<DiscountOrder | null>(
+    null
+  );
+  const [orderToDelete, setOrderToDelete] = useState<DiscountOrder | null>(
+    null
+  );
+  const [discountOrders, setDiscountOrders] = useState<DiscountOrder[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    // Fetch discount orders from API
-    const loadDiscountOrders = async () => {
-        try {
-            setIsLoading(true);
-            const response = await discountOrdersRepository.getDiscountOrders();
-            if (response.success && response.data) {
-                setDiscountOrders(response.data as any);
-            } else {
-                console.error('Failed to load discount orders:', response.message);
-            }
-        } catch (err) {
-            console.error('Error loading discount orders:', err);
-            toast.error('Failed to load discount orders');
-        } finally {
-            setIsLoading(false);
-        }
-    };
+  // Fetch discount orders from API
+  const loadDiscountOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await discountOrdersRepository.getDiscountOrders();
+      if (response.success && response.data) {
+        setDiscountOrders(response.data as any);
+      } else {
+        console.error("Failed to load discount orders:", response.message);
+      }
+    } catch (err) {
+      console.error("Error loading discount orders:", err);
+      toast.error("Failed to load discount orders");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    useEffect(() => {
+  useEffect(() => {
+    loadDiscountOrders();
+  }, []);
+
+  // Reload data when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
         loadDiscountOrders();
-    }, []);
-
-    // Reload data when page becomes visible again
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden) {
-                loadDiscountOrders();
-            }
-        };
-
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-        };
-    }, []);
-
-    // Format date
-    const formatDate = (dateString: string | undefined) => {
-        if (!dateString) return "N/A";
-        const date = new Date(dateString);
-        return date.toLocaleDateString("vi-VN", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-        });
+      }
     };
 
-    // Filter orders based on search term (by discount value or minimum order value)
-    const filteredOrders = useMemo(() => {
-        if (!searchTerm.trim()) {
-            return discountOrders;
-        }
-
-        const lowerSearchTerm = searchTerm.toLowerCase().trim();
-
-        // TODO: Replace with API call when ready
-        // Example:
-        // const response = await fetch(`/api/discount-orders/search?q=${encodeURIComponent(searchTerm)}`);
-        // return await response.json();
-
-        return discountOrders.filter((order) => {
-            const discountStr = order.DiscountValue.toString();
-            const minValueStr = order.MinimumOrderValue ? order.MinimumOrderValue.toString() : '';
-            return discountStr.includes(lowerSearchTerm) || minValueStr.includes(lowerSearchTerm);
-        });
-    }, [searchTerm, discountOrders]);
-
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
-    const currentOrders = filteredOrders.slice(startIndex, endIndex);
-
-    // Action handlers
-    const handleView = (id: number) => {
-        console.log("View order:", id);
-        // TODO: Implement view logic
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
+  }, []);
 
-    const handleEdit = (id: number) => {
-        const order = discountOrders.find((o) => o.DiscountOrderID === id);
-        if (order) {
-            setSelectedOrder(order);
-            setIsEditModalOpen(true);
-        }
-    };
+  // Format date
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
 
-    const handleDelete = (id: number) => {
-        const order = discountOrders.find((o) => o.DiscountOrderID === id);
-        if (order) {
-            setOrderToDelete(order);
-            setIsDeleteDialogOpen(true);
-        }
-    };
+  // Filter orders based on search term (by discount value or minimum order value)
+  const filteredOrders = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return discountOrders;
+    }
 
-    const handleConfirmDelete = () => {
-        if (orderToDelete) {
-            console.log("Delete order:", orderToDelete.DiscountOrderID);
-            // TODO: Implement API call to delete order discount
-            // Example:
-            // await fetch(`/api/discount-orders/${orderToDelete.DiscountOrderID}`, {
-            //   method: 'DELETE',
-            // });
+    const lowerSearchTerm = searchTerm.toLowerCase().trim();
 
-            alert(`Order discount ${orderToDelete.DiscountValue}% deleted successfully!`);
-            setIsDeleteDialogOpen(false);
-            setOrderToDelete(null);
-        }
-    };
+    // TODO: Replace with API call when ready
+    // Example:
+    // const response = await fetch(`/api/discount-orders/search?q=${encodeURIComponent(searchTerm)}`);
+    // return await response.json();
 
-    const handleSearchChange = (value: string) => {
-        setSearchTerm(value);
-        setCurrentPage(1); // Reset to first page when searching
-    };
+    return discountOrders.filter((order) => {
+      const discountStr = order.DiscountValue.toString();
+      const minValueStr = order.MinimumOrderValue
+        ? order.MinimumOrderValue.toString()
+        : "";
+      return (
+        discountStr.includes(lowerSearchTerm) ||
+        minValueStr.includes(lowerSearchTerm)
+      );
+    });
+  }, [searchTerm, discountOrders]);
 
-    const handleItemsPerPageChange = (items: number) => {
-        setItemsPerPage(items);
-        setCurrentPage(1);
-    };
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = filteredOrders.slice(startIndex, endIndex);
 
-    const handleCreateOrder = async (data: Omit<DiscountOrder, "DiscountOrderID">) => {
-        try {
-            const response = await discountOrdersRepository.createDiscountOrder({
-                DiscountValue: data.DiscountValue || 0,
-                MinimumOrderValue: data.MinimumOrderValue || 0
-            });
+  // Action handlers
+  const handleView = (id: number) => {
+    // TODO: Implement view logic
+  };
 
-            if (response.success) {
-                toast.success("Order discount created successfully!");
-                await loadDiscountOrders();
-            } else {
-                toast.error(response.message || "Failed to create order discount");
-            }
-        } catch (error) {
-            console.error('Error creating order discount:', error);
-            toast.error("An error occurred while creating the order discount");
-        }
-    };
+  const handleEdit = (id: number) => {
+    const order = discountOrders.find((o) => o.DiscountOrderID === id);
+    if (order) {
+      setSelectedOrder(order);
+      setIsEditModalOpen(true);
+    }
+  };
 
-    const handleUpdateOrder = async (id: number, data: Omit<DiscountOrder, "DiscountOrderID">) => {
-        try {
-            const response = await discountOrdersRepository.updateDiscountOrder(id, {
-                DiscountValue: data.DiscountValue,
-                MinimumOrderValue: data.MinimumOrderValue
-            });
+  const handleDelete = (id: number) => {
+    const order = discountOrders.find((o) => o.DiscountOrderID === id);
+    if (order) {
+      setOrderToDelete(order);
+      setIsDeleteDialogOpen(true);
+    }
+  };
 
-            if (response.success) {
-                toast.success("Order discount updated successfully!");
-                await loadDiscountOrders();
-            } else {
-                toast.error(response.message || "Failed to update order discount");
-            }
-        } catch (error) {
-            console.error('Error updating order discount:', error);
-            toast.error("An error occurred while updating the order discount");
-        }
-    };
+  const handleConfirmDelete = () => {
+    if (orderToDelete) {
+      // TODO: Implement API call to delete order discount
+      // Example:
+      // await fetch(`/api/discount-orders/${orderToDelete.DiscountOrderID}`, {
+      //   method: 'DELETE',
+      // });
 
-    return (
-        <div>
-            <PageHeader
-                title="Discount Orders"
-                icon={ShoppingCart}
-                iconColor="text-black"
-            />
+      alert(
+        `Order discount ${orderToDelete.DiscountValue}% deleted successfully!`
+      );
+      setIsDeleteDialogOpen(false);
+      setOrderToDelete(null);
+    }
+  };
 
-            {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-            ) : (
-                <>
-                    {/* Toolbar with Search and Create Button */}
-                    <OrdersToolbar
-                        searchTerm={searchTerm}
-                        onSearchChange={handleSearchChange}
-                        searchPlaceholder="Search by discount or minimum order value..."
-                        onCreateOrder={handleCreateOrder}
-                        createButtonLabel="Create Order Discount"
-                    />
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
-                    {/* Orders Table */}
-                    <OrdersTable
-                        orders={currentOrders}
-                        onView={handleView}
-                        onEdit={handleEdit}
-                        onDelete={handleDelete}
-                        formatDate={formatDate}
-                        formatCurrency={formatCurrency}
-                        emptyMessage={searchTerm ? `No order discounts found matching "${searchTerm}"` : "No order discounts found"}
-                    />
+  const handleItemsPerPageChange = (items: number) => {
+    setItemsPerPage(items);
+    setCurrentPage(1);
+  };
 
-                    {/* Pagination */}
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        totalItems={filteredOrders.length}
-                        itemsPerPage={itemsPerPage}
-                        onPageChange={setCurrentPage}
-                        onItemsPerPageChange={handleItemsPerPageChange}
-                    />
-                </>
-            )}
+  const handleCreateOrder = async (
+    data: Omit<DiscountOrder, "DiscountOrderID">
+  ) => {
+    try {
+      const response = await discountOrdersRepository.createDiscountOrder({
+        DiscountValue: data.DiscountValue || 0,
+        MinimumOrderValue: data.MinimumOrderValue || 0,
+      });
 
-            {/* Edit Order Modal */}
-            <CreateDiscountOrder
-                open={isEditModalOpen}
-                onOpenChange={setIsEditModalOpen}
-                mode="edit"
-                order={selectedOrder}
-                onUpdate={handleUpdateOrder}
-            />
+      if (response.success) {
+        toast.success("Order discount created successfully!");
+        await loadDiscountOrders();
+      } else {
+        toast.error(response.message || "Failed to create order discount");
+      }
+    } catch (error) {
+      console.error("Error creating order discount:", error);
+      toast.error("An error occurred while creating the order discount");
+    }
+  };
 
-            {/* Delete Confirmation Dialog */}
-            <DeleteConfirmDialog
-                open={isDeleteDialogOpen}
-                onOpenChange={setIsDeleteDialogOpen}
-                order={orderToDelete}
-                onConfirm={handleConfirmDelete}
-            />
+  const handleUpdateOrder = async (
+    id: number,
+    data: Omit<DiscountOrder, "DiscountOrderID">
+  ) => {
+    try {
+      const response = await discountOrdersRepository.updateDiscountOrder(id, {
+        DiscountValue: data.DiscountValue,
+        MinimumOrderValue: data.MinimumOrderValue,
+      });
+
+      if (response.success) {
+        toast.success("Order discount updated successfully!");
+        await loadDiscountOrders();
+      } else {
+        toast.error(response.message || "Failed to update order discount");
+      }
+    } catch (error) {
+      console.error("Error updating order discount:", error);
+      toast.error("An error occurred while updating the order discount");
+    }
+  };
+
+  return (
+    <div>
+      <PageHeader
+        title="Discount Orders"
+        icon={ShoppingCart}
+        iconColor="text-black"
+      />
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
-    );
+      ) : (
+        <>
+          {/* Toolbar with Search and Create Button */}
+          <OrdersToolbar
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Search by discount or minimum order value..."
+            onCreateOrder={handleCreateOrder}
+            createButtonLabel="Create Order Discount"
+          />
+
+          {/* Orders Table */}
+          <OrdersTable
+            orders={currentOrders}
+            onView={handleView}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            formatDate={formatDate}
+            formatCurrency={formatCurrency}
+            emptyMessage={
+              searchTerm
+                ? `No order discounts found matching "${searchTerm}"`
+                : "No order discounts found"
+            }
+          />
+
+          {/* Pagination */}
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredOrders.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        </>
+      )}
+
+      {/* Edit Order Modal */}
+      <CreateDiscountOrder
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        mode="edit"
+        order={selectedOrder}
+        onUpdate={handleUpdateOrder}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        order={orderToDelete}
+        onConfirm={handleConfirmDelete}
+      />
+    </div>
+  );
 }

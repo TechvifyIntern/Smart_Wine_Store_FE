@@ -34,7 +34,9 @@ export default function CartItem({
             height={60}
             className="rounded-md w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 object-cover"
           />
-          <span className="line-clamp-2">{item.product.ProductName}</span>
+          <span className="text-wrap line-clamp-2">
+            {item.product.ProductName}
+          </span>
         </Link>
       </TableCell>
       <TableCell className="text-xs sm:text-sm">

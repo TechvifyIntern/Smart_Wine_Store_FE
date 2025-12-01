@@ -42,7 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <img
           src={product.ImageURL || "/placeholder-image.jpg"}
           alt={product.ProductName}
-          className="mx-auto h-48 sm:h-60 md:h-72 lg:h-80 w-full object-cover rounded-lg sm:rounded-xl"
+          className="mx-auto h-48 sm:h-60 md:h-72 lg:h-80 w-full object-contain rounded-lg sm:rounded-xl"
         />
 
         <h5 className="mt-2 sm:mt-3 font-medium tracking-wide text-base sm:text-lg md:text-xl dark:text-white line-clamp-2">

@@ -1,5 +1,10 @@
 import { api } from "@/services/api";
-import { SignInInput, SignUpInput } from "@/validations/auth";
+import {
+  SignInInput,
+  SignUpInput,
+  ResetPasswordInput,
+  ForgotPasswordInput,
+} from "@/validations/auth";
 import { ApiResponse } from "@/types/responses"; // Import ApiResponse
 
 interface ChangePasswordPayload {
@@ -32,7 +37,10 @@ export const verifyOtp = async (
   otp: string
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   try {
-    const response = await api.post("/auth/verify-otp", { email, otpCode: otp });
+    const response = await api.post("/auth/verify-otp", {
+      email,
+      otpCode: otp,
+    });
     return response.data.data;
   } catch (error) {
     throw error;
@@ -62,7 +70,6 @@ export const refreshToken = async (
 export const changePassword = async (
   data: ChangePasswordPayload
 ): Promise<ApiResponse<null>> => {
-  // Assuming the API returns a success message, no specific data
   try {
     const response = await api.put("/profile/change-password", data);
     return response.data;
@@ -70,4 +77,16 @@ export const changePassword = async (
     console.error("API Error - changePassword:", error);
     throw error;
   }
+};
+
+export const forgotPassword = async (email: ForgotPasswordInput) => {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+};
+
+export const resetPassword = async (resetData: ResetPasswordInput) => {
+  console.log(resetData);
+
+  const response = await api.post("/auth/reset-password", resetData);
+  return response.data;
 };

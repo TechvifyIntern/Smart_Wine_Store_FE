@@ -90,7 +90,9 @@ export default function CartClient() {
     <div className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 mt-16 sm:mt-20">
       <div className="flex flex-col items-center text-center mb-6 sm:mb-8">
         <ShoppingCart className="h-10 w-10 sm:h-12 sm:w-12 mb-3 sm:mb-4" />
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("cart.title")}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+          {t("cart.title")}
+        </h1>
         <p className="text-sm sm:text-base text-muted-foreground mt-2">
           {t("cart.itemCount").replace("{{count}}", items.length.toString())}
         </p>
@@ -102,11 +104,21 @@ export default function CartClient() {
             <Table>
               <TableHeader className="sticky top-0 z-20 bg-card border-b">
                 <TableRow>
-                  <TableHead className="w-[40%] sm:w-[50%] text-xs sm:text-sm">{t("cart.table.product")}</TableHead>
-                  <TableHead className="w-[15%] sm:w-[12%] text-xs sm:text-sm">{t("cart.table.price")}</TableHead>
-                  <TableHead className="w-[25%] sm:w-[20%] text-xs sm:text-sm">{t("cart.table.quantity")}</TableHead>
-                  <TableHead className="w-[15%] sm:w-[10%] text-xs sm:text-sm">{t("cart.table.total")}</TableHead>
-                  <TableHead className="text-xs sm:text-sm">{t("cart.table.action")}</TableHead>
+                  <TableHead className="w-[40%] sm:w-[50%] text-xs sm:text-sm">
+                    {t("cart.table.product")}
+                  </TableHead>
+                  <TableHead className="w-[15%] sm:w-[12%] text-xs sm:text-sm">
+                    {t("cart.table.price")}
+                  </TableHead>
+                  <TableHead className="w-[25%] sm:w-[20%] text-xs sm:text-sm">
+                    {t("cart.table.quantity")}
+                  </TableHead>
+                  <TableHead className="w-[15%] sm:w-[10%] text-xs sm:text-sm">
+                    {t("cart.table.total")}
+                  </TableHead>
+                  <TableHead className="text-xs sm:text-sm">
+                    {t("cart.table.action")}
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

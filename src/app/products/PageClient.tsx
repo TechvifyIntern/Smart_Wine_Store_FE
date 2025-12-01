@@ -4,14 +4,15 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SidebarFilters from "@/components/shop/SidebarFilters";
 import ProductsGrid from "@/components/shop/ProductsGrid";
-import ShopPagination from "@/components/shop/Pagination";
-import { Products } from "@/types/products";
+import { Spinner } from "@/components/ui/spinner";
 import { getFilteredProducts } from "@/services/products/api";
+import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { Products } from "@/types/products";
 
 export default function PageClient() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [products, setProducts] = useState<Products[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+  const [cursor, setCursor] = useState<number>(0);
+  const [cursorHistory, setCursorHistory] = useState<number[]>([0]);
 
   const searchParams = useSearchParams();
 
@@ -22,40 +23,68 @@ export default function PageClient() {
   const minPrice = Number(searchParams.get("minPrice")) || undefined;
   const maxPrice = Number(searchParams.get("maxPrice")) || undefined;
 
-  const pageSize = 9;
+  const pageSize = 12;
+
+  const {
+    data: response,
+    isLoading,
+    isFetching,
+  } = useQuery({
+    queryKey: [
+      "products",
+      category,
+      origin,
+      minAbv,
+      maxAbv,
+      minPrice,
+      maxPrice,
+      cursor,
+    ],
+    queryFn: () =>
+      getFilteredProducts({
+        category,
+        origin,
+        minAbv,
+        maxAbv,
+        minSalePrice: minPrice,
+        maxSalePrice: maxPrice,
+        Cursor: cursor,
+        Size: pageSize,
+      }),
+    placeholderData: (prev) => prev,
+  });
+
+  const products: Products[] = response?.data || [];
+  const nextCursor =
+    products.length === pageSize
+      ? products[products.length - 1].ProductID
+      : null;
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await getFilteredProducts({
-          category,
-          origin,
-          minAbv,
-          maxAbv,
-          minSalePrice: minPrice,
-          maxSalePrice: maxPrice,
-        });
-
-        if (response.success) {
-          const fetchedProducts = response.data || [];
-          setProducts(fetchedProducts);
-          setTotalPages(Math.ceil(fetchedProducts.length / pageSize));
-          setCurrentPage(1);
-        } else {
-          setProducts([]);
-          setTotalPages(1);
-        }
-      } catch (error) {
-        console.error("Fetch products error", error);
-        setProducts([]);
-        setTotalPages(1);
-      }
-    };
-
-    fetchData();
+    setCursor(0);
+    setCursorHistory([0]);
   }, [category, origin, minAbv, maxAbv, minPrice, maxPrice]);
 
-  console.log(products);
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [cursor]);
+
+  const handleNextPage = () => {
+    if (nextCursor !== null) {
+      setCursorHistory([...cursorHistory, nextCursor]);
+      setCursor(nextCursor);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (cursorHistory.length > 1) {
+      const newHistory = [...cursorHistory];
+      newHistory.pop();
+      const previousCursor = newHistory[newHistory.length - 1];
+      setCursor(previousCursor);
+      setCursorHistory(newHistory);
+    }
+  };
 
   return (
     <main className="flex flex-col md:flex-row mt-16 sm:mt-20 md:mt-28 min-h-screen">
@@ -63,7 +92,6 @@ export default function PageClient() {
         <SidebarFilters category={category} />
       </div>
 
-      {/* Mobile Filter - Can be enhanced with Sheet/Drawer */}
       <div className="md:hidden px-4 py-3 border-b">
         <button className="text-sm font-medium text-primary">
           Filters & Sort
@@ -80,21 +108,30 @@ export default function PageClient() {
           </p>
         </div>
 
-        <ProductsGrid
-          products={products}
-          currentPage={currentPage}
-          pageSize={pageSize}
-        />
+        {isLoading || isFetching ? (
+          <div className="flex-1 flex items-center justify-center">
+            <Spinner />
+          </div>
+        ) : (
+          <ProductsGrid products={products} />
+        )}
 
-        {totalPages > 1 && (
-          <ShopPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={(page) => {
-              setCurrentPage(page);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
+        {products.length > 0 && (
+          <div className="flex justify-center items-center my-8">
+            <Button
+              onClick={handlePrevPage}
+              disabled={cursorHistory.length <= 1 || isFetching}
+              className="mr-4"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={handleNextPage}
+              disabled={nextCursor === null || isFetching}
+            >
+              Next
+            </Button>
+          </div>
         )}
       </div>
     </main>

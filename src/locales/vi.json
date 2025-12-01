@@ -1,374 +1,392 @@
 {
-    "header": {
-        "user": "Người dùng",
-        "userPage": "Trang người dùng",
-        "systemManagement": "Quản lý hệ thống",
-        "storeManagement": "Quản lý cửa hàng",
-        "accountManagement": "Quản lý tài khoản cá nhân",
-        "language": "Ngôn ngữ",
-        "logout": "Đăng xuất",
-        "signIn": "Đăng nhập",
-        "signUp": "Đăng ký"
+  "header": {
+    "user": "Người dùng",
+    "userPage": "Trang người dùng",
+    "systemManagement": "Quản lý hệ thống",
+    "storeManagement": "Quản lý cửa hàng",
+    "accountManagement": "Quản lý tài khoản cá nhân",
+    "language": "Ngôn ngữ",
+    "logout": "Đăng xuất",
+    "signIn": "Đăng nhập",
+    "signUp": "Đăng ký"
+  },
+  "languages": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  },
+  "common": {
+    "back": "Quay lại"
+  },
+  "Chatbot": {
+    "aiAssistant": "Trợ lý AI",
+    "placeholder": "Hỏi điều gì đó đi...",
+    "botTyping": "Bot đang nhập...",
+    "welcome": "Xin chào! Tôi có thể giúp gì cho bạn hôm nay?",
+    "welcomeUser": "Xin chào, {username}! Tôi có thể giúp gì cho bạn hôm nay?",
+    "connectionError": "Xin lỗi, tôi đang gặp sự cố kết nối."
+  },
+  "auth": {
+    "signInDialog": {
+      "title": "Đăng nhập",
+      "description": "Nhập thông tin đăng nhập để truy cập tài khoản của bạn",
+      "emailLabel": "Địa chỉ Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "••••••••",
+      "rememberMe": "Ghi nhớ đăng nhập",
+      "forgotPassword": "Quên mật khẩu?",
+      "signInButton": "Đăng nhập",
+      "processing": "Đang xử lý...",
+      "noAccount": "Chưa có tài khoản?",
+      "signUpLink": "Đăng ký",
+      "errors": {
+        "invalidCredentials": "Email hoặc mật khẩu không đúng.",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+      }
     },
-    "languages": {
-        "vi": "Tiếng Việt",
-        "en": "English"
+    "signUpDialog": {
+      "title": "Tạo tài khoản",
+      "description": "Tham gia với chúng tôi để mở khóa những trải nghiệm rượu vang độc quyền",
+      "fullNameLabel": "Họ và tên",
+      "emailLabel": "Địa chỉ Email",
+      "passwordLabel": "Mật khẩu",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "passwordPlaceholder": "••••••••",
+      "phoneLabel": "Số điện thoại",
+      "birthdayLabel": "Ngày sinh",
+      "createButton": "Tạo tài khoản",
+      "processing": "Đang xử lý...",
+      "haveAccount": "Đã có tài khoản?",
+      "signInLink": "Đăng nhập",
+      "errors": {
+        "emailExists": "Email hoặc tên người dùng này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.",
+        "invalidData": "Dữ liệu đăng ký không hợp lệ. Vui lòng kiểm tra lại thông tin của bạn.",
+        "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
+      }
     },
-    "common": {
-        "back": "Quay lại"
+    "forgotPasswordDialog": {
+      "title": "Đặt lại mật khẩu",
+      "description": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
+      "emailLabel": "Địa chỉ Email",
+      "sendButton": "Gửi liên kết đặt lại",
+      "processing": "Đang xử lý...",
+      "rememberPassword": "Nhớ lại mật khẩu?",
+      "backToSignIn": "Quay lại Đăng nhập"
     },
-    "auth": {
-        "signInDialog": {
-            "title": "Đăng nhập",
-            "description": "Nhập thông tin đăng nhập để truy cập tài khoản của bạn",
-            "emailLabel": "Địa chỉ Email",
-            "emailPlaceholder": "you@example.com",
-            "passwordLabel": "Mật khẩu",
-            "passwordPlaceholder": "••••••••",
-            "rememberMe": "Ghi nhớ đăng nhập",
-            "forgotPassword": "Quên mật khẩu?",
-            "signInButton": "Đăng nhập",
-            "processing": "Đang xử lý...",
-            "noAccount": "Chưa có tài khoản?",
-            "signUpLink": "Đăng ký",
-            "errors": {
-                "invalidCredentials": "Email hoặc mật khẩu không đúng.",
-                "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
-            }
-        },
-        "signUpDialog": {
-            "title": "Tạo tài khoản",
-            "description": "Tham gia với chúng tôi để mở khóa những trải nghiệm rượu vang độc quyền",
-            "fullNameLabel": "Họ và tên",
-            "emailLabel": "Địa chỉ Email",
-            "passwordLabel": "Mật khẩu",
-            "confirmPasswordLabel": "Xác nhận mật khẩu",
-            "passwordPlaceholder": "••••••••",
-            "phoneLabel": "Số điện thoại",
-            "birthdayLabel": "Ngày sinh",
-            "createButton": "Tạo tài khoản",
-            "processing": "Đang xử lý...",
-            "haveAccount": "Đã có tài khoản?",
-            "signInLink": "Đăng nhập",
-            "errors": {
-                "emailExists": "Email hoặc tên người dùng này đã được đăng ký. Vui lòng sử dụng email khác hoặc đăng nhập.",
-                "invalidData": "Dữ liệu đăng ký không hợp lệ. Vui lòng kiểm tra lại thông tin của bạn.",
-                "unexpectedError": "Đã xảy ra lỗi không mong muốn. Vui lòng thử lại."
-            }
-        },
-        "forgotPasswordDialog": {
-            "title": "Đặt lại mật khẩu",
-            "description": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn liên kết để đặt lại mật khẩu",
-            "emailLabel": "Địa chỉ Email",
-            "sendButton": "Gửi liên kết đặt lại",
-            "processing": "Đang xử lý...",
-            "rememberPassword": "Nhớ lại mật khẩu?",
-            "backToSignIn": "Quay lại Đăng nhập"
-        },
-        "otpVerification": {
-            "title": "Xác thực Email của bạn",
-            "description": "Chúng tôi đã gửi mã xác thực đến",
-            "enterCode": "Nhập mã 6 chữ số",
-            "timeRemaining": "Thời gian còn lại",
-            "codeExpired": "Mã đã hết hạn. Vui lòng yêu cầu mã mới.",
-            "verifyButton": "Xác thực OTP",
-            "verifying": "Đang xác thực...",
-            "didntReceive": "Không nhận được mã?",
-            "resendOTP": "Gửi lại OTP",
-            "resending": "Đang gửi lại...",
-            "errors": {
-                "enterAllDigits": "Vui lòng nhập đủ 6 chữ số",
-                "invalidOTP": "OTP không hợp lệ. Vui lòng thử lại.",
-                "resendFailed": "Không thể gửi lại OTP"
-            }
-        },
-        "successDialog": {
-            "title": "Đăng ký thành công!",
-            "message": "Tài khoản của bạn đã được tạo thành công. Chào mừng đến với WINEICY!",
-            "continueButton": "Tiếp tục mua sắm",
-            "closeButton": "Đóng"
-        }
+    "otpVerification": {
+      "title": "Xác thực Email của bạn",
+      "description": "Chúng tôi đã gửi mã xác thực đến",
+      "enterCode": "Nhập mã 6 chữ số",
+      "timeRemaining": "Thời gian còn lại",
+      "codeExpired": "Mã đã hết hạn. Vui lòng yêu cầu mã mới.",
+      "verifyButton": "Xác thực OTP",
+      "verifying": "Đang xác thực...",
+      "didntReceive": "Không nhận được mã?",
+      "resendOTP": "Gửi lại OTP",
+      "resending": "Đang gửi lại...",
+      "errors": {
+        "enterAllDigits": "Vui lòng nhập đủ 6 chữ số",
+        "invalidOTP": "OTP không hợp lệ. Vui lòng thử lại.",
+        "resendFailed": "Không thể gửi lại OTP"
+      }
     },
-    "home": {
-        "hero": {
-            "slide1": "Rượu vang đặc biệt cho mọi dịp",
-            "slide2": "Mỗi loại rượu vang có công thức riêng",
-            "slide3": "Nghệ thuật thưởng thức rượu vang",
-            "shopNow": "Mua ngay"
-        }
+    "successDialog": {
+      "title": "Đăng ký thành công!",
+      "message": "Tài khoản của bạn đã được tạo thành công. Chào mừng đến với WINEICY!",
+      "continueButton": "Tiếp tục mua sắm",
+      "closeButton": "Đóng"
+    }
+  },
+  "ForgotPassword": {
+    "title": "Quên mật khẩu",
+    "description": "Nhập địa chỉ email của bạn và chúng tôi sẽ gửi cho bạn một liên kết để đặt lại mật khẩu của bạn.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your.email@example.com",
+    "submitButton": "Gửi đi",
+    "loading": "Đang tải...",
+    "successMessage": "Nếu tài khoản với email đó tồn tại, chúng tôi đã gửi một liên kết đặt lại mật khẩu đến đó.",
+    "unknownError": "Đã xảy ra lỗi không xác định. Vui lòng thử lại."
+  },
+  "home": {
+    "hero": {
+      "slide1": "Rượu vang đặc biệt cho mọi dịp",
+      "slide2": "Mỗi loại rượu vang có công thức riêng",
+      "slide3": "Nghệ thuật thưởng thức rượu vang",
+      "shopNow": "Mua ngay"
+    }
+  },
+  "newsletter": {
+    "stayUpdated": "Cập nhật thông tin",
+    "title": "Đăng ký nhận bản tin",
+    "description": "Đăng ký để nhận thông tin độc quyền về các sản phẩm mới, buổi thử rượu và sự kiện đặc biệt.",
+    "emailPlaceholder": "Nhập email của bạn",
+    "subscribeButton": "Đăng ký",
+    "privacyNote": "Chúng tôi tôn trọng quyền riêng tư của bạn. Hủy đăng ký bất cứ lúc nào."
+  },
+  "footer": {
+    "brandDescription": "Rượu vang cao cấp được chế tác với niềm đam mê và sự tận tâm hướng tới sự xuất sắc.",
+    "collections": {
+      "title": "Bộ sưu tập",
+      "redWines": "Rượu vang đỏ",
+      "whiteWines": "Rượu vang trắng",
+      "roseWines": "Rượu vang hồng"
+    },
+    "company": {
+      "title": "Công ty",
+      "aboutUs": "Về chúng tôi",
+      "events": "Sự kiện",
+      "contact": "Liên hệ"
+    },
+    "followUs": "Theo dõi chúng tôi",
+    "copyright": "© 2025 Ville Noir. Tất cả quyền được bảo lưu.",
+    "privacyPolicy": "Chính sách bảo mật",
+    "termsOfService": "Điều khoản dịch vụ"
+  },
+  "navigation": {
+    "products": "Sản phẩm",
+    "events": "Sự kiện",
+    "blog": "Blog",
+    "contact": "Liên hệ",
+    "search": "Tìm kiếm..."
+  },
+  "statistics": {
+    "qualityWines": "Rượu vang chất lượng trong danh mục",
+    "yearsExperience": "Tổng số năm kinh nghiệm",
+    "customerSatisfaction": "Sự hài lòng của khách hàng"
+  },
+  "testimonials": {
+    "title": "Khách hàng của chúng tôi nói gì"
+  },
+  "collections": {
+    "categoryName": "Bộ sưu tập",
+    "featuredProducts": "Sản phẩm nổi bật"
+  },
+  "parallax": {
+    "ourStory": "Câu chuyện của chúng tôi",
+    "story1": "Vào cuối những năm 1800, hầu hết các vườn nho ở Tasmania đã bị loại bỏ vì khu vực này được coi là quá lạnh để sản xuất rượu vang, và nhiều công nhân đã rời đi để tham gia cơn sốt vàng ở Victoria. Ngành công nghiệp này vẫn im lặng cho đến giữa những năm 1950, khi người sáng lập Wineicy",
+    "founderName": "Alessandro Vieri",
+    "story2": "đã làm sống lại ngành trồng nho địa phương bằng cách trồng 90 cây nho Riesling có nguồn gốc từ những người trồng nho tiên phong ở Nam Úc.",
+    "story3": "Năm 1986, chủ sở hữu của tài sản lịch sử Lowestoft đã mời Wineicy trồng và cung cấp trái Pinot Noir cho nhà máy rượu vang của mình. Khu đất rộng 3 hecta, được trồng hoàn toàn bằng Pinot Noir, sau này đã trở thành một nguồn quan trọng cho các bản phát hành dự trữ của Wineicy dưới sự chăm sóc của chuyên gia trồng nho nổi tiếng",
+    "viticulturistName": "Fred Peacock",
+    "story4": "Năm 2017, Chủ tịch Điều hành Tập đoàn Wineicy",
+    "chairmanName": "Peter Fogarty",
+    "story5": "bắt đầu khám phá các địa điểm vườn nho lịch sử của Tasmania và nhận ra tầm quan trọng của Lowestoft cũng như terroir xung quanh. Wineicy đã mua lại tài sản này vào năm 2019, cùng với Strelley Farm và Gilling Brook, mở ra một kỷ nguyên mới trong sản xuất rượu vang khí hậu mát mẻ ở Tasmania cho thương hiệu.",
+    "timeline": {
+      "firstVines": "Cây nho đầu tiên",
+      "pinotNoir": "Pinot Noir",
+      "newEra": "Kỷ nguyên mới"
+    },
+    "elevateEvenings": "Nâng tầm buổi tối với rượu vang hảo hạng"
+  },
+  "events": {
+    "hero": {
+      "title": "Sự Kiện & Trải Nghiệm",
+      "subtitle": "Tham gia các buổi thử rượu độc quyền, workshop và sự kiện đặc biệt"
+    },
+    "featured": "Sự Kiện Nổi Bật",
+    "bookNow": "Đặt Chỗ Ngay",
+    "filters": {
+      "all": "Tất cả",
+      "tasting": "Thử Rượu",
+      "workshop": "Workshop",
+      "dinner": "Bữa Tối",
+      "festival": "Lễ Hội"
+    },
+    "details": {
+      "date": "Ngày",
+      "time": "Giờ",
+      "location": "Địa Điểm",
+      "price": "Giá",
+      "availableSeats": "Chỗ Còn Trống"
+    }
+  },
+  "blog": {
+    "hero": {
+      "title": "Blog Rượu Vang",
+      "subtitle": "Khám phá thế giới rượu vang qua các bài viết, hướng dẫn và chuyên gia insights"
+    },
+    "latestPost": "Bài Viết Mới Nhất",
+    "readMore": "Đọc Thêm",
+    "readTime": "phút đọc",
+    "searchPlaceholder": "Tìm kiếm bài viết...",
+    "filters": {
+      "all": "Tất cả",
+      "education": "Kiến Thức",
+      "travel": "Du Lịch",
+      "pairing": "Kết Hợp Món Ăn",
+      "storage": "Bảo Quản",
+      "science": "Khoa Học"
     },
     "newsletter": {
-        "stayUpdated": "Cập nhật thông tin",
-        "title": "Đăng ký nhận bản tin",
-        "description": "Đăng ký để nhận thông tin độc quyền về các sản phẩm mới, buổi thử rượu và sự kiện đặc biệt.",
-        "emailPlaceholder": "Nhập email của bạn",
-        "subscribeButton": "Đăng ký",
-        "privacyNote": "Chúng tôi tôn trọng quyền riêng tư của bạn. Hủy đăng ký bất cứ lúc nào."
-    },
-    "footer": {
-        "brandDescription": "Rượu vang cao cấp được chế tác với niềm đam mê và sự tận tâm hướng tới sự xuất sắc.",
-        "collections": {
-            "title": "Bộ sưu tập",
-            "redWines": "Rượu vang đỏ",
-            "whiteWines": "Rượu vang trắng",
-            "roseWines": "Rượu vang hồng"
-        },
-        "company": {
-            "title": "Công ty",
-            "aboutUs": "Về chúng tôi",
-            "events": "Sự kiện",
-            "contact": "Liên hệ"
-        },
-        "followUs": "Theo dõi chúng tôi",
-        "copyright": "© 2025 Ville Noir. Tất cả quyền được bảo lưu.",
-        "privacyPolicy": "Chính sách bảo mật",
-        "termsOfService": "Điều khoản dịch vụ"
-    },
-    "navigation": {
-        "products": "Sản phẩm",
-        "events": "Sự kiện",
-        "blog": "Blog",
-        "contact": "Liên hệ",
-        "search": "Tìm kiếm..."
-    },
-    "statistics": {
-        "qualityWines": "Rượu vang chất lượng trong danh mục",
-        "yearsExperience": "Tổng số năm kinh nghiệm",
-        "customerSatisfaction": "Sự hài lòng của khách hàng"
-    },
-    "testimonials": {
-        "title": "Khách hàng của chúng tôi nói gì"
-    },
-    "collections": {
-        "categoryName": "Bộ sưu tập",
-        "featuredProducts": "Sản phẩm nổi bật"
-    },
-    "parallax": {
-        "ourStory": "Câu chuyện của chúng tôi",
-        "story1": "Vào cuối những năm 1800, hầu hết các vườn nho ở Tasmania đã bị loại bỏ vì khu vực này được coi là quá lạnh để sản xuất rượu vang, và nhiều công nhân đã rời đi để tham gia cơn sốt vàng ở Victoria. Ngành công nghiệp này vẫn im lặng cho đến giữa những năm 1950, khi người sáng lập Wineicy",
-        "founderName": "Alessandro Vieri",
-        "story2": "đã làm sống lại ngành trồng nho địa phương bằng cách trồng 90 cây nho Riesling có nguồn gốc từ những người trồng nho tiên phong ở Nam Úc.",
-        "story3": "Năm 1986, chủ sở hữu của tài sản lịch sử Lowestoft đã mời Wineicy trồng và cung cấp trái Pinot Noir cho nhà máy rượu vang của mình. Khu đất rộng 3 hecta, được trồng hoàn toàn bằng Pinot Noir, sau này đã trở thành một nguồn quan trọng cho các bản phát hành dự trữ của Wineicy dưới sự chăm sóc của chuyên gia trồng nho nổi tiếng",
-        "viticulturistName": "Fred Peacock",
-        "story4": "Năm 2017, Chủ tịch Điều hành Tập đoàn Wineicy",
-        "chairmanName": "Peter Fogarty",
-        "story5": "bắt đầu khám phá các địa điểm vườn nho lịch sử của Tasmania và nhận ra tầm quan trọng của Lowestoft cũng như terroir xung quanh. Wineicy đã mua lại tài sản này vào năm 2019, cùng với Strelley Farm và Gilling Brook, mở ra một kỷ nguyên mới trong sản xuất rượu vang khí hậu mát mẻ ở Tasmania cho thương hiệu.",
-        "timeline": {
-            "firstVines": "Cây nho đầu tiên",
-            "pinotNoir": "Pinot Noir",
-            "newEra": "Kỷ nguyên mới"
-        },
-        "elevateEvenings": "Nâng tầm buổi tối với rượu vang hảo hạng"
-    },
-    "events": {
-        "hero": {
-            "title": "Sự Kiện & Trải Nghiệm",
-            "subtitle": "Tham gia các buổi thử rượu độc quyền, workshop và sự kiện đặc biệt"
-        },
-        "featured": "Sự Kiện Nổi Bật",
-        "bookNow": "Đặt Chỗ Ngay",
-        "filters": {
-            "all": "Tất cả",
-            "tasting": "Thử Rượu",
-            "workshop": "Workshop",
-            "dinner": "Bữa Tối",
-            "festival": "Lễ Hội"
-        },
-        "details": {
-            "date": "Ngày",
-            "time": "Giờ",
-            "location": "Địa Điểm",
-            "price": "Giá",
-            "availableSeats": "Chỗ Còn Trống"
-        }
-    },
-    "blog": {
-        "hero": {
-            "title": "Blog Rượu Vang",
-            "subtitle": "Khám phá thế giới rượu vang qua các bài viết, hướng dẫn và chuyên gia insights"
-        },
-        "latestPost": "Bài Viết Mới Nhất",
-        "readMore": "Đọc Thêm",
-        "readTime": "phút đọc",
-        "searchPlaceholder": "Tìm kiếm bài viết...",
-        "filters": {
-            "all": "Tất cả",
-            "education": "Kiến Thức",
-            "travel": "Du Lịch",
-            "pairing": "Kết Hợp Món Ăn",
-            "storage": "Bảo Quản",
-            "science": "Khoa Học"
-        },
-        "newsletter": {
-            "title": "Không Bỏ Lỡ Bài Viết Mới",
-            "description": "Đăng ký để nhận bài viết và mẹo về rượu vang mới nhất",
-            "subscribe": "Đăng Ký Ngay"
-        }
-    },
-    "contact": {
-        "hero": {
-            "title": "Liên Hệ Với Chúng Tôi",
-            "subtitle": "Chúng tôi rất mong nhận được phản hồi từ bạn. Liên hệ với đội ngũ của chúng tôi"
-        },
-        "info": {
-            "visit": {
-                "title": "Ghé Thăm",
-                "address": "123 Wine Street, Downtown\nSan Francisco, CA 94102"
-            },
-            "call": {
-                "title": "Gọi Cho Chúng Tôi",
-                "phones": "+1 (555) 123-4567\n+1 (555) 987-6543"
-            },
-            "email": {
-                "title": "Email",
-                "addresses": "info@wineicy.com\nsupport@wineicy.com"
-            },
-            "hours": {
-                "title": "Giờ Làm Việc",
-                "schedule": "Thứ 2 - Thứ 6: 9AM - 8PM\nThứ 7 - CN: 10AM - 6PM"
-            }
-        },
-        "form": {
-            "title": "Gửi Tin Nhắn Cho Chúng Tôi",
-            "description": "Có câu hỏi hoặc phản hồi? Điền vào form bên dưới và chúng tôi sẽ phản hồi sớm nhất có thể.",
-            "fullName": "Họ và Tên",
-            "fullNamePlaceholder": "Nguyễn Văn A",
-            "email": "Địa Chỉ Email",
-            "emailPlaceholder": "email@example.com",
-            "phone": "Số Điện Thoại",
-            "phonePlaceholder": "+84 (0) 000-0000",
-            "subject": "Tiêu Đề",
-            "subjectPlaceholder": "Chúng tôi có thể giúp gì?",
-            "message": "Tin Nhắn",
-            "messagePlaceholder": "Cho chúng tôi biết thêm về yêu cầu của bạn...",
-            "sendButton": "Gửi Tin Nhắn",
-            "sending": "Đang gửi...",
-            "required": "*"
-        },
-        "whyVisit": {
-            "title": "Tại Sao Nên Ghé Thăm?",
-            "items": {
-                "consultation": {
-                    "title": "Tư Vấn Chuyên Gia",
-                    "description": "Nhận gợi ý rượu vang cá nhân hóa từ các sommelier của chúng tôi"
-                },
-                "tastingRoom": {
-                    "title": "Phòng Thử Rượu",
-                    "description": "Thưởng thức bộ sưu tập cao cấp trong phòng thử rượu sang trọng"
-                },
-                "privateEvents": {
-                    "title": "Sự Kiện Riêng Tư",
-                    "description": "Đặt địa điểm cho các dịp đặc biệt và lễ kỷ niệm"
-                }
-            }
-        },
-        "followUs": "Theo Dõi Chúng Tôi",
-        "faq": {
-            "title": "Câu Hỏi Thường Gặp",
-            "subtitle": "Tìm câu trả lời nhanh cho các câu hỏi phổ biến",
-            "items": {
-                "shipping": {
-                    "q": "Chính sách giao hàng của bạn là gì?",
-                    "a": "Chúng tôi miễn phí giao hàng cho đơn hàng trên $150 trong nước Mỹ. Giao hàng quốc tế có sẵn với phí được tính tại thanh toán."
-                },
-                "tastings": {
-                    "q": "Bạn có tổ chức buổi thử rượu không?",
-                    "a": "Có! Chúng tôi thường xuyên tổ chức các sự kiện thử rượu. Xem trang Sự Kiện để biết các buổi sắp tới và đặt chỗ."
-                },
-                "returns": {
-                    "q": "Tôi có thể trả lại rượu nếu không thích không?",
-                    "a": "Chúng tôi có chính sách đảm bảo hài lòng 30 ngày. Nếu bạn không hài lòng với giao dịch mua hàng, liên hệ với chúng tôi để được hoàn tiền hoặc đổi hàng."
-                },
-                "states": {
-                    "q": "Bạn có giao hàng đến tất cả các bang không?",
-                    "a": "Chúng tôi giao hàng đến hầu hết các bang ở Mỹ. Do quy định địa phương, một số hạn chế có thể áp dụng. Kiểm tra tình trạng có sẵn trong quá trình thanh toán."
-                }
-            }
-        }
-    },
-    "cart": {
-        "title": "Giỏ Hàng Của Bạn",
-        "itemCount": "Bạn có {{count}} sản phẩm trong giỏ hàng.",
-        "table": {
-            "product": "Sản Phẩm",
-            "price": "Giá",
-            "quantity": "Số Lượng",
-            "total": "Tổng",
-            "action": "Thao Tác"
-        },
-        "summary": {
-            "title": "Tóm Tắt Đơn Hàng",
-            "subtotal": "Tạm Tính",
-            "discount": "Giảm Giá",
-            "tax": "Thuế",
-            "total": "Tổng Cộng",
-            "promoCode": "Mã Khuyến Mãi",
-            "promoPlaceholder": "Nhập mã khuyến mãi",
-            "applyButton": "Áp Dụng",
-            "checkoutButton": "Thanh Toán",
-            "clearCartButton": "Xóa Giỏ Hàng"
-        },
-        "toast": {
-            "quantityUpdated": "Đã cập nhật số lượng thành công!",
-            "itemRemoved": "Đã xóa sản phẩm khỏi giỏ hàng.",
-            "cartCleared": "Đã xóa giỏ hàng thành công!",
-            "promoApplied": "Đã áp dụng mã khuyến mãi thành công!",
-            "invalidPromo": "Mã khuyến mãi không hợp lệ."
-        }
-    },
-    "admin": {
-        "orders": {
-            "title": "Quản Lý Đơn Hàng",
-            "searchPlaceholder": "Tìm kiếm theo Mã đơn hàng, Trạng thái, hoặc Địa chỉ...",
-            "exportButton": "Xuất",
-            "tableHeaders": {
-                "orderId": "Mã Đơn Hàng",
-                "customerId": "Mã Khách Hàng",
-                "totalAmount": "Tổng Tiền",
-                "status": "Trạng Thái",
-                "paymentMethod": "Phương Thức Thanh Toán",
-                "createdAt": "Ngày Tạo"
-            },
-            "status": {
-                "pending": "Chờ Xử Lý",
-                "processing": "Đang Xử Lý",
-                "shipped": "Đã Gửi",
-                "delivered": "Đã Giao",
-                "cancelled": "Đã Hủy"
-            },
-            "noOrders": "Không tìm thấy đơn hàng nào",
-            "noOrdersSearch": "Không tìm thấy đơn hàng nào phù hợp với tìm kiếm của bạn",
-            "loading": "Đang tải đơn hàng...",
-            "clickToViewDetails": "Nhấp để xem chi tiết đơn hàng",
-            "exportSuccess": "Đã xuất đơn hàng thành công",
-            "exportError": "Lỗi khi xuất đơn hàng"
-        },
-        "orderDetail": {
-            "title": "Chi Tiết Đơn Hàng",
-            "subtitle": "Xem và quản lý thông tin đơn hàng",
-            "backToOrders": "Quay Lại Danh Sách Đơn Hàng",
-            "exportPdf": "Xuất PDF",
-            "orderId": "Mã Đơn Hàng",
-            "customerId": "Mã Khách Hàng",
-            "totalAmount": "Tổng Tiền",
-            "status": "Trạng Thái",
-            "paymentMethod": "Phương Thức Thanh Toán",
-            "createdAt": "Ngày Tạo",
-            "customerInfo": "Thông Tin Khách Hàng",
-            "customerName": "Tên Khách Hàng",
-            "email": "Email",
-            "shippingAddress": "Địa Chỉ Giao Hàng",
-            "orderItems": "Sản Phẩm Đặt Hàng",
-            "quantity": "Số Lượng",
-            "unitPrice": "Đơn Giá",
-            "finalPrice": "Thành Tiền",
-            "saveChanges": "Lưu Thay Đổi",
-            "saving": "Đang Lưu...",
-            "cancel": "Hủy",
-            "orderNotFound": "Không Tìm Thấy Đơn Hàng",
-            "loadingOrder": "Đang Tải Chi Tiết Đơn Hàng...",
-            "updateSuccess": "Cập nhật đơn hàng thành công!",
-            "updateError": "Lỗi khi cập nhật đơn hàng"
-        }
+      "title": "Không Bỏ Lỡ Bài Viết Mới",
+      "description": "Đăng ký để nhận bài viết và mẹo về rượu vang mới nhất",
+      "subscribe": "Đăng Ký Ngay"
     }
+  },
+  "contact": {
+    "hero": {
+      "title": "Liên Hệ Với Chúng Tôi",
+      "subtitle": "Chúng tôi rất mong nhận được phản hồi từ bạn. Liên hệ với đội ngũ của chúng tôi"
+    },
+    "info": {
+      "visit": {
+        "title": "Ghé Thăm",
+        "address": "363 Nguyễn Hữu Thọ, Cẩm Lệ, Đà Nẵng, Việt Nam"
+      },
+      "call": {
+        "title": "Gọi Cho Chúng Tôi",
+        "phones": "+1 (555) 123-4567\n+1 (555) 987-6543"
+      },
+      "email": {
+        "title": "Email",
+        "addresses": "info@wineicy.com\nsupport@wineicy.com"
+      },
+      "hours": {
+        "title": "Giờ Làm Việc",
+        "schedule": "Thứ 2 - Thứ 6: 9AM - 8PM\nThứ 7 - CN: 10AM - 6PM"
+      }
+    },
+    "form": {
+      "title": "Gửi Tin Nhắn Cho Chúng Tôi",
+      "description": "Có câu hỏi hoặc phản hồi? Điền vào form bên dưới và chúng tôi sẽ phản hồi sớm nhất có thể.",
+      "fullName": "Họ và Tên",
+      "fullNamePlaceholder": "Nguyễn Văn A",
+      "email": "Địa Chỉ Email",
+      "emailPlaceholder": "email@example.com",
+      "phone": "Số Điện Thoại",
+      "phonePlaceholder": "+84 (0) 000-0000",
+      "subject": "Tiêu Đề",
+      "subjectPlaceholder": "Chúng tôi có thể giúp gì?",
+      "message": "Tin Nhắn",
+      "messagePlaceholder": "Cho chúng tôi biết thêm về yêu cầu của bạn...",
+      "sendButton": "Gửi Tin Nhắn",
+      "sending": "Đang gửi...",
+      "required": "*"
+    },
+    "whyVisit": {
+      "title": "Tại Sao Nên Ghé Thăm?",
+      "items": {
+        "consultation": {
+          "title": "Tư Vấn Chuyên Gia",
+          "description": "Nhận gợi ý rượu vang cá nhân hóa từ các sommelier của chúng tôi"
+        },
+        "tastingRoom": {
+          "title": "Phòng Thử Rượu",
+          "description": "Thưởng thức bộ sưu tập cao cấp trong phòng thử rượu sang trọng"
+        },
+        "privateEvents": {
+          "title": "Sự Kiện Riêng Tư",
+          "description": "Đặt địa điểm cho các dịp đặc biệt và lễ kỷ niệm"
+        }
+      }
+    },
+    "followUs": "Theo Dõi Chúng Tôi",
+    "faq": {
+      "title": "Câu Hỏi Thường Gặp",
+      "subtitle": "Tìm câu trả lời nhanh cho các câu hỏi phổ biến",
+      "items": {
+        "shipping": {
+          "q": "Chính sách giao hàng của bạn là gì?",
+          "a": "Chúng tôi miễn phí giao hàng cho đơn hàng trên $150 trong nước Mỹ. Giao hàng quốc tế có sẵn với phí được tính tại thanh toán."
+        },
+        "tastings": {
+          "q": "Bạn có tổ chức buổi thử rượu không?",
+          "a": "Có! Chúng tôi thường xuyên tổ chức các sự kiện thử rượu. Xem trang Sự Kiện để biết các buổi sắp tới và đặt chỗ."
+        },
+        "returns": {
+          "q": "Tôi có thể trả lại rượu nếu không thích không?",
+          "a": "Chúng tôi có chính sách đảm bảo hài lòng 30 ngày. Nếu bạn không hài lòng với giao dịch mua hàng, liên hệ với chúng tôi để được hoàn tiền hoặc đổi hàng."
+        },
+        "states": {
+          "q": "Bạn có giao hàng đến tất cả các bang không?",
+          "a": "Chúng tôi giao hàng đến hầu hết các bang ở Mỹ. Do quy định địa phương, một số hạn chế có thể áp dụng. Kiểm tra tình trạng có sẵn trong quá trình thanh toán."
+        }
+      }
+    }
+  },
+  "cart": {
+    "title": "Giỏ Hàng Của Bạn",
+    "itemCount": "Bạn có {{count}} sản phẩm trong giỏ hàng.",
+    "table": {
+      "product": "Sản Phẩm",
+      "price": "Giá",
+      "quantity": "Số Lượng",
+      "total": "Tổng",
+      "action": "Thao Tác"
+    },
+    "summary": {
+      "title": "Tóm Tắt Đơn Hàng",
+      "subtotal": "Tạm Tính",
+      "discount": "Giảm Giá",
+      "tax": "Thuế",
+      "total": "Tổng Cộng",
+      "promoCode": "Mã Khuyến Mãi",
+      "promoPlaceholder": "Nhập mã khuyến mãi",
+      "applyButton": "Áp Dụng",
+      "checkoutButton": "Thanh Toán",
+      "clearCartButton": "Xóa Giỏ Hàng"
+    },
+    "toast": {
+      "quantityUpdated": "Đã cập nhật số lượng thành công!",
+      "itemRemoved": "Đã xóa sản phẩm khỏi giỏ hàng.",
+      "cartCleared": "Đã xóa giỏ hàng thành công!",
+      "promoApplied": "Đã áp dụng mã khuyến mãi thành công!",
+      "invalidPromo": "Mã khuyến mãi không hợp lệ."
+    }
+  },
+  "admin": {
+    "orders": {
+      "title": "Quản Lý Đơn Hàng",
+      "searchPlaceholder": "Tìm kiếm theo Mã đơn hàng, Trạng thái, hoặc Địa chỉ...",
+      "exportButton": "Xuất",
+      "tableHeaders": {
+        "orderId": "Mã Đơn Hàng",
+        "customerId": "Mã Khách Hàng",
+        "totalAmount": "Tổng Tiền",
+        "status": "Trạng Thái",
+        "paymentMethod": "Phương Thức Thanh Toán",
+        "createdAt": "Ngày Tạo"
+      },
+      "status": {
+        "pending": "Chờ Xử Lý",
+        "processing": "Đang Xử Lý",
+        "shipped": "Đã Gửi",
+        "delivered": "Đã Giao",
+        "cancelled": "Đã Hủy"
+      },
+      "noOrders": "Không tìm thấy đơn hàng nào",
+      "noOrdersSearch": "Không tìm thấy đơn hàng nào phù hợp với tìm kiếm của bạn",
+      "loading": "Đang tải đơn hàng...",
+      "clickToViewDetails": "Nhấp để xem chi tiết đơn hàng",
+      "exportSuccess": "Đã xuất đơn hàng thành công",
+      "exportError": "Lỗi khi xuất đơn hàng"
+    },
+    "orderDetail": {
+      "title": "Chi Tiết Đơn Hàng",
+      "subtitle": "Xem và quản lý thông tin đơn hàng",
+      "backToOrders": "Quay Lại Danh Sách Đơn Hàng",
+      "exportPdf": "Xuất PDF",
+      "orderId": "Mã Đơn Hàng",
+      "customerId": "Mã Khách Hàng",
+      "totalAmount": "Tổng Tiền",
+      "status": "Trạng Thái",
+      "paymentMethod": "Phương Thức Thanh Toán",
+      "createdAt": "Ngày Tạo",
+      "customerInfo": "Thông Tin Khách Hàng",
+      "customerName": "Tên Khách Hàng",
+      "email": "Email",
+      "shippingAddress": "Địa Chỉ Giao Hàng",
+      "orderItems": "Sản Phẩm Đặt Hàng",
+      "quantity": "Số Lượng",
+      "unitPrice": "Đơn Giá",
+      "finalPrice": "Thành Tiền",
+      "saveChanges": "Lưu Thay Đổi",
+      "saving": "Đang Lưu...",
+      "cancel": "Hủy",
+      "orderNotFound": "Không Tìm Thấy Đơn Hàng",
+      "loadingOrder": "Đang Tải Chi Tiết Đơn Hàng...",
+      "updateSuccess": "Cập nhật đơn hàng thành công!",
+      "updateError": "Lỗi khi cập nhật đơn hàng"
+    }
+  }
 }

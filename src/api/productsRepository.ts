@@ -96,9 +96,7 @@ class ProductsRepository extends BaseRepository {
    */
   async updateProductPut(id: number, productData: Partial<Product>): Promise<UpdateProductResponse> {
     try {
-      console.log('Updating product with PUT:', { id, productData });
       const response = await api.put(`${this.endpoint}/${id}`, productData);
-      console.log('Update response:', response.data);
       return response.data;
     } catch (error: any) {
       console.error('Full error object:', error);

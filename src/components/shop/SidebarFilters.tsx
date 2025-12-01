@@ -6,18 +6,23 @@ import { ChevronDown } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-
-// --- MOCK DATA ---
-import { wineCategories, whiskyCategories } from "@/data/shop";
 import { formatCurrency } from "@/lib/utils";
 
 const origins = [
-  { id: "france", label: "France" },
-  { id: "italy", label: "Italy" },
-  { id: "chile", label: "Chile" },
-  { id: "scotland", label: "Scotland" },
-  { id: "usa", label: "USA" },
-  { id: "vietnam", label: "Vietnam" },
+  { id: "Mỹ", label: "Mỹ" },
+  { id: "Argentina", label: "Argentina" },
+  { id: "New Zealand", label: "New Zealand" },
+  { id: "TBN", label: "TBN" },
+  { id: "Ý", label: "Ý" },
+  { id: "Hungary", label: "Hungary" },
+  { id: "Chile", label: "Chile" },
+  { id: "Pháp", label: "Pháp" },
+  { id: "Bồ Đào Nha", label: "Bồ Đào Nha" },
+  { id: "Scotland", label: "Scotland" },
+  { id: "Tây Ban Nha", label: "Tây Ban Nha" },
+  { id: "Đức", label: "Đức" },
+  { id: "Úc", label: "Úc" },
+  { id: "Nam Phi", label: "Nam Phi" },
 ];
 
 interface SidebarFiltersProps {
@@ -38,19 +43,19 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
   });
 
   // 2. STATE LOCAL: Để slider mượt mà khi kéo (Price & ABV)
-  const [priceRange, setPriceRange] = useState([0, 10000000]); // 0 - 10 triệu
-  const [abvRange, setAbvRange] = useState([0, 60]); // 0% - 60%
+  const [priceRange, setPriceRange] = useState([0, 260000000]); // 0 - 260 triệu
+  const [abvRange, setAbvRange] = useState([0, 65]); // 0% - 60%
 
   // 3. EFFECT: Đồng bộ URL xuống State khi load trang hoặc URL đổi
   useEffect(() => {
     // Sync Price
     const minP = Number(searchParams.get("minPrice")) || 0;
-    const maxP = Number(searchParams.get("maxPrice")) || 10000000;
+    const maxP = Number(searchParams.get("maxPrice")) || 260000000;
     setPriceRange([minP, maxP]);
 
     // Sync ABV
     const minA = Number(searchParams.get("minAbv")) || 0;
-    const maxA = Number(searchParams.get("maxAbv")) || 60;
+    const maxA = Number(searchParams.get("maxAbv")) || 65;
     setAbvRange([minA, maxA]);
   }, [searchParams]);
 
@@ -111,13 +116,6 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
     return params.includes(value);
   };
 
-  const displayCategories =
-    category === "Wine"
-      ? wineCategories
-      : category === "Whisky"
-        ? whiskyCategories
-        : [];
-
   // Helper render Header
   const renderHeader = (title: string, key: keyof typeof openSections) => (
     <h3
@@ -127,8 +125,9 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
       <span>{title}</span>
       <ChevronDown
         size={16}
-        className={`transform transition-transform duration-200 ${openSections[key] ? "rotate-180" : ""
-          }`}
+        className={`transform transition-transform duration-200 ${
+          openSections[key] ? "rotate-180" : ""
+        }`}
       />
     </h3>
   );
@@ -149,42 +148,6 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
           </Button>
         )}
       </div>
-
-      {/* 1. CATEGORY */}
-      {displayCategories.length > 0 && (
-        <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
-          {renderHeader("Categories", "category")}
-          {openSections.category && (
-            <ul className="space-y-1">
-              {displayCategories.map((cat) => (
-                <li
-                  key={cat.id}
-                  className={`flex justify-between cursor-pointer p-2 rounded transition-colors text-sm ${searchParams.get("subcategory") === cat.name
-                    ? "bg-primary/10 text-primary font-medium"
-                    : "hover:bg-muted text-foreground"
-                    }`}
-                  onClick={() =>
-                    updateParam(
-                      "subcategory",
-                      cat.name === searchParams.get("subcategory")
-                        ? null
-                        : cat.name
-                    )
-                  }
-                >
-                  <span>{cat.name}</span>
-                  {cat.count && (
-                    <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                      {cat.count}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
-
       {/* 2. ORIGIN */}
       <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border/50">
         {renderHeader("Origin / Region", "origin")}
@@ -220,7 +183,7 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
               onValueChange={setAbvRange}
               onValueCommit={handleAbvCommit}
               min={0}
-              max={60}
+              max={65}
               step={0.5}
               className="w-full mb-3 sm:mb-4"
             />
@@ -242,8 +205,8 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
               onValueChange={setPriceRange}
               onValueCommit={handlePriceCommit}
               min={0}
-              max={10000000} // Max 10 triệu, tuỳ chỉnh theo data
-              step={50000} // Bước nhảy 50k
+              max={260000000} // Max 260 triệu, tuỳ chỉnh theo data
+              step={500000} // Bước nhảy 500k
               className="w-full mb-3 sm:mb-4"
             />
             <div className="flex justify-between text-[10px] sm:text-xs font-medium text-muted-foreground">

@@ -51,7 +51,6 @@ export default function ProductsToolbar({
         if (onCreateProduct) {
             await onCreateProduct(data);
         } else {
-            console.log("Creating product discount:", data);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             alert("Product discount created successfully!");
         }
