@@ -182,7 +182,7 @@ export default function CheckoutPage() {
         paymentMethod === "cod" ? PAYMENT_METHODS.COD : PAYMENT_METHODS.VNPAY,
       ReturnUrl:
         `${process.env.BE_API_URL}/payment/return` ||
-        "http://localhost:3000/payment/return",
+        "https://erpsystem.io.vn/payment/return",
     };
 
     // 3. Call API Checkout
