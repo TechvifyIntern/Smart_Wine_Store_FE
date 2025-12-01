@@ -181,7 +181,7 @@ export function AuthDialog({
 
   const onForgotPasswordSubmit = async (data: ForgotPasswordInput) => {
     try {
-      await forgotPassword(data.email);
+      await forgotPassword(data);
       toast.success("Password reset link sent to your email.");
       onOpenChange(false);
       forgotPasswordForm.reset();

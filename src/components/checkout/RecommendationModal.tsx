@@ -88,7 +88,10 @@ export function RecommendationModal({
                       size="sm"
                       className="w-full mt-4"
                       onClick={() =>
-                        window.open(`/products/${product.product_id}`, "_blank")
+                        window.open(
+                          `/product-detail/${product.product_id}`,
+                          "_blank"
+                        )
                       }
                     >
                       View Details
