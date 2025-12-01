@@ -2,7 +2,16 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Mail, Lock, User, Phone, Calendar, Eye, EyeOff, Check } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  Phone,
+  Calendar,
+  Eye,
+  EyeOff,
+  Check,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,9 +34,17 @@ import {
   type OtpInput,
 } from "@/validations/auth";
 import { useAppStore } from "@/store/auth";
-import { signIn, signUp, verifyOtp, resendOtp } from "@/services/auth/api";
+import {
+  signIn,
+  signUp,
+  verifyOtp,
+  resendOtp,
+  forgotPassword,
+} from "@/services/auth/api";
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import userManagementRepository from "@/api/userManagementRepository";
+import { toast } from "sonner";
 
 type AuthMode = "signin" | "signup" | "forgot" | "otp";
 
@@ -125,7 +142,9 @@ export function AuthDialog({
       } else {
         signUpForm.setError("root", {
           type: "manual",
-          message: error.response?.data?.message || t("auth.signUpDialog.errors.unexpectedError"),
+          message:
+            error.response?.data?.message ||
+            t("auth.signUpDialog.errors.unexpectedError"),
         });
       }
     }
@@ -133,7 +152,10 @@ export function AuthDialog({
 
   const onOtpSubmit = async (data: OtpInput) => {
     try {
-      const { accessToken, refreshToken } = await verifyOtp(emailForOtp, data.otp);
+      const { accessToken, refreshToken } = await verifyOtp(
+        emailForOtp,
+        data.otp
+      );
       setTokens(accessToken, refreshToken);
       onOpenChange(false);
       otpForm.reset();
@@ -151,7 +173,6 @@ export function AuthDialog({
     try {
       await resendOtp(emailForOtp);
       // Optionally, show a success message to the user
-      console.log("OTP resent successfully");
     } catch (error) {
       console.error("Resend OTP error:", error);
       // Optionally, show an error message
@@ -160,12 +181,17 @@ export function AuthDialog({
 
   const onForgotPasswordSubmit = async (data: ForgotPasswordInput) => {
     try {
-      console.log("[v0] Forgot password submitted:", data);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await forgotPassword(data);
+      toast.success("Password reset link sent to your email.");
       onOpenChange(false);
       forgotPasswordForm.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Forgot password error:", error);
+      forgotPasswordForm.setError("root", {
+        type: "manual",
+        message:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
     }
   };
 
@@ -217,7 +243,10 @@ export function AuthDialog({
         </DialogHeader>
 
         {mode === "otp" && (
-          <form onSubmit={otpForm.handleSubmit(onOtpSubmit)} className="space-y-4">
+          <form
+            onSubmit={otpForm.handleSubmit(onOtpSubmit)}
+            className="space-y-4"
+          >
             <div className="space-y-2">
               <Label htmlFor="otp">OTP Code</Label>
               <Input
@@ -225,18 +254,29 @@ export function AuthDialog({
                 type="text"
                 maxLength={6}
                 {...otpForm.register("otp")}
+                className="dark:border-white/20"
               />
               {otpForm.formState.errors.otp && (
-                <p className="text-sm text-red-500">{otpForm.formState.errors.otp.message}</p>
+                <p className="text-sm text-red-500">
+                  {otpForm.formState.errors.otp.message}
+                </p>
               )}
             </div>
-            <Button type="submit" className="w-full">Verify</Button>
+            <Button type="submit" className="w-full">
+              Verify
+            </Button>
             {otpForm.formState.errors.root && (
-              <p className="text-sm text-red-500 text-center">{otpForm.formState.errors.root.message}</p>
+              <p className="text-sm text-red-500 text-center">
+                {otpForm.formState.errors.root.message}
+              </p>
             )}
             <div className="text-center text-sm">
               Didn't receive the code?{" "}
-              <button type="button" onClick={handleResendOtp} className="text-primary hover:underline">
+              <button
+                type="button"
+                onClick={handleResendOtp}
+                className="text-primary hover:underline"
+              >
                 Resend OTP
               </button>
             </div>
@@ -334,7 +374,9 @@ export function AuthDialog({
               className="w-full bg-primary hover:bg-primary/90"
               disabled={signInForm.formState.isSubmitting}
             >
-              {signInForm.formState.isSubmitting ? t("auth.signInDialog.processing") : t("auth.signInDialog.signInButton")}
+              {signInForm.formState.isSubmitting
+                ? t("auth.signInDialog.processing")
+                : t("auth.signInDialog.signInButton")}
             </Button>
             {signInForm.formState.errors.root && (
               <p className="text-sm text-red-500 text-center">
@@ -425,7 +467,10 @@ export function AuthDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ConfirmPassword" className="flex items-center gap-2">
+              <Label
+                htmlFor="ConfirmPassword"
+                className="flex items-center gap-2"
+              >
                 <Lock className="w-4 h-4" />
                 {t("auth.signUpDialog.confirmPasswordLabel")}
               </Label>
@@ -442,7 +487,8 @@ export function AuthDialog({
                 <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                   {signUpForm.watch("Password") &&
                     signUpForm.watch("ConfirmPassword") &&
-                    signUpForm.watch("Password") === signUpForm.watch("ConfirmPassword") &&
+                    signUpForm.watch("Password") ===
+                      signUpForm.watch("ConfirmPassword") &&
                     !signUpForm.formState.errors.ConfirmPassword && (
                       <Check className="w-5 h-5 text-green-500" />
                     )}
@@ -588,12 +634,14 @@ export function AuthDialog({
                 }
                 className="text-primary hover:underline font-medium"
               >
-                {mode === "signin" ? t("auth.signInDialog.signUpLink") : t("auth.signUpDialog.signInLink")}
+                {mode === "signin"
+                  ? t("auth.signInDialog.signUpLink")
+                  : t("auth.signUpDialog.signInLink")}
               </button>
             </p>
           )}
         </div>
       </DialogContent>
-    </Dialog >
+    </Dialog>
   );
 }

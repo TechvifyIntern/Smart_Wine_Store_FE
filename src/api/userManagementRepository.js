@@ -1,9 +1,9 @@
-import { api } from '@/services/api';
-import BaseRepository from './baseRepository';
+import { api } from "@/services/api";
+import BaseRepository from "./baseRepository";
 
 class UserManagementRepository extends BaseRepository {
   constructor() {
-    super('/user-management');
+    super("/user-management");
   }
 
   /**
@@ -20,18 +20,23 @@ class UserManagementRepository extends BaseRepository {
   async getUsers(params = {}) {
     const response = await this.getAll(params);
     // Ensure all required fields are present with defaults
-    const users = response.data.data.map(user => ({
+    const users = response.data.data.map((user) => ({
       ...user,
       MinimumPoint: user.MinimumPoint ?? 0,
-      StreetAddress: user.StreetAddress ?? '',
-      Ward: user.Ward ?? '',
-      Province: user.Province ?? '',
+      StreetAddress: user.StreetAddress ?? "",
+      Ward: user.Ward ?? "",
+      Province: user.Province ?? "",
       Point: user.Point ?? 0,
-      StatusName: user.StatusID === 1 ? 'Active' : user.StatusID === 2 ? 'Inactive' : user.StatusName
+      StatusName:
+        user.StatusID === 1
+          ? "Active"
+          : user.StatusID === 2
+            ? "Inactive"
+            : user.StatusName,
     }));
     return {
       data: users, // Extract the data array from the paginated response
-      total: response.data.total // Extract the total count
+      total: response.data.total, // Extract the total count
     };
   }
 
@@ -44,7 +49,7 @@ class UserManagementRepository extends BaseRepository {
   async searchUsers(username, page = 1, size = 10) {
     try {
       const response = await api.get(`${this.endpoint}/search`, {
-        params: { username, page, size }
+        params: { username, page, size },
       });
       return response.data;
     } catch (error) {
@@ -52,7 +57,6 @@ class UserManagementRepository extends BaseRepository {
     }
   }
 
-  
   /**
    * Get user by ID
    * @param {number} id - User ID
@@ -65,13 +69,13 @@ class UserManagementRepository extends BaseRepository {
       return {
         ...data,
         MinimumPoint: data.MinimumPoint ?? 0, // Provide default if missing
-        StreetAddress: data.StreetAddress ?? '',
-        Ward: data.Ward ?? '',
-        Province: data.Province ?? '',
-        Point: data.Point ?? 0 // Ensure Point is never undefined
+        StreetAddress: data.StreetAddress ?? "",
+        Ward: data.Ward ?? "",
+        Province: data.Province ?? "",
+        Point: data.Point ?? 0, // Ensure Point is never undefined
       };
     } catch (error) {
-      console.error('Error fetching user by ID:', error);
+      console.error("Error fetching user by ID:", error);
       throw error;
     }
   }
@@ -102,7 +106,7 @@ class UserManagementRepository extends BaseRepository {
   async updateUserStatus(id, statusId, reason = undefined) {
     try {
       const payload = {
-        StatusID: statusId
+        StatusID: statusId,
       };
 
       // Add reason when banning (StatusID = 2)
@@ -125,7 +129,7 @@ class UserManagementRepository extends BaseRepository {
   async updateUserRole(id, roleId) {
     try {
       const response = await api.put(`${this.endpoint}/${id}/role`, {
-        roleId
+        roleId,
       });
       return response.data;
     } catch (error) {

@@ -48,8 +48,8 @@ export function RevenueChart() {
         setIsLoading(true);
         const response = await ordersRepository.getOrders();
 
-if (response.success && response.data && Array.isArray(response.data)) {
-const orders = response.data;
+        if (response.success && response.data && Array.isArray(response.data)) {
+          const orders = response.data;
           const now = new Date();
 
           if (filter === "day") {
@@ -64,9 +64,20 @@ const orders = response.data;
             });
 
             // Get data for every 3 hours
-            const labels = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
-            const data = [0, 3, 6, 9, 12, 15, 18, 21].map(hour => {
-              return hourlyRevenue.slice(hour, hour + 3).reduce((sum, val) => sum + val, 0);
+            const labels = [
+              "00:00",
+              "03:00",
+              "06:00",
+              "09:00",
+              "12:00",
+              "15:00",
+              "18:00",
+              "21:00",
+            ];
+            const data = [0, 3, 6, 9, 12, 15, 18, 21].map((hour) => {
+              return hourlyRevenue
+                .slice(hour, hour + 3)
+                .reduce((sum, val) => sum + val, 0);
             });
             setChartLabels(labels);
             setChartValues(data);
@@ -79,7 +90,10 @@ const orders = response.data;
             const dailyRevenue = new Array(7).fill(0);
             orders.forEach((order: any) => {
               const orderDate = new Date(order.CreatedAt);
-              const daysDiff = Math.floor((orderDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
+              const daysDiff = Math.floor(
+                (orderDate.getTime() - weekStart.getTime()) /
+                  (1000 * 60 * 60 * 24)
+              );
               if (daysDiff >= 0 && daysDiff < 7) {
                 dailyRevenue[daysDiff] += order.FinalTotal || 0;
               }
@@ -94,7 +108,10 @@ const orders = response.data;
 
             orders.forEach((order: any) => {
               const orderDate = new Date(order.CreatedAt);
-              if (orderDate.getMonth() === now.getMonth() && orderDate.getFullYear() === now.getFullYear()) {
+              if (
+                orderDate.getMonth() === now.getMonth() &&
+                orderDate.getFullYear() === now.getFullYear()
+              ) {
                 const weekNum = Math.floor((orderDate.getDate() - 1) / 7);
                 if (weekNum < 5) {
                   weeklyRevenue[weekNum] += order.FinalTotal || 0;
@@ -103,8 +120,11 @@ const orders = response.data;
             });
 
             // Remove weeks with no data from the end
-            const lastNonZero = weeklyRevenue.findLastIndex(val => val > 0);
-            const trimmedData = weeklyRevenue.slice(0, Math.max(lastNonZero + 1, 4));
+            const lastNonZero = weeklyRevenue.findLastIndex((val) => val > 0);
+            const trimmedData = weeklyRevenue.slice(
+              0,
+              Math.max(lastNonZero + 1, 4)
+            );
             const labels = trimmedData.map((_, i) => `Week ${i + 1}`);
 
             setChartLabels(labels);
@@ -116,7 +136,7 @@ const orders = response.data;
           setChartValues([]);
         }
       } catch (error) {
-        console.error('Error loading revenue data:', error);
+        console.error("Error loading revenue data:", error);
         setChartLabels([]);
         setChartValues([]);
       } finally {

@@ -51,7 +51,6 @@ export default function EventsToolbar({
         if (onCreateEvent) {
             await onCreateEvent(data);
         } else {
-            console.log("Creating event:", data);
             await new Promise((resolve) => setTimeout(resolve, 1000));
             alert("Event created successfully!");
         }

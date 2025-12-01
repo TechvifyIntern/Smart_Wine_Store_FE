@@ -41,21 +41,21 @@ export default function TierPage() {
         setIsLoading(true);
         const response = await discountTiersRepository.getDiscountTiers();
         if (response.success && response.data) {
-          console.log('Loaded discount tiers:', response.data); // Debug: see what API returns
           setTiersData(response.data as any);
         } else {
-          console.error('Failed to load discount tiers from API:', response.message);
+          console.error(
+            "Failed to load discount tiers from API:",
+            response.message
+          );
           // Use fallback sample data
-          console.log('Using fallback sample data');
           setTiersData(discountTiers);
-          toast.warning('Using sample data as API is unavailable');
+          toast.warning("Using sample data as API is unavailable");
         }
       } catch (err) {
-        console.error('Error loading discount tiers from API:', err);
+        console.error("Error loading discount tiers from API:", err);
         // Use fallback sample data
-        console.log('Using fallback sample data');
         setTiersData(discountTiers);
-        toast.warning('Using sample data as API is unavailable');
+        toast.warning("Using sample data as API is unavailable");
       } finally {
         setIsLoading(false);
       }
@@ -94,7 +94,6 @@ export default function TierPage() {
         </div>
       ) : (
         <>
-
           {/* Stats Overview */}
           <div className="rounded-lg border p-5">
             <div className="flex items-center gap-3">
@@ -116,7 +115,9 @@ export default function TierPage() {
               const style = tierStyles[tier.Tier] || tierStyles["Bronze"]; // Fallback to Bronze if tier not found
               const Icon = style?.icon || Medal; // Fallback to Medal icon
 
-              const percentage = ((tier.userCount / totalUsers) * 100).toFixed(1);
+              const percentage = ((tier.userCount / totalUsers) * 100).toFixed(
+                1
+              );
 
               return (
                 <Link
@@ -125,7 +126,9 @@ export default function TierPage() {
                   className="rounded-xl border overflow-hidden dark:border-[#202123] transition-all duration-300 hover:shadow-lg hover:shadow-xl hover:-translate-y-1 hover:scale-[1.02] cursor-pointer block"
                 >
                   {/* Card Header */}
-                  <div className={`${style?.bgColor || 'bg-gray-300'} ${style?.bgColorDark || 'dark:bg-gray-700'} px-5 py-4 border-b`}>
+                  <div
+                    className={`${style?.bgColor || "bg-gray-300"} ${style?.bgColorDark || "dark:bg-gray-700"} px-5 py-4 border-b`}
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white/20 hover:bg-white/30 transition-all duration-300 hover:scale-110 hover:rotate-6">
@@ -136,7 +139,7 @@ export default function TierPage() {
 
                       {/* Không có discountPercent → chỉ là badge */}
                       <span
-                        className={`${style?.badgeBg || 'bg-gray-500'} text-white text-sm font-semibold px-3 py-1 rounded-full`}
+                        className={`${style?.badgeBg || "bg-gray-500"} text-white text-sm font-semibold px-3 py-1 rounded-full`}
                       >
                         Tier
                       </span>
@@ -151,7 +154,10 @@ export default function TierPage() {
                         Minimum Point Required
                       </p>
                       <p className="text-lg font-semibold">
-                        {tier.MinimumPoint ? tier.MinimumPoint.toLocaleString() : '0'} pts
+                        {tier.MinimumPoint
+                          ? tier.MinimumPoint.toLocaleString()
+                          : "0"}{" "}
+                        pts
                       </p>
                     </div>
 
@@ -162,7 +168,9 @@ export default function TierPage() {
                       </p>
                       <div className="flex items-baseline gap-2">
                         <p className="text-2xl font-bold">
-                          {tier.userCount ? tier.userCount.toLocaleString() : '0'}
+                          {tier.userCount
+                            ? tier.userCount.toLocaleString()
+                            : "0"}
                         </p>
                         <span className="text-sm">({percentage}%)</span>
                       </div>
@@ -176,7 +184,7 @@ export default function TierPage() {
                       </div>
                       <div className="w-full bg-gray-100 rounded-full h-2">
                         <div
-                          className={`${style?.badgeBg || 'bg-gray-500'} h-2 rounded-full`}
+                          className={`${style?.badgeBg || "bg-gray-500"} h-2 rounded-full`}
                           style={{ width: `${percentage}%` }}
                         />
                       </div>

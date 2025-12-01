@@ -33,7 +33,6 @@ export default function EventsPage() {
             setIsLoading(true);
             const response = await discountEventsRepository.getDiscountEvents();
             if (response.success && response.data) {
-                console.log('Loaded discount events:', response.data);
                 setDiscountEvents(response.data as any);
             } else {
                 console.error('Failed to load discount events:', response.message);
@@ -86,10 +85,6 @@ export default function EventsPage() {
 
     // Filter events based on search term and filters
     const filteredEvents = useMemo(() => {
-        console.log('Filtering events. Total events:', discountEvents.length);
-        console.log('Search term:', searchTerm);
-        console.log('Selected statuses:', selectedStatuses);
-        console.log('Date range:', { dateFrom, dateTo });
 
         let events = discountEvents;
 
@@ -122,8 +117,6 @@ export default function EventsPage() {
                 return true;
             });
         }
-
-        console.log('Filtered events:', events.length);
         return events;
     }, [searchTerm, selectedStatuses, dateFrom, dateTo, discountEvents]);
 
@@ -143,7 +136,6 @@ export default function EventsPage() {
 
     // Action handlers
     const handleView = (id: number) => {
-        console.log("View event:", id);
         // TODO: Implement view logic
     };
 
@@ -191,7 +183,6 @@ export default function EventsPage() {
 
     const handleConfirmDelete = () => {
         if (eventToDelete) {
-            console.log("Delete event:", eventToDelete.DiscountEventID);
             // TODO: Implement API call to delete event
             // Example:
             // await fetch(`/api/discount-events/${eventToDelete.DiscountEventID}`, {
@@ -239,7 +230,6 @@ export default function EventsPage() {
     };
 
     const handleUpdateEvent = async (id: number, data: Omit<DiscountEvent, "DiscountEventID" | "CreatedAt" | "UpdatedAt">) => {
-        console.log(`Updating event ${id}:`, data);
         // TODO: Implement API call to update event
         // Example:
         // await fetch(`/api/discount-events/${id}`, {

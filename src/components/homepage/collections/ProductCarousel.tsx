@@ -24,7 +24,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
         }}
         className="w-full overflow-visible"
       >
-        <CarouselContent className="-ml-4 overflow-visible h-120 ">
+        <CarouselContent className="-ml-4 overflow-visible h-128 ">
           {products.map((product) => (
             <CarouselItem
               key={product.ProductID}

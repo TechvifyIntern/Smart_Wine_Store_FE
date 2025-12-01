@@ -18,9 +18,10 @@ export interface CheckoutPayload {
   StatusID?: number;
   DiscountID?: number | null;
   PaymentMethodID: number;
+  ReturnUrl: string;
 }
 
-export type CheckoutResponse = ApiResponse<null>;
+export type CheckoutResponse = ApiResponse<{ ReturnUrl?: string } | null>;
 
 export const checkout = async (
   payload: CheckoutPayload

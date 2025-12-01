@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { ContactInfo } from "@/components/profile/ContactInfo";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { RecentOrders } from "@/components/profile/RecentOrders";
@@ -10,81 +11,57 @@ import {
   getProfile,
   getUserAddress,
   getUserOrder,
-  updateProfile, // Import updateProfile
+  updateProfile,
 } from "@/services/profile/api";
-import {
-  UserProfile,
-  UserAddress,
-  Order,
-  UpdateProfilePayload,
-} from "@/types/profile"; // Import UpdateProfilePayload
+import { UpdateProfilePayload } from "@/types/profile";
 import { AxiosError } from "axios";
 import { useAppStore } from "@/store/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
+import { RecommendationModal } from "@/components/checkout/RecommendationModal";
 
 export default function Page() {
   const [isEditMode, setIsEditMode] = useState(false);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
-  const [userOrders, setUserOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const { logout } = useAppStore();
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [profileResponse, addressResponse, orderResponse] =
-          await Promise.all([getProfile(), getUserAddress(), getUserOrder()]);
+  const results = useQueries({
+    queries: [
+      { queryKey: ["profile"], queryFn: getProfile },
+      { queryKey: ["addresses"], queryFn: getUserAddress },
+      { queryKey: ["orders"], queryFn: getUserOrder },
+    ],
+  });
 
-        if (!profileResponse.success) {
-          throw new Error(profileResponse.message);
-        }
-        setUserProfile(profileResponse.data);
+  const profileResult = results[0];
+  const addressesResult = results[1];
+  const ordersResult = results[2];
 
-        if (!addressResponse.success) {
-          throw new Error(addressResponse.message);
-        }
-        setUserAddresses(addressResponse.data);
-
-        if (!orderResponse.success) {
-          throw new Error(orderResponse.message);
-        }
-        setUserOrders(orderResponse.data);
-      } catch (err) {
-        console.error("Failed to fetch profile data:", err);
-        if (err instanceof AxiosError) {
-          if (err.response?.status === 401) {
-            setError("Session expired. Please log in again.");
-            logout();
-            router.push("/");
-          } else {
-            setError(
-              err.response?.data?.message ||
-                err.message ||
-                "Failed to load profile data."
-            );
-          }
-        } else {
-          setError((err as Error).message || "Failed to load profile data.");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [logout, router]);
+  const {
+    data: userProfile,
+    isLoading: isProfileLoading,
+    isError: isProfileError,
+    error: profileError,
+  } = profileResult;
+  const {
+    data: userAddresses,
+    isLoading: isAddressesLoading,
+    isError: isAddressesError,
+  } = addressesResult;
+  const {
+    data: userOrders,
+    isLoading: isOrdersLoading,
+    isError: isOrdersError,
+  } = ordersResult;
 
   const handleUpdateProfile = async (updatedData: UpdateProfilePayload) => {
-    if (!userProfile) return;
+    if (!userProfile?.data) return;
     try {
       const response = await updateProfile(updatedData);
       if (response.success && response.data) {
-        setUserProfile(response.data); // Update local state with new profile data
+        // It's better to invalidate the query and let react-query refetch
+        await profileResult.refetch();
         toast.success("Profile updated successfully!");
         setIsEditMode(false); // Exit edit mode after successful update
       } else {
@@ -104,22 +81,51 @@ export default function Page() {
     }
   };
 
-  if (loading) {
-    return <div className="text-center mt-20">Loading profile...</div>;
+  if (isProfileLoading || isAddressesLoading || isOrdersLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Spinner />
+      </div>
+    );
   }
 
+  if (isProfileError) {
+    if (
+      profileError instanceof AxiosError &&
+      profileError.response?.status === 401
+    ) {
+      logout();
+      router.push("/");
+      // Return null or a message while redirecting
+      return (
+        <div className="text-center mt-20 text-red-500">
+          Session expired. Redirecting to login...
+        </div>
+      );
+    }
+    return (
+      <div className="text-center mt-20 text-red-500">
+        Error loading profile data.
+      </div>
+    );
+  }
+  const error = isAddressesError || isOrdersError;
+
   if (error) {
-    return <div className="text-center mt-20 text-red-500">{error}</div>;
+    return (
+      <div className="text-center mt-20 text-red-500">
+        Failed to load some profile data.
+      </div>
+    );
   }
 
   return (
     <>
-      {/* <PageHeader /> */}
       <main className="min-h-screen py-8 bg-white/10 dark:text-gray-200">
         <ProfileHeader
           isEditMode={isEditMode}
           setIsEditMode={setIsEditMode}
-          userProfile={userProfile}
+          userProfile={userProfile?.data ?? null}
           onSave={handleUpdateProfile}
         />
 
@@ -127,12 +133,12 @@ export default function Page() {
           <div className="space-y-6 ">
             <ContactInfo
               isEditMode={isEditMode}
-              userProfile={userProfile}
-              onSave={handleUpdateProfile} // Pass the update handler
-              setIsEditMode={setIsEditMode} // Pass setIsEditMode
+              userProfile={userProfile?.data ?? null}
+              onSave={handleUpdateProfile}
+              setIsEditMode={setIsEditMode}
             />
-            <SavedAddresses userAddresses={userAddresses} />
-            <RecentOrders userOrders={userOrders} />
+            <SavedAddresses userAddresses={userAddresses?.data || []} />
+            <RecentOrders userOrders={userOrders?.data || []} />
             <Settings />
           </div>
         </div>

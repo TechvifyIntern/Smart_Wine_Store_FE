@@ -22,7 +22,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Link key={product.ProductID} href={`/product-detail/${product.ProductID}`}>
-      <div className="group relative cursor-pointer border border-gray-200 dark:border-white/20 dark:border-t-0 dark:bg-[#121212] transition-all duration-300 hover:shadow-lg w-72 h-104 hover:h-114 rounded-lg">
+      <div className="group relative cursor-pointer border border-gray-200 dark:border-white/20 dark:border-t-0 dark:bg-[#121212] transition-all duration-300 hover:shadow-lg w-72 h-120 hover:h-128 rounded-lg">
         {/* Image Section */}
         <div className="relative h-72 overflow-hidden flex items-center justify-center bg-white dark:bg-gray-800">
           {product.ImageURL ? (

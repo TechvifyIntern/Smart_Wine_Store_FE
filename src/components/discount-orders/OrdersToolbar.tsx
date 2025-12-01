@@ -9,65 +9,67 @@ import { useAppStore } from "@/store/auth";
 import { getDiscountPermissions } from "@/lib/permissions";
 
 interface OrdersToolbarProps {
-    searchTerm?: string;
-    onSearchChange?: (value: string) => void;
-    searchPlaceholder?: string;
-    onCreateOrder?: (data: Omit<DiscountOrder, "DiscountOrderID">) => void | Promise<void>;
-    createButtonLabel?: string;
+  searchTerm?: string;
+  onSearchChange?: (value: string) => void;
+  searchPlaceholder?: string;
+  onCreateOrder?: (
+    data: Omit<DiscountOrder, "DiscountOrderID">
+  ) => void | Promise<void>;
+  createButtonLabel?: string;
 }
 
 export default function OrdersToolbar({
-    searchTerm: externalSearchTerm,
-    onSearchChange: externalOnSearchChange,
-    searchPlaceholder = "Search discount orders...",
-    onCreateOrder,
-    createButtonLabel = "Create Order Discount",
+  searchTerm: externalSearchTerm,
+  onSearchChange: externalOnSearchChange,
+  searchPlaceholder = "Search discount orders...",
+  onCreateOrder,
+  createButtonLabel = "Create Order Discount",
 }: OrdersToolbarProps) {
-    const [internalSearchTerm, setInternalSearchTerm] = useState("");
-    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-    const { user } = useAppStore();
-    const permissions = getDiscountPermissions(user?.roleId);
+  const [internalSearchTerm, setInternalSearchTerm] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const { user } = useAppStore();
+  const permissions = getDiscountPermissions(user?.roleId);
 
-    // Use external state if provided, otherwise use internal state
-    const searchTerm = externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
-    const handleSearchChange = externalOnSearchChange || setInternalSearchTerm;
+  // Use external state if provided, otherwise use internal state
+  const searchTerm =
+    externalSearchTerm !== undefined ? externalSearchTerm : internalSearchTerm;
+  const handleSearchChange = externalOnSearchChange || setInternalSearchTerm;
 
-    const handleCreateOrder = async (
-        data: Omit<DiscountOrder, "DiscountOrderID">
-    ) => {
-        if (onCreateOrder) {
-            await onCreateOrder(data);
-        } else {
-            console.log("Creating order discount:", data);
-            await new Promise((resolve) => setTimeout(resolve, 1000));
-            alert("Order discount created successfully!");
-        }
-    };
+  const handleCreateOrder = async (
+    data: Omit<DiscountOrder, "DiscountOrderID">
+  ) => {
+    if (onCreateOrder) {
+      await onCreateOrder(data);
+    } else {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      alert("Order discount created successfully!");
+    }
+  };
 
-    return (
-        <>
-            {/* Toolbar with padding matching the table (px-6) */}
-            <div className="flex items-center justify-between gap-4 mb-6">
-                <SearchBar
-                    searchTerm={searchTerm}
-                    onSearchChange={handleSearchChange}
-                    placeholder={searchPlaceholder}
-                />
+  return (
+    <>
+      {/* Toolbar with padding matching the table (px-6) */}
+      <div className="flex items-center justify-between gap-4 mb-6">
+        <SearchBar
+          searchTerm={searchTerm}
+          onSearchChange={handleSearchChange}
+          placeholder={searchPlaceholder}
+        />
 
-                {permissions.canCreate && (
-                    <CreateOrderButton
-                        onClick={() => setIsCreateModalOpen(true)}
-                        label={createButtonLabel}
-                    />
-                )}
-            </div>
+        {permissions.canCreate && (
+          <CreateOrderButton
+            onClick={() => setIsCreateModalOpen(true)}
+            label={createButtonLabel}
+          />
+        )}
+      </div>
 
-            <CreateDiscountOrder
-                open={isCreateModalOpen}
-                onOpenChange={setIsCreateModalOpen}
-                mode="create"
-                onCreate={handleCreateOrder}
-            />
-        </>
-    );
+      <CreateDiscountOrder
+        open={isCreateModalOpen}
+        onOpenChange={setIsCreateModalOpen}
+        mode="create"
+        onCreate={handleCreateOrder}
+      />
+    </>
+  );
 }

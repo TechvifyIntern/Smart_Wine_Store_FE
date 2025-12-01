@@ -142,7 +142,6 @@ export default function AccountsPage() {
     const handleCreateAccount = async (
         data: CreateAccountFormData
     ) => {
-        console.log("Creating new account:", data);
         // TODO: Implement API call to create account
         // Example:
         // await fetch('/api/accounts', {
@@ -156,7 +155,6 @@ export default function AccountsPage() {
         id: number,
         data: Omit<Account, "UserID" | "RoleName" | "TierName" | "MinimumPoint" | "Point" | "StatusName" | "StreetAddress" | "Ward" | "Province">
     ) => {
-        console.log(`Updating account ${id}:`, data);
         // TODO: Implement API call to update account
         // Example:
         // await fetch(`/api/accounts/${id}`, {
