@@ -93,8 +93,8 @@ export function Header() {
   // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
   const userRoleId = user?.roleId ? parseInt(user.roleId) : undefined;
   const isAdmin = userRoleId === 1;
-  const isAdminOrSeller = userRoleId === 1 || userRoleId === 2;
-  const isInAdminPage = pathname?.startsWith('/admin');
+  const isSeller = userRoleId === 2;
+  const isInAdminPage = pathname?.startsWith("/admin");
 
   const handleLogout = () => {
     logout();
@@ -154,7 +154,10 @@ export function Header() {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-[280px] sm:w-[320px] overflow-y-auto">
+                <SheetContent
+                  side="left"
+                  className="w-[280px] sm:w-[320px] overflow-y-auto"
+                >
                   <MobileMenu
                     navigationLinks={navigationLinks}
                     parentCategories={parentCategories}
@@ -162,7 +165,7 @@ export function Header() {
                     isAuthenticated={isAuthenticated}
                     user={user}
                     isAdmin={isAdmin}
-                    isAdminOrSeller={isAdminOrSeller}
+                    isSeller={isSeller}
                     isInAdminPage={isInAdminPage}
                     locale={locale}
                     t={t}
@@ -202,15 +205,20 @@ export function Header() {
                 const children =
                   link.label === "Products" ? parentCategories : [];
                 const hasDropdown = children.length > 0;
-                const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+                const isActive =
+                  pathname === link.href ||
+                  pathname?.startsWith(link.href + "/");
 
                 return (
                   <div key={link.label} className="relative group">
                     {hasDropdown ? (
-                      <div className={`text-sm font-medium cursor-pointer flex items-center transition relative ${isActive
-                        ? "text-primary font-semibold"
-                        : "text-muted-foreground hover:text-foreground"
-                        }`}>
+                      <div
+                        className={`text-sm font-medium cursor-pointer flex items-center transition relative ${
+                          isActive
+                            ? "text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
                         {t(`navigation.${link.key}`)}
                         <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
                         {isActive && (
@@ -220,10 +228,11 @@ export function Header() {
                     ) : (
                       <Link
                         href={link.href}
-                        className={`text-sm font-medium flex items-center transition relative ${isActive
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                          }`}
+                        className={`text-sm font-medium flex items-center transition relative ${
+                          isActive
+                            ? "text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
                       >
                         {t(`navigation.${link.key}`)}
                         {isActive && (
@@ -373,7 +382,9 @@ export function Header() {
                   <DropdownMenuContent className="w-56" align="end" forceMount>
                     <div className="flex items-center gap-2 p-2">
                       <div className="flex flex-col space-y-1">
-                        <p className="font-medium text-sm">{t("header.user")}</p>
+                        <p className="font-medium text-sm">
+                          {t("header.user")}
+                        </p>
                         <p className="w-[200px] truncate text-xs text-muted-foreground">
                           {user.email}
                         </p>
@@ -385,7 +396,9 @@ export function Header() {
                     {/* Quản lý hệ thống - chỉ dành cho admin (roleId: 1) */}
                     {isAdmin && (
                       <DropdownMenuItem
-                        onClick={() => router.push(isInAdminPage ? "/" : "/admin")}
+                        onClick={() =>
+                          router.push(isInAdminPage ? "/" : "/admin")
+                        }
                         className="flex items-center cursor-pointer"
                       >
                         {isInAdminPage ? (
@@ -403,9 +416,11 @@ export function Header() {
                     )}
 
                     {/* Quản lý cửa hàng - dành cho seller (roleId: 2) */}
-                    {!isAdmin && isAdminOrSeller && (
+                    {!isAdmin && isSeller && (
                       <DropdownMenuItem
-                        onClick={() => router.push(isInAdminPage ? "/" : "/admin")}
+                        onClick={() =>
+                          router.push(isInAdminPage ? "/" : "/admin/products")
+                        }
                         className="flex items-center cursor-pointer"
                       >
                         {isInAdminPage ? (
@@ -443,14 +458,18 @@ export function Header() {
                           className="flex items-center justify-between cursor-pointer"
                         >
                           <span>{t("languages.vi")}</span>
-                          {locale === "vi" && <Check className="h-4 w-4 ml-2" />}
+                          {locale === "vi" && (
+                            <Check className="h-4 w-4 ml-2" />
+                          )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setLocale("en")}
                           className="flex items-center justify-between cursor-pointer"
                         >
                           <span>{t("languages.en")}</span>
-                          {locale === "en" && <Check className="h-4 w-4 ml-2" />}
+                          {locale === "en" && (
+                            <Check className="h-4 w-4 ml-2" />
+                          )}
                         </DropdownMenuItem>
                       </DropdownMenuSubContent>
                     </DropdownMenuSub>
@@ -508,7 +527,7 @@ interface MobileMenuProps {
   isAuthenticated: boolean;
   user: any;
   isAdmin: boolean;
-  isAdminOrSeller: boolean;
+  isSeller: boolean;
   isInAdminPage: boolean;
   locale: Locale;
   t: any;
@@ -527,7 +546,7 @@ function MobileMenu({
   isAuthenticated,
   user,
   isAdmin,
-  isAdminOrSeller,
+  isSeller,
   isInAdminPage,
   locale,
   t,
@@ -557,25 +576,36 @@ function MobileMenu({
           {navigationLinks.map((link) => {
             const children = link.label === "Products" ? parentCategories : [];
             const hasDropdown = children.length > 0;
-            const isActive = pathname === link.href || pathname?.startsWith(link.href + '/');
+            const isActive =
+              pathname === link.href || pathname?.startsWith(link.href + "/");
 
             if (hasDropdown) {
               return (
                 <Accordion key={link.label} type="single" collapsible>
                   <AccordionItem value={link.label} className="border-none">
-                    <AccordionTrigger className={`py-3 px-2 hover:no-underline hover:bg-muted rounded-md text-sm ${isActive ? 'text-primary font-semibold' : ''}`}>
+                    <AccordionTrigger
+                      className={`py-3 px-2 hover:no-underline hover:bg-muted rounded-md text-sm ${isActive ? "text-primary font-semibold" : ""}`}
+                    >
                       {t(`navigation.${link.key}`)}
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="pl-4 space-y-1">
                         {children.map((cat) => {
-                          const subChildren = childrenCategories[cat.CategoryID] || [];
+                          const subChildren =
+                            childrenCategories[cat.CategoryID] || [];
                           const hasSub = subChildren.length > 0;
 
                           if (hasSub) {
                             return (
-                              <Accordion key={cat.CategoryID} type="single" collapsible>
-                                <AccordionItem value={cat.CategoryName} className="border-none">
+                              <Accordion
+                                key={cat.CategoryID}
+                                type="single"
+                                collapsible
+                              >
+                                <AccordionItem
+                                  value={cat.CategoryName}
+                                  className="border-none"
+                                >
                                   <AccordionTrigger className="py-2 px-2 text-sm hover:no-underline hover:bg-muted rounded-md">
                                     {cat.CategoryName}
                                   </AccordionTrigger>
@@ -584,7 +614,11 @@ function MobileMenu({
                                       {subChildren.map((sub) => (
                                         <button
                                           key={sub.CategoryID}
-                                          onClick={() => handleNavigation(`/products?category=${sub.CategoryName}`)}
+                                          onClick={() =>
+                                            handleNavigation(
+                                              `/products?category=${sub.CategoryName}`
+                                            )
+                                          }
                                           className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
                                         >
                                           {sub.CategoryName}
@@ -599,7 +633,11 @@ function MobileMenu({
                             return (
                               <button
                                 key={cat.CategoryID}
-                                onClick={() => handleNavigation(`/products?category=${cat.CategoryName}`)}
+                                onClick={() =>
+                                  handleNavigation(
+                                    `/products?category=${cat.CategoryName}`
+                                  )
+                                }
                                 className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
                               >
                                 {cat.CategoryName}
@@ -617,8 +655,11 @@ function MobileMenu({
                 <button
                   key={link.label}
                   onClick={() => handleNavigation(link.href)}
-                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${isActive ? 'text-primary font-semibold bg-muted' : 'hover:bg-muted'
-                    }`}
+                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${
+                    isActive
+                      ? "text-primary font-semibold bg-muted"
+                      : "hover:bg-muted"
+                  }`}
                 >
                   {t(`navigation.${link.key}`)}
                 </button>
@@ -635,11 +676,15 @@ function MobileMenu({
             <div className="flex items-center gap-3 p-3 bg-muted rounded-md">
               <Avatar className="h-10 w-10">
                 <AvatarImage src={user?.photoURL || "/placeholder-user.jpg"} />
-                <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {user.email?.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="flex-1 overflow-hidden">
                 <p className="font-medium text-sm">{t("header.user")}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {user.email}
+                </p>
               </div>
             </div>
 
@@ -667,12 +712,12 @@ function MobileMenu({
             )}
 
             {/* Quản lý cửa hàng - dành cho seller (roleId: 2) */}
-            {!isAdmin && isAdminOrSeller && (
+            {!isAdmin && isSeller && (
               <Button
                 variant="ghost"
                 className="w-full justify-start"
                 onClick={() => {
-                  handleNavigation(isInAdminPage ? "/" : "/admin");
+                  handleNavigation(isInAdminPage ? "/" : "/admin/products");
                 }}
               >
                 {isInAdminPage ? (
@@ -710,16 +755,18 @@ function MobileMenu({
                   <div className="pl-4 space-y-1">
                     <button
                       onClick={() => setLocale("vi")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "vi" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "vi" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.vi")}</span>
                       {locale === "vi" && <Check className="h-4 w-4" />}
                     </button>
                     <button
                       onClick={() => setLocale("en")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "en" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "en" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.en")}</span>
                       {locale === "en" && <Check className="h-4 w-4" />}

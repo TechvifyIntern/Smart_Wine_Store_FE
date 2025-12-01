@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import {
   CreditCard,
   Truck,
@@ -28,33 +28,49 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/hooks/use-toast";
+import { Spinner } from "@/components/ui/spinner";
+
+// Services
 import { getCartItems } from "@/services/cart/api";
 import { getProfile, getUserAddress } from "@/services/profile/api";
 import { checkout, CheckoutPayload } from "@/services/checkout/api";
+// Types & Utils
 import { CartItem } from "@/types/cart";
 import { UserAddress } from "@/types/profile";
 import { formatCurrency } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
+import {
+  getRecommendedProducts,
+  RecommendedProduct,
+} from "@/services/recommendation/api";
+import { useCartStore } from "@/store/cart";
+import { RecommendationModal } from "@/components/checkout/RecommendationModal";
+
+const PAYMENT_METHODS = {
+  COD: 1,
+  VNPAY: 2,
+};
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { setItems: setCartItemsInStore } = useCartStore();
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
+  // Loading state cho quá trình checkout
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  // Loading state cho quá trình gọi API gợi ý sản phẩm
+  const [isRecommendationLoading, setIsRecommendationLoading] = useState(false);
+
+  // State cho phần gợi ý sản phẩm (Upsell)
+  const [showRecommendation, setShowRecommendation] = useState(true);
+  const [recommendedProducts, setRecommendedProducts] = useState<
+    RecommendedProduct[]
+  >([]);
 
   const results = useQueries({
     queries: [
-      {
-        queryKey: ["cart"],
-        queryFn: getCartItems,
-      },
-      {
-        queryKey: ["profile"],
-        queryFn: getProfile,
-      },
-      {
-        queryKey: ["address"],
-        queryFn: getUserAddress,
-      },
+      { queryKey: ["cart"], queryFn: getCartItems },
+      { queryKey: ["profile"], queryFn: getProfile },
+      { queryKey: ["address"], queryFn: getUserAddress },
     ],
   });
 
@@ -86,18 +102,20 @@ export default function CheckoutPage() {
     phone: "",
   });
 
+  // Load User Info
   useEffect(() => {
     if (userProfileData?.success) {
       const user = userProfileData.data;
       setShippingForm((prev) => ({
         ...prev,
-        userName: user.UserName,
-        email: user.Email,
-        phone: user.PhoneNumber,
+        userName: prev.userName || user.UserName,
+        email: prev.email || user.Email,
+        phone: prev.phone || user.PhoneNumber,
       }));
     }
   }, [userProfileData]);
 
+  // Load Address Info
   useEffect(() => {
     if (addressData?.success && addressData.data.length > 0) {
       const addresses: UserAddress[] = addressData.data;
@@ -118,6 +136,7 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
+    // 1. Validate Form
     const { userName, address, city, phone } = shippingForm;
     if (!userName || !address || !city || !phone) {
       toast({
@@ -142,8 +161,9 @@ export default function CheckoutPage() {
 
     const cityParts = shippingForm.city.split(",").map((s) => s.trim());
     const orderWard = cityParts[0] || "";
-    const orderProvince = cityParts[1] || "";
-    const orderDistrict = cityParts[2] || "";
+    // Giả định format là: Phường, Quận, Tỉnh. Nếu chỉ có 2 phần tử thì xử lý linh hoạt
+    const orderDistrict = cityParts.length > 2 ? cityParts[1] : "";
+    const orderProvince = cityParts[cityParts.length - 1] || "";
 
     const payload: CheckoutPayload = {
       UserName: shippingForm.userName,
@@ -158,17 +178,65 @@ export default function CheckoutPage() {
         Quantity: item.Quantity,
       })),
       DiscountID: cartData.data.discountId || null,
-      PaymentMethodID: paymentMethod === "cod" ? 1 : 2,
+      PaymentMethodID:
+        paymentMethod === "cod" ? PAYMENT_METHODS.COD : PAYMENT_METHODS.VNPAY,
+      ReturnUrl:
+        `${process.env.BE_API_URL}/payment/return` ||
+        "http://localhost:3000/payment/return",
     };
 
+    // 3. Call API Checkout
     try {
       const response = await checkout(payload);
+
       if (response.success) {
+        // --- CASE VNPay: Redirect ngay ---
+        if (paymentMethod === "vnpay" && response.data?.ReturnUrl) {
+          toast({ title: "Redirecting to Payment Gateway..." });
+          window.location.href = response.data.ReturnUrl;
+          return;
+        }
+
+        // --- CASE COD: Call Recommendation API ---
         toast({
-          title: "Order Placed!",
-          description: "Thank you for your purchase.",
+          title: "Order Placed Successfully!",
+          description: "Generating personalized recommendations...",
         });
-        router.push("/profile");
+
+        // 1. Invalidate cart to refresh it (for react-query)
+        await queryClient.invalidateQueries({ queryKey: ["cart"] });
+
+        // 2. Fetch the updated cart items and update the Zustand store
+        const updatedCartResponse = await getCartItems();
+        if (updatedCartResponse.success) {
+          setCartItemsInStore(updatedCartResponse.data.items);
+        } else {
+          console.error("Failed to fetch updated cart for Zustand store.");
+        }
+
+        // 2. Stop checkout loading, start recommendation loading, and show modal
+        setIsCheckingOut(false);
+        setIsRecommendationLoading(true);
+        setShowRecommendation(true); // Show modal immediately with loading state
+
+        // 3. Call API gợi ý với toàn bộ data trả về từ checkout
+        try {
+          const recommendations = await getRecommendedProducts(response);
+
+          if (recommendations && recommendations.length > 0) {
+            setRecommendedProducts(recommendations);
+            setIsRecommendationLoading(false); // Stop loading after data is set
+          } else {
+            // No recommendations -> stop loading, but keep modal open so user can close it manually.
+            setIsRecommendationLoading(false);
+            // Optionally, you might decide to immediately redirect if there are absolutely no recommendations,
+            // but for now, we'll let the user close the empty/loading modal.
+          }
+        } catch (recError) {
+          console.error("Failed to load recommendations", recError);
+          // If recommendations fail, stop loading, but keep modal open for user to close.
+          setIsRecommendationLoading(false);
+        }
       } else {
         throw new Error(response.message);
       }
@@ -179,11 +247,18 @@ export default function CheckoutPage() {
         description: err.message || "An unexpected error occurred.",
         variant: "destructive",
       });
-    } finally {
-      setIsCheckingOut(false);
+      setIsCheckingOut(false); // Ensure loading is off on error
     }
   };
 
+  // Hàm xử lý khi đóng Modal
+  const handleCloseRecommendation = () => {
+    setShowRecommendation(false);
+    // Always redirect to profile/order history when modal is explicitly closed by user
+    router.push("/profile");
+  };
+
+  // --- Render Loading / Error States ---
   if (isCartLoading || isProfileLoading || isAddressLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -202,7 +277,7 @@ export default function CheckoutPage() {
 
   if (error || !cartItems || cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-20 text-center">
+      <div className="container mx-auto px-4 py-30 text-center">
         <h2 className="text-2xl font-bold">
           {error ? "An Error Occurred" : "Your Cart is Empty"}
         </h2>
@@ -214,18 +289,26 @@ export default function CheckoutPage() {
         <Button className="mt-4" onClick={() => router.push("/products")}>
           Back to Shop
         </Button>
+
+        <RecommendationModal
+          isOpen={showRecommendation}
+          onClose={handleCloseRecommendation}
+          products={recommendedProducts}
+          isLoading={isRecommendationLoading}
+        />
       </div>
     );
   }
 
+  // --- Calculation Logic ---
   const calculatedSubtotal = cartItems.reduce(
     (acc: number, item: CartItem) =>
       acc + item.product.SalePrice * item.Quantity,
     0
   );
-
   const discount = cartData?.data?.discount || 0;
   const finalTotal = calculatedSubtotal - discount;
+
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen bg-background mt-10">
       <div className="mb-8">
@@ -240,7 +323,9 @@ export default function CheckoutPage() {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
+        {/* Left Column: Forms */}
         <div className="lg:col-span-7 space-y-6">
+          {/* Shipping Info Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -282,6 +367,9 @@ export default function CheckoutPage() {
                     className="dark:border-white/20"
                     required
                   />
+                  <p className="text-[10px] text-muted-foreground">
+                    Format: Ward, District, Province
+                  </p>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="phone">Phone Number</Label>
@@ -298,6 +386,7 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
+          {/* Payment Method Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -321,7 +410,7 @@ export default function CheckoutPage() {
                   />
                   <Label
                     htmlFor="cod"
-                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
                   >
                     <div className="flex items-center gap-2">
                       <Truck className="h-5 w-5" />
@@ -339,7 +428,7 @@ export default function CheckoutPage() {
                   />
                   <Label
                     htmlFor="vnpay"
-                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
+                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
                   >
                     <div className="flex items-center gap-2">
                       <QrCode className="h-5 w-5" />
@@ -352,6 +441,7 @@ export default function CheckoutPage() {
           </Card>
         </div>
 
+        {/* Right Column: Order Summary */}
         <div className="lg:col-span-5">
           <Card className="sticky top-8 bg-muted/30 border-muted">
             <CardHeader>
@@ -361,7 +451,7 @@ export default function CheckoutPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
-              <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+              <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                 {cartItems.map((item) => (
                   <div
                     key={item.CartItemID}
@@ -396,7 +486,7 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span>{formatCurrency(calculatedSubtotal)}</span>
                 </div>
-                {cartData?.data?.discount > 0 && (
+                {discount > 0 && (
                   <div className="flex justify-between text-green-600">
                     <span className="">Discount</span>
                     <span>-{formatCurrency(discount)}</span>
@@ -427,7 +517,7 @@ export default function CheckoutPage() {
                   <Lock className="mr-2 h-4 w-4" />
                 )}
                 {isCheckingOut
-                  ? "Placing Order..."
+                  ? "Processing..."
                   : `Place Order (${formatCurrency(finalTotal)})`}
               </Button>
 

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { useAppStore } from "./auth";
 import { api } from "@/services/api";
-import { CHATBOT_ROUTES } from "@/services/chat/constants";
+import { AI_ROUTES } from "@/services/chat/constants";
 import { AxiosResponse } from "axios";
 
 export interface ChatbotRequest {
@@ -17,16 +17,22 @@ export interface ChatbotResponse {
 const chatApi = (
   data: ChatbotRequest
 ): Promise<AxiosResponse<ChatbotResponse>> => {
-  return api.post(CHATBOT_ROUTES.CHAT, data);
+  return api.post(AI_ROUTES.CHAT, data);
 };
 
 // Zustand store
 interface ChatbotState {
   isOpen: boolean;
-  messages: { message: string; isUser: boolean }[];
+  messages: {
+    message: string | { key: string; params?: Record<string, any> };
+    isUser: boolean;
+  }[];
   loading: boolean;
   toggleChatbot: () => void;
-  addMessage: (message: string, isUser: boolean) => void;
+  addMessage: (
+    message: string | { key: string; params?: Record<string, any> },
+    isUser: boolean
+  ) => void;
   sendMessage: (message: string) => Promise<void>;
 }
 
@@ -40,8 +46,11 @@ export const useChatbotStore = create<ChatbotState>((set, get) => ({
       if (newIsOpen && state.messages.length === 0) {
         const user = useAppStore.getState().user;
         const welcomeMessage = user?.name
-          ? `Hello, ${user.name}! How can I assist you today?`
-          : "Hello! How can I assist you today?";
+          ? {
+              key: "Chatbot.welcomeUser",
+              params: { username: user.name },
+            }
+          : { key: "Chatbot.welcome" };
         return {
           isOpen: newIsOpen,
           messages: [{ message: welcomeMessage, isUser: false }],

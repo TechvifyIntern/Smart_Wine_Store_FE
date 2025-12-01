@@ -34,9 +34,17 @@ import {
   type OtpInput,
 } from "@/validations/auth";
 import { useAppStore } from "@/store/auth";
-import { signIn, signUp, verifyOtp, resendOtp } from "@/services/auth/api";
+import {
+  signIn,
+  signUp,
+  verifyOtp,
+  resendOtp,
+  forgotPassword,
+} from "@/services/auth/api";
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
+import userManagementRepository from "@/api/userManagementRepository";
+import { toast } from "sonner";
 
 type AuthMode = "signin" | "signup" | "forgot" | "otp";
 
@@ -173,11 +181,17 @@ export function AuthDialog({
 
   const onForgotPasswordSubmit = async (data: ForgotPasswordInput) => {
     try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await forgotPassword(data.email);
+      toast.success("Password reset link sent to your email.");
       onOpenChange(false);
       forgotPasswordForm.reset();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Forgot password error:", error);
+      forgotPasswordForm.setError("root", {
+        type: "manual",
+        message:
+          error.response?.data?.message || "An unexpected error occurred.",
+      });
     }
   };
 

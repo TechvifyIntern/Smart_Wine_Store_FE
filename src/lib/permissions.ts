@@ -89,9 +89,9 @@ export const getDiscountPermissions = (roleId?: string): Permission => {
 
 /**
  * Check if user can access IoT features
- * Only Admin can access IoT
+ * Only Admin can access
  */
-export const canAccessIoT = (roleId?: string | number): boolean => {
+export const IsAccessWithAdmin = (roleId?: string | number): boolean => {
   return String(roleId) === ROLES.ADMIN;
 };
 

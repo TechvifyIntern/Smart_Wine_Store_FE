@@ -20,7 +20,7 @@ import {
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/store/auth";
-import { canAccessIoT } from "@/lib/permissions";
+import { IsAccessWithAdmin } from "@/lib/permissions";
 
 interface SidebarProps {
   className?: string;
@@ -58,11 +58,13 @@ export default function Sidebar({
       label: "Dashboard",
       href: "/admin",
       icon: LayoutDashboard,
+      canAccess: (roleId?: string) => IsAccessWithAdmin(roleId),
     },
     {
       label: "Account Management",
       href: "/admin/accounts",
       icon: Users,
+      canAccess: (roleId?: string) => IsAccessWithAdmin(roleId),
     },
     {
       label: "Product Management",
@@ -70,14 +72,14 @@ export default function Sidebar({
       hasDropdown: true,
       subItems: [
         {
-          label: "Categories",
-          href: "/admin/products/categories",
-          icon: Layers,
-        },
-        {
           label: "Products",
           href: "/admin/products",
           icon: ShoppingBasket,
+        },
+        {
+          label: "Categories",
+          href: "/admin/products/categories",
+          icon: Layers,
         },
       ],
     },
@@ -123,6 +125,7 @@ export default function Sidebar({
       label: "IoT",
       href: "/admin/IoT",
       icon: ChartNoAxesCombined,
+      canAccess: (roleId?: string) => IsAccessWithAdmin(roleId),
     },
   ];
 
@@ -142,13 +145,7 @@ export default function Sidebar({
       <nav className="flex-1 overflow-y-auto px-3 py-4">
         <ul className="space-y-1">
           {menuItems
-            .filter((item) => {
-              // Hide IoT tab for roleID 2
-              if (item.label === "IoT" && !canAccessIoT(user?.roleId)) {
-                return false;
-              }
-              return true;
-            })
+            .filter((item) => item.canAccess?.(user?.roleId) ?? true)
             .map((item, index) => (
               <li key={index}>
                 {item.hasDropdown ? (
