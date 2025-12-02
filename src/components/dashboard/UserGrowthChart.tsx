@@ -33,7 +33,7 @@ ChartJS.register(
 );
 
 export function UserGrowthChart() {
-  const [filter, setFilter] = useState<TimeFilter>("week");
+  const [filter, setFilter] = useState<TimeFilter>("day");
   const [isLoading, setIsLoading] = useState(true);
   const [chartLabels, setChartLabels] = useState<string[]>([]);
   const [chartValues, setChartValues] = useState<number[]>([]);
@@ -44,21 +44,22 @@ export function UserGrowthChart() {
         setIsLoading(true);
 
         // Map filter to granularity
-        let granularity: 'day' | 'month' | 'year' = 'day';
-        if (filter === 'month') {
-          granularity = 'month';
-        } else if (filter === 'week') {
-          granularity = 'day';
+        let granularity: "day" | "month" | "year" = "day";
+        if (filter === "month") {
+          granularity = "month";
+        } else if (filter === "day") {
+          granularity = "day";
+        } else if (filter === "year") {
+          granularity = "year";
         }
 
         const response = await reportsRepository.getNewUsers(granularity);
+        console.log(response.data);
 
         if (response.data && Array.isArray(response.data)) {
           const userData = response.data;
 
           if (filter === "day") {
-            // API returns hourly data with label and count
-            // Group every 3 hours for better visualization
             const labels: string[] = [];
             const data: number[] = [];
 
@@ -66,13 +67,15 @@ export function UserGrowthChart() {
               const item = userData[i];
               labels.push(item.label || `${i}:00`);
               // Sum 3 hours together
-              const sum = userData.slice(i, i + 3).reduce((acc: number, curr: any) => acc + (curr.count || 0), 0);
+              const sum = userData
+                .slice(i, i + 3)
+                .reduce((acc: number, curr: any) => acc + (curr.count || 0), 0);
               data.push(sum);
             }
 
             setChartLabels(labels);
             setChartValues(data);
-          } else if (filter === "week") {
+          } else if (filter === "year") {
             // API returns daily data with label and count
             const labels = userData.map((item: any) => item.label || "");
             const data = userData.map((item: any) => item.count || 0);
@@ -91,7 +94,7 @@ export function UserGrowthChart() {
           setChartValues([]);
         }
       } catch (error) {
-        console.error('Error loading user growth data:', error);
+        console.error("Error loading user growth data:", error);
         setChartLabels([]);
         setChartValues([]);
       } finally {
@@ -134,7 +137,7 @@ export function UserGrowthChart() {
       y: {
         beginAtZero: true,
         ticks: {
-          stepSize: filter === "day" ? 5 : filter === "week" ? 25 : 50,
+          stepSize: filter === "day" ? 5 : filter === "year" ? 25 : 50,
         },
       },
     },
@@ -155,11 +158,11 @@ export function UserGrowthChart() {
             <DropdownMenuItem onClick={() => setFilter("day")}>
               Day
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setFilter("week")}>
-              Week
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setFilter("month")}>
               Month
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setFilter("year")}>
+              Year
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
