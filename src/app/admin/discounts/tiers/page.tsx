@@ -8,6 +8,7 @@ import { DiscountTier } from "@/data/discount_tier";
 import { discountTiers } from "@/data/discount_tier";
 import discountTiersRepository from "@/api/discountTiersRepository";
 import { toast } from "sonner";
+import { Spinner } from "@/components/ui/spinner";
 
 const tierStyles: Record<string, any> = {
   Gold: {
@@ -90,7 +91,7 @@ export default function TierPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+          <Spinner size="lg" />
         </div>
       ) : (
         <>

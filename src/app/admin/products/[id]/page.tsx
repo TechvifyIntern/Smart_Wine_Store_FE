@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Spinner } from "@/components/ui/spinner";
 import {
   ArrowLeft,
   Edit,
@@ -13,7 +14,9 @@ import {
   Save,
 } from "lucide-react";
 import productsRepository from "@/api/productsRepository";
+import categoriesRepository from "@/api/categoriesRepository";
 import { Product } from "@/data/products";
+import { Category } from "@/types/category";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -63,29 +66,49 @@ export default function ProductDetailPage() {
 
   // State for product data
   const [product, setProduct] = useState<Product | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch product data from API
+  // Fetch product data and categories from API
   useEffect(() => {
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true);
-        const response = await productsRepository.getProductById(productId);
-        if (response.success && response.data) {
-          setProduct(response.data);
+
+        // Fetch product and categories in parallel
+        const [productResponse, categoriesResponse] = await Promise.all([
+          productsRepository.getProductById(productId),
+          categoriesRepository.getCategories()
+        ]);
+
+        // Handle product response
+        if (productResponse.success && productResponse.data) {
+          setProduct(productResponse.data);
         } else {
-          console.error("Failed to load product:", response.message);
+          console.error("Failed to load product:", productResponse.message);
           toast({
             title: "Error",
             description: "Failed to load product details.",
             variant: "destructive",
           });
         }
+
+        // Handle categories response
+        if (categoriesResponse.success && categoriesResponse.data) {
+          setCategories(categoriesResponse.data);
+        } else {
+          console.error("Failed to load categories:", categoriesResponse.message);
+          toast({
+            title: "Error",
+            description: "Failed to load categories.",
+            variant: "destructive",
+          });
+        }
       } catch (err) {
-        console.error("Error loading product:", err);
+        console.error("Error loading data:", err);
         toast({
           title: "Error",
-          description: "An error occurred while loading product details.",
+          description: "An error occurred while loading data.",
           variant: "destructive",
         });
       } finally {
@@ -94,7 +117,7 @@ export default function ProductDetailPage() {
     };
 
     if (productId) {
-      fetchProduct();
+      fetchData();
     }
   }, [productId, toast]);
 
@@ -104,13 +127,6 @@ export default function ProductDetailPage() {
       setIsEditing(true);
     }
   }, [searchParams]);
-
-  const categories = [
-    { id: 1, name: "Red Wines" },
-    { id: 2, name: "White Wines" },
-    { id: 3, name: "Sparkling Wines" },
-    { id: 4, name: "Rosé Wines" },
-  ];
 
   const {
     register,
@@ -160,11 +176,17 @@ export default function ProductDetailPage() {
       );
 
       if (response.success) {
-        // Update local state with new data
+        // Find category name from categories list
+        const selectedCategory = categories.find(
+          (cat) => cat.CategoryID === data.CategoryID
+        );
+
+        // Update local state with new data including CategoryName
         setProduct({
           ...product,
           ProductName: data.ProductName,
           CategoryID: data.CategoryID,
+          CategoryName: selectedCategory?.CategoryName || product.CategoryName,
           CostPrice: data.CostPrice,
           SalePrice: data.SalePrice,
         });
@@ -301,12 +323,7 @@ export default function ProductDetailPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Loading product details...
-          </p>
-        </div>
+        <Spinner size="lg" />
       </div>
     );
   }
@@ -517,14 +534,14 @@ export default function ProductDetailPage() {
                           <SelectTrigger className="bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500">
                             <SelectValue placeholder="Select category" />
                           </SelectTrigger>
-                          <SelectContent className="bg-white dark:bg-slate-600 border-gray-200 dark:border-slate-500">
+                          <SelectContent className="bg-white dark:bg-slate-600 border-gray-200 dark:border-slate-500 max-h-[200px] overflow-y-auto">
                             {categories.map((cat) => (
                               <SelectItem
-                                key={cat.id}
-                                value={cat.id.toString()}
+                                key={cat.CategoryID}
+                                value={cat.CategoryID.toString()}
                                 className="text-gray-900 dark:text-slate-100 dark:focus:bg-slate-700"
                               >
-                                {cat.name}
+                                {cat.CategoryName}
                               </SelectItem>
                             ))}
                           </SelectContent>

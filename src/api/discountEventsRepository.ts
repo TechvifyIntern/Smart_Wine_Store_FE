@@ -37,7 +37,7 @@ interface UpdateDiscountEventData {
 
 class DiscountEventsRepository extends BaseRepository {
     constructor() {
-        super('/discount-events');
+        super('/events');
     }
 
     /**

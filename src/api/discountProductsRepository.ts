@@ -31,7 +31,7 @@ interface UpdateDiscountProductData {
 
 class DiscountProductsRepository extends BaseRepository {
     constructor() {
-        super('/discount-products');
+        super('/products/discounts');
     }
 
     /**

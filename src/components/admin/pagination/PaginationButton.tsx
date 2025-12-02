@@ -46,16 +46,16 @@ export default function PaginationButtons({
       <div className="flex items-center gap-1">
         {pages.map((page, idx) =>
           page === "..." ? (
-            <span key={idx} className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-slate-500">
+            <span key={`ellipsis-${idx}`} className="w-9 h-9 flex items-center justify-center text-gray-400 dark:text-slate-500">
               ...
             </span>
           ) : (
             <button
-              key={page}
+              key={`page-${page}`}
               onClick={() => onPageChange(page as number)}
               className={`w-9 h-9 rounded-lg font-medium transition-all ${currentPage === page
-                  ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-sm"
-                  : "bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700/50 text-gray-700 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/70"
+                ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-sm"
+                : "bg-white dark:bg-slate-800/50 border border-gray-300 dark:border-slate-700/50 text-gray-700 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-slate-800/70"
                 }`}
             >
               {page}

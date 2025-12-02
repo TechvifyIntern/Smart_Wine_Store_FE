@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "sonner";
 import { Nunito } from "next/font/google";
 import AuthInitializer from "@/components/auth/AuthInitializer";
 import QueryProvider from "@/components/providers/QueryProvider";
@@ -45,6 +46,7 @@ export default function RootLayout({
             >
               <AuthInitializer>{children}</AuthInitializer>
               <Toaster />
+              <Sonner />
               <Chatbot />
             </ThemeProvider>
           </LocaleProvider>

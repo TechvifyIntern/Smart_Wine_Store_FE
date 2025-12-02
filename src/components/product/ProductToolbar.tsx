@@ -78,15 +78,13 @@ export default function ProductToolbar({
                         )}
                     </Button>
 
-                    {permissions.canCreate && (
-                        <Button
-                            onClick={onCreateProduct}
-                            className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                        >
-                            <Plus className="w-4 h-4" />
-                            {createButtonLabel}
-                        </Button>
-                    )}
+                    <Button
+                        onClick={onCreateProduct}
+                        className="bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+                    >
+                        <Plus className="w-4 h-4" />
+                        {createButtonLabel}
+                    </Button>
                 </div>
             </div>
 
@@ -103,7 +101,7 @@ export default function ProductToolbar({
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder="All Categories" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="max-h-[200px] overflow-y-auto">
                                     <SelectItem value="all">All Categories</SelectItem>
                                     {categories.map((category) => (
                                         <SelectItem key={category.CategoryID} value={category.CategoryID.toString()}>
