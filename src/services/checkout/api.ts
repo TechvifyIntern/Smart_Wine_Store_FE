@@ -16,7 +16,7 @@ export interface CheckoutPayload {
   OrderProvince: string;
   Items: CheckoutItem[];
   StatusID?: number;
-  DiscountID?: number | null;
+  EventID?: number | null;
   PaymentMethodID: number;
   ReturnUrl: string;
 }

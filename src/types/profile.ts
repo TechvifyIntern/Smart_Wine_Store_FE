@@ -17,6 +17,7 @@ export interface UserProfile {
 
 // UserAddress based on the second JSON
 export interface UserAddress {
+  District?: any;
   UserAddressID: number;
   UserID: number;
   StreetAddress: string;

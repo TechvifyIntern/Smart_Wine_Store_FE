@@ -9,7 +9,9 @@ export const getAllProducts = async (
 ): Promise<PaginatedData<Product[]>> => {
   const response = await api.get("/products", {
     params:
-      page !== undefined && size !== undefined ? { size, page } : undefined,
+      page !== undefined && size !== undefined
+        ? { size, page: page - 1 } // subtract 1 here
+        : undefined,
   });
   return response.data.data;
 };
@@ -24,7 +26,12 @@ export const getFilteredProducts = async (params: {
   page?: number;
   size?: number;
 }): Promise<PaginatedData<Products[]>> => {
-  const response = await api.get("/products/filter", { params });
+  const response = await api.get("/products/filter", {
+    params: {
+      ...params,
+      page: params.page !== undefined ? params.page - 1 : undefined,
+    },
+  });
   return response.data.data;
 };
 
@@ -33,6 +40,11 @@ export const getSearchedProducts = async (params: {
   page?: number;
   size?: number;
 }): Promise<PaginatedData<Products[]>> => {
-  const response = await api.get("/products/search", { params });
+  const response = await api.get("/products/search", {
+    params: {
+      ...params,
+      page: params.page !== undefined ? params.page - 1 : undefined,
+    },
+  });
   return response.data.data;
 };

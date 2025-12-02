@@ -5,6 +5,7 @@ import {
   updateCartItemQuantity,
   removeCartItem,
   getCartItems,
+  clearCart as clearCartAPI,
 } from "@/services/cart/api";
 import { useAppStore } from "@/store/auth"; // Import useAppStore
 import { toast } from "@/hooks/use-toast"; // Import toast
@@ -14,11 +15,15 @@ import { persist } from "zustand/middleware";
 interface CartState {
   items: CartItem[];
   isUpdating: boolean;
+  eventDiscount: number | null;
+  eventId: number | null;
   setItems: (items: CartItem[]) => void;
   addToCart: (productId: number, quantity: number) => Promise<void>;
   removeFromCart: (productId: number) => Promise<void>;
   updateQuantity: (productId: number, quantity: number) => Promise<void>;
-  clearCart: () => void;
+  clearCart: () => Promise<void>;
+  setEventDiscount: (discount: number | null) => void;
+  setEventId: (id: number | null) => void;
 }
 
 // Create the store
@@ -27,7 +32,11 @@ export const useCartStore = create<CartState>()(
     (set) => ({
       items: [],
       isUpdating: false,
+      eventDiscount: null,
+      eventId: null,
       setItems: (items) => set({ items }),
+      setEventDiscount: (discount) => set({ eventDiscount: discount }),
+      setEventId: (id) => set({ eventId: id }),
       addToCart: async (productId, quantity) => {
         const { user } = useAppStore.getState();
         if (!user) {
@@ -142,8 +151,26 @@ export const useCartStore = create<CartState>()(
           set({ isUpdating: false });
         }
       },
-      clearCart: () => {
-        set({ items: [] });
+      clearCart: async () => {
+        set({ isUpdating: true });
+        try {
+          await clearCartAPI();
+          set({ items: [] });
+          toast({
+            title: "Cart cleared",
+            description: "All items have been removed from your cart.",
+          });
+        } catch (error) {
+          console.error("Failed to clear cart:", error);
+          toast({
+            title: "Error",
+            description: "Failed to clear cart.",
+            variant: "destructive",
+          });
+          throw error;
+        } finally {
+          set({ isUpdating: false });
+        }
       },
     }),
     {
