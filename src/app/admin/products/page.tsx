@@ -13,6 +13,7 @@ import ProductTable from "@/components/product/ProductTable";
 import ProductToolbar from "@/components/product/ProductToolbar";
 import Pagination from "@/components/admin/pagination/Pagination";
 import { CreateProductModal } from "@/components/product/(modal)/CreateProductModal";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -79,6 +80,7 @@ export default function ProductsPage() {
         console.error("Error loading products:", err);
       } finally {
         setIsSearching(false);
+        setIsLoading(false);
       }
     };
 
@@ -187,16 +189,26 @@ export default function ProductsPage() {
       }
 
       // Use PATCH /products/{id}/status/{isActive} to update product status
-
-      await productsRepository.updateProductStatus(id, isActive);
-      const response = await productsRepository.getProducts();
-      if (response.success && response.data) {
-        setProducts(response.data);
-      }
-      const statusText = isActive ? "activated" : "deactivated";
-      toast.success(
-        `Product "${product.ProductName}" ${statusText} successfully!`
+      const updateResponse = await productsRepository.updateProductStatus(
+        id,
+        isActive
       );
+      if (updateResponse.success) {
+        // Reload products to get updated data
+        const response = await productsRepository.getProducts();
+        if (response.success && response.data) {
+          setProducts(response.data);
+        }
+
+        const statusText = isActive ? "activated" : "deactivated";
+        toast.success(
+          `Product "${product.ProductName}" ${statusText} successfully!`
+        );
+      } else {
+        toast.error(
+          `Failed to update product status: ${updateResponse.message || "Unknown error"}`
+        );
+      }
     } catch (error: any) {
       console.error("Error updating product status:", error);
       console.error("Error details:", {
@@ -228,19 +240,18 @@ export default function ProductsPage() {
 
       const createdProductResponse =
         await productsRepository.createProduct(productData);
-      const response = await productsRepository.getProducts();
-      if (response.success && response.data) {
-        setProducts(response.data);
-      }
-      setIsCreateModalOpen(false);
       if (createdProductResponse.success && createdProductResponse.data) {
         toast.success(
-          `Product "${createdProductResponse.data.ProductName}" created successfully!`
+          `Sản phẩm "${createdProductResponse.data.ProductName}" đã được tạo thành công!`
         );
+        // Auto refresh page after successful creation
+        setTimeout(() => {
+          router.refresh();
+        }, 1500);
       }
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error("Failed to create product");
+      toast.error("Không thể tạo sản phẩm");
     }
   };
 
@@ -283,7 +294,7 @@ export default function ProductsPage() {
         onSearchChange={handleSearchChange}
         searchPlaceholder="Search by name or ID..."
         onCreateProduct={handleCreateProduct}
-        createButtonLabel="Add Product"
+        createButtonLabel="Thêm Product"
         categories={categories}
         selectedCategoryId={selectedCategoryId}
         onCategoryChange={handleCategoryChange}
@@ -293,19 +304,25 @@ export default function ProductsPage() {
       />
 
       {/* Products Table */}
-      <ProductTable
-        products={currentProducts}
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onToggleStatus={handleToggleStatus}
-        formatCurrency={formatCurrency}
-        emptyMessage={
-          searchTerm
-            ? "No products found matching your search"
-            : "No products found"
-        }
-      />
+      {isLoading ? (
+        <div className="flex justify-center items-center py-20">
+          <Spinner size="lg" />
+        </div>
+      ) : (
+        <ProductTable
+          products={currentProducts}
+          onView={handleView}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onToggleStatus={handleToggleStatus}
+          formatCurrency={formatCurrency}
+          emptyMessage={
+            searchTerm
+              ? "No products found matching your search"
+              : "No products found"
+          }
+        />
+      )}
 
       {/* Pagination */}
       <Pagination

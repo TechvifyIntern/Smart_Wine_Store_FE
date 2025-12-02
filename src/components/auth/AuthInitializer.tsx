@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useAppStore } from "@/store/auth";
 import { refreshToken } from "@/services/auth/api";
 import { jwtDecode } from "jwt-decode";
@@ -8,79 +8,84 @@ import { usePathname, useRouter } from "next/navigation";
 import { setAuthToken } from "@/services/api";
 
 const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
-  const { accessToken, refreshToken: rt, setTokens, logout } = useAppStore();
   const pathname = usePathname();
   const router = useRouter();
-  const isInitialized = useRef(false);
+  const {
+    accessToken,
+    refreshToken: rt,
+    setTokens,
+    logout,
+    _hasHydrated,
+  } = useAppStore();
+
+  const isAdminRoute = pathname.startsWith("/admin");
 
   useEffect(() => {
-    // Chỉ chạy logic auth check khi mount hoặc khi accessToken thay đổi
-    // Không chạy lại mỗi khi pathname thay đổi
-    if (isInitialized.current && pathname) {
-      // Chỉ check nếu user cố truy cập admin mà không có quyền
-      if (!accessToken && pathname.startsWith("/admin")) {
-        router.push("/");
-      } else if (accessToken) {
-        const decoded = jwtDecode<{ roleId: number }>(accessToken);
-        if (
-          decoded.roleId !== 1 &&
-          decoded.roleId !== 2 &&
-          pathname.startsWith("/admin")
-        ) {
-          router.push("/");
-        }
-      }
-      return;
-    }
+    if (!_hasHydrated) return;
 
-    if (accessToken) {
+    // Nếu thiếu token → chỉ cấm admin route
+    const handleNoToken = () => {
+      if (isAdminRoute) router.push("/unauthorized");
+    };
+
+    // Check sai quyền
+    const redirectUnauthorized = () => {
+      router.push("/unauthorized");
+    };
+
+    const validateRole = (roleId: number) => {
+      if (isAdminRoute && ![1, 2].includes(roleId)) {
+        redirectUnauthorized();
+      }
+    };
+
+    const checkAccess = async () => {
+      // ===== Không có token =====
+      if (!accessToken) {
+        handleNoToken();
+        return;
+      }
+
       setAuthToken(accessToken);
-      const decoded = jwtDecode<{ exp: number; roleId: number }>(accessToken);
-      if (decoded.exp * 1000 < Date.now()) {
-        if (rt) {
-          refreshToken(rt)
-            .then(({ accessToken, refreshToken }) => {
-              setTokens(accessToken, refreshToken);
-              const newDecoded = jwtDecode<{ roleId: number }>(accessToken);
-              // Chỉ redirect user thường ra khỏi admin page
-              if (
-                newDecoded.roleId !== 1 &&
-                newDecoded.roleId !== 2 &&
-                pathname.startsWith("/admin")
-              ) {
-                router.push("/");
-              }
-            })
-            .catch(() => {
-              logout();
-              if (pathname !== "/") {
-                router.push("/");
-              }
-            });
-        } else {
-          logout();
-          if (pathname !== "/") {
-            router.push("/");
+
+      try {
+        const decoded = jwtDecode<{ exp: number; roleId: number }>(accessToken);
+
+        // ===== Token hết hạn =====
+        if (decoded.exp * 1000 < Date.now()) {
+          if (!rt) {
+            logout();
+            handleNoToken();
+            return;
+          }
+
+          try {
+            const { accessToken: newAT, refreshToken: newRT } =
+              await refreshToken(rt);
+
+            setTokens(newAT, newRT);
+
+            const newDecoded = jwtDecode<{ roleId: number }>(newAT);
+            validateRole(newDecoded.roleId);
+            return;
+          } catch {
+            logout();
+            handleNoToken();
+            return;
           }
         }
-      } else {
-        // Chỉ redirect user thường ra khỏi admin page
-        if (
-          decoded.roleId !== 1 &&
-          decoded.roleId !== 2 &&
-          pathname.startsWith("/admin")
-        ) {
-          router.push("/");
-        }
-      }
-    } else {
-      if (pathname.startsWith("/admin")) {
-        router.push("/");
-      }
-    }
 
-    isInitialized.current = true;
-  }, [accessToken, rt, pathname, router, setTokens, logout]);
+        // ===== Token còn hạn → check role =====
+        validateRole(decoded.roleId);
+      } catch (err) {
+        console.error("Decode token error:", err);
+        logout();
+        handleNoToken();
+      }
+    };
+
+    checkAccess();
+  }, [_hasHydrated, pathname, accessToken, rt]);
 
   return <>{children}</>;
 };

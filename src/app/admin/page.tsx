@@ -9,6 +9,7 @@ import { RecentOrdersTable } from "@/components/dashboard/RecentOrdersTable";
 import { overviewData } from "@/data/dashboard/overview";
 import userManagementRepository from "@/api/userManagementRepository.js";
 import ordersRepository from "@/api/ordersRepository";
+import reportsRepository from "@/api/reportsRepository";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
@@ -29,31 +30,18 @@ export default function Dashboard() {
     const loadUsersData = async () => {
       try {
         setIsLoadingUsers(true);
-        const response = await userManagementRepository.getAll();
-        if (response.success && response.data) {
-          // Get total count from API response
-          const total = response.data.total || response.data.length || 0;
+
+        // Fetch total users
+        const usersResponse = await userManagementRepository.getAll();
+        if (usersResponse.success && usersResponse.data) {
+          const total = usersResponse.data.total || usersResponse.data.length || 0;
           setTotalUsers(total);
+        }
 
-          // Calculate new users this month
-          if (Array.isArray(response.data.data)) {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-
-            const newUsers = response.data.data.filter((user: any) => {
-              if (user.CreatedAt) {
-                const createdDate = new Date(user.CreatedAt);
-                return (
-                  createdDate.getMonth() === currentMonth &&
-                  createdDate.getFullYear() === currentYear
-                );
-              }
-              return false;
-            });
-
-            setNewUsersThisMonth(newUsers.length);
-          }
+        // Fetch new users this month from reports API
+        const newUsersResponse = await reportsRepository.getNewUsers('month');
+        if (newUsersResponse.success && newUsersResponse.data) {
+          setNewUsersThisMonth(newUsersResponse.data.count || newUsersResponse.data.total || 0);
         }
       } catch (error) {
         console.error("Error loading users:", error);

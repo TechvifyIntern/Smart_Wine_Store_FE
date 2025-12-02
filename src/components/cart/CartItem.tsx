@@ -57,12 +57,16 @@ export default function CartItem({
           <input
             type="text"
             inputMode="numeric"
+            readOnly
             pattern="[1-9][0-9]*"
             value={item.Quantity === 0 ? "" : item.Quantity}
             onChange={(e) => {
-              const rawValue = e.target.value.replace(/\D/g, "");
-              const newQuantity = rawValue === "" ? 0 : parseInt(rawValue, 10);
-              updateQuantity(item.ProductID, newQuantity);
+              const rawValue = e.target.value;
+              if (/^\d*$/.test(rawValue)) {
+                const newQuantity =
+                  rawValue === "" ? 0 : parseInt(rawValue, 10);
+                updateQuantity(item.ProductID, newQuantity);
+              }
             }}
             onBlur={() => {
               if (item.Quantity < 1) {

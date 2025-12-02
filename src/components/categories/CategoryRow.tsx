@@ -8,12 +8,14 @@ interface CategoryRowProps {
     category: ProductCategory;
     onEdit: (id: number) => void;
     onDelete: (id: number) => void;
+    showActions?: boolean;
 }
 
 export default function CategoryRow({
     category,
     onEdit,
     onDelete,
+    showActions = true,
 }: CategoryRowProps) {
     const router = useRouter();
     const { user } = useAppStore();
@@ -39,31 +41,33 @@ export default function CategoryRow({
                     {category.Description}
                 </div>
             </td>
-            <td className="px-6 py-5">
-                <div className="flex items-center justify-center gap-2">
-                    {/* Edit Button */}
-                    {permissions.canEdit && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onEdit(category.CategoryID); }}
-                            title="Edit category"
-                            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
-                        >
-                            <Edit2 className="w-4 h-4" />
-                        </button>
-                    )}
+            {showActions && (
+                <td className="px-6 py-5">
+                    <div className="flex items-center justify-center gap-2">
+                        {/* Edit Button */}
+                        {permissions.canEdit && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onEdit(category.CategoryID); }}
+                                title="Edit category"
+                                className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-orange-500/20 dark:border dark:border-slate-700/50 dark:hover:border-orange-500/50 dark:text-slate-400 dark:hover:text-orange-400"
+                            >
+                                <Edit2 className="w-4 h-4" />
+                            </button>
+                        )}
 
-                    {/* Delete Button */}
-                    {permissions.canDelete && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(category.CategoryID); }}
-                            title="Delete category"
-                            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                    )}
-                </div>
-            </td>
+                        {/* Delete Button */}
+                        {permissions.canDelete && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); onDelete(category.CategoryID); }}
+                                title="Delete category"
+                                className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-red-500 dark:bg-slate-800/50 dark:hover:bg-red-500/20 dark:border dark:border-slate-700/50 dark:hover:border-red-500/50 dark:text-slate-400 dark:hover:text-red-400"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
+                </td>
+            )}
         </tr>
     );
 }

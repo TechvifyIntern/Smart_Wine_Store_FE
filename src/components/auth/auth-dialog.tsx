@@ -250,6 +250,7 @@ export function AuthDialog({
             <div className="space-y-2">
               <Label htmlFor="otp">OTP Code</Label>
               <Input
+                autoFocus
                 id="otp"
                 type="text"
                 maxLength={6}

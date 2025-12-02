@@ -8,7 +8,10 @@
     "language": "Ngôn ngữ",
     "logout": "Đăng xuất",
     "signIn": "Đăng nhập",
-    "signUp": "Đăng ký"
+    "signUp": "Đăng ký",
+    "notifications": "Thông báo",
+    "unread": "chưa đọc",
+    "noNotifications": "Không có thông báo"
   },
   "languages": {
     "vi": "Tiếng Việt",
@@ -353,6 +356,11 @@
         "shipped": "Đã Gửi",
         "delivered": "Đã Giao",
         "cancelled": "Đã Hủy"
+      },
+      "filterStatus": {
+        "all": "Tất cả trạng thái",
+        "pending": "Chờ Xử Lý",
+        "done": "Hoàn thành (Đã giao)"
       },
       "noOrders": "Không tìm thấy đơn hàng nào",
       "noOrdersSearch": "Không tìm thấy đơn hàng nào phù hợp với tìm kiếm của bạn",

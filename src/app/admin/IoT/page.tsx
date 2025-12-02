@@ -29,7 +29,8 @@ interface TrackingDeviceState {
 }
 
 const IotDashboard: React.FC = () => {
-  const backendUrl = process.env.BE_API_URL || "https://erpsystem.io.vn";
+  const backendUrl =
+    process.env.NEXT_PUBLIC_BE_API_URL || "http://localhost:3000";
 
   // --- STATE (Giữ nguyên code cũ của bạn) ---
   const [tempHistory, setTempHistory] = useState<

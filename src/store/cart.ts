@@ -32,7 +32,7 @@ export const useCartStore = create<CartState>()(
         const { user } = useAppStore.getState();
         if (!user) {
           toast({
-            title: "Authentication Required",
+            title: "Login Required",
             description: "Please log in to add items to your cart.",
             variant: "destructive",
           });

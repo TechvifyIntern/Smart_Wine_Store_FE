@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun, User, Home, Languages, LogOut, Check } from "lucide-react";
+import { Moon, Sun, User, Home, Languages, LogOut, Check, Bell } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "../ui/button";
 import Link from "next/link";
@@ -19,6 +19,7 @@ import { useAppStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
 import { useState, useEffect } from "react";
+import notificationsRepository, { Notification } from "@/api/notificationsRepository";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -30,10 +31,42 @@ export default function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAppStore();
   const { locale, setLocale, t } = useLocale();
   const [mounted, setMounted] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      if (!user) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
+
+      try {
+        const response = await notificationsRepository.getNotifications();
+        if (response.success && response.data) {
+          const notificationsArray = Array.isArray(response.data)
+            ? response.data
+            : [];
+          setNotifications(notificationsArray);
+          setUnreadCount(notificationsArray.filter((n) => !n.IsRead).length);
+        }
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 60000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -66,8 +99,85 @@ export default function Header({ onMenuClick }: HeaderProps) {
           </div>
         </div>
 
-        {/* Right side - Theme toggle + User Profile */}
+        {/* Right side - Notifications + Theme toggle + User Profile */}
         <div className="flex items-center gap-3">
+          {/* Notifications */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                <Bell className="w-5 h-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-80" align="end">
+              <div className="flex items-center justify-between px-4 py-2 border-b">
+                <h3 className="font-semibold text-sm">{t("header.notifications") || "Notifications"}</h3>
+                {unreadCount > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {unreadCount} {t("header.unread") || "unread"}
+                  </span>
+                )}
+              </div>
+              <div className="max-h-96 overflow-y-auto">
+                {notifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                    {t("header.noNotifications") || "No notifications"}
+                  </div>
+                ) : (
+                  notifications.map((notification) => (
+                    <div
+                      key={notification.NotificationID}
+                      className={`px-4 py-3 border-b hover:bg-muted cursor-pointer transition-colors ${!notification.IsRead ? "bg-blue-50 dark:bg-blue-950/20" : ""
+                        }`}
+                      onClick={async () => {
+                        if (!notification.IsRead) {
+                          try {
+                            await notificationsRepository.markAsRead(notification.NotificationID);
+                            setNotifications((prev) =>
+                              prev.map((n) =>
+                                n.NotificationID === notification.NotificationID
+                                  ? { ...n, IsRead: true }
+                                  : n
+                              )
+                            );
+                            setUnreadCount((prev) => Math.max(0, prev - 1));
+                          } catch (error) {
+                            console.error("Error marking notification as read:", error);
+                          }
+                        }
+                      }}
+                    >
+                      <div className="flex items-start gap-2">
+                        {!notification.IsRead && (
+                          <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground">
+                            {notification.Title}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                            {notification.Message}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {new Date(notification.CreatedAt).toLocaleString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Theme toggle */}
           <Button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

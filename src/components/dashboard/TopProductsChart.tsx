@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   DropdownMenu,
@@ -22,6 +22,8 @@ import {
 } from "chart.js";
 import { topProductsData } from "@/data/dashboard/topProducts";
 import { TimeFilter } from "@/types/dashboard";
+import reportsRepository from "@/api/reportsRepository";
+import { Spinner } from "@/components/ui/spinner";
 
 ChartJS.register(
   CategoryScale,
@@ -32,10 +34,47 @@ ChartJS.register(
   Legend
 );
 
-export function TopProductsChart() {
-  const [filter, setFilter] = useState<TimeFilter>("week");
+interface TopProduct {
+  name: string;
+  sold: number;
+}
 
-  const currentData = topProductsData[filter];
+export function TopProductsChart() {
+  const [filter, setFilter] = useState<'month' | 'year'>("month");
+  const [currentData, setCurrentData] = useState<TopProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchTopProducts = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const response = await reportsRepository.getTopProducts(filter, 10);
+
+        if (response.success && response.data) {
+          // Transform API data to match chart format
+          const products = response.data.map((item: any) => ({
+            name: item.ProductName || item.name,
+            sold: item.TotalSold || item.sold || 0,
+          }));
+          setCurrentData(products);
+        } else {
+          // Fallback to static data if API fails
+          setCurrentData(topProductsData['week']);
+        }
+      } catch (err) {
+        console.error('Error fetching top products:', err);
+        setError('Failed to load data');
+        // Fallback to static data
+        setCurrentData(topProductsData['week']);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTopProducts();
+  }, [filter]);
 
   const chartData = {
     labels: currentData.map((product) => product.name),
@@ -87,21 +126,32 @@ export function TopProductsChart() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setFilter("day")}>
-              Day
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setFilter("week")}>
-              Week
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setFilter("month")}>
               Month
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setFilter("year")}>
+              Year
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </CardHeader>
       <CardContent>
         <div className="h-[350px]">
-          <Bar data={chartData} options={options} />
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Spinner size="lg" />
+            </div>
+          ) : error ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">{error}</p>
+            </div>
+          ) : currentData.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">No data available</p>
+            </div>
+          ) : (
+            <Bar data={chartData} options={options} />
+          )}
         </div>
       </CardContent>
     </Card>

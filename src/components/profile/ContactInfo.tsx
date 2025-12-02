@@ -6,7 +6,10 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button"; // Import Button component
 import { UserProfile, UpdateProfilePayload } from "@/types/profile"; // Import UpdateProfilePayload
 import { z } from "zod"; // Import z
-import { profileSchema, ProfileFormValues } from "@/validations/profile/profileSchema"; // Import profileSchema and ProfileFormValues
+import {
+  profileSchema,
+  ProfileFormValues,
+} from "@/validations/profile/profileSchema"; // Import profileSchema and ProfileFormValues
 
 interface ContactInfoProps {
   isEditMode: boolean;
@@ -25,7 +28,7 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
     UserName: userProfile?.UserName || "",
     Email: userProfile?.Email || "",
     PhoneNumber: userProfile?.PhoneNumber || "",
-    Birthday: userProfile?.Birthday ? userProfile.Birthday.split('T')[0] : "", // Format to YYYY-MM-DD for input type="date"
+    Birthday: userProfile?.Birthday ? userProfile.Birthday.split("T")[0] : "", // Format to YYYY-MM-DD for input type="date"
   });
   const [errors, setErrors] = useState<z.ZodIssue[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -36,7 +39,9 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
         UserName: userProfile.UserName || "",
         Email: userProfile.Email || "",
         PhoneNumber: userProfile.PhoneNumber || "",
-        Birthday: userProfile.Birthday ? userProfile.Birthday.split('T')[0] : "",
+        Birthday: userProfile.Birthday
+          ? userProfile.Birthday.split("T")[0]
+          : "",
       });
       setErrors([]); // Clear errors when userProfile changes or exits edit mode
     }
@@ -74,7 +79,9 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
         UserName: userProfile.UserName || "",
         Email: userProfile.Email || "",
         PhoneNumber: userProfile.PhoneNumber || "",
-        Birthday: userProfile.Birthday ? userProfile.Birthday.split('T')[0] : "",
+        Birthday: userProfile.Birthday
+          ? userProfile.Birthday.split("T")[0]
+          : "",
       });
     }
     setErrors([]); // Clear any validation errors
@@ -87,7 +94,7 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
 
   // Helper to find specific error for an input field
   const findError = (fieldName: string) => {
-    return errors.find(err => err.path[0] === fieldName)?.message;
+    return errors.find((err) => err.path[0] === fieldName)?.message;
   };
 
   return (
@@ -107,7 +114,9 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
                   className={`font-semibold ${findError("UserName") ? "border-destructive" : ""}`}
                 />
                 {findError("UserName") && (
-                  <p className="text-sm text-destructive">{findError("UserName")}</p>
+                  <p className="text-sm text-destructive">
+                    {findError("UserName")}
+                  </p>
                 )}
               </>
             ) : (
@@ -129,7 +138,9 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
                   className={`font-semibold ${findError("Email") ? "border-destructive" : ""}`}
                 />
                 {findError("Email") && (
-                  <p className="text-sm text-destructive">{findError("Email")}</p>
+                  <p className="text-sm text-destructive">
+                    {findError("Email")}
+                  </p>
                 )}
               </>
             ) : (
@@ -151,7 +162,9 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
                   className={`font-semibold ${findError("PhoneNumber") ? "border-destructive" : ""}`}
                 />
                 {findError("PhoneNumber") && (
-                  <p className="text-sm text-destructive">{findError("PhoneNumber")}</p>
+                  <p className="text-sm text-destructive">
+                    {findError("PhoneNumber")}
+                  </p>
                 )}
               </>
             ) : (
@@ -174,28 +187,20 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
                   className={`font-semibold ${findError("Birthday") ? "border-destructive" : ""}`}
                 />
                 {findError("Birthday") && (
-                  <p className="text-sm text-destructive">{findError("Birthday")}</p>
+                  <p className="text-sm text-destructive">
+                    {findError("Birthday")}
+                  </p>
                 )}
               </>
             ) : (
               <p className="font-semibold">
-                {userProfile.Birthday ? new Date(userProfile.Birthday).toLocaleDateString() : "N/A"}
+                {userProfile.Birthday
+                  ? new Date(userProfile.Birthday).toLocaleDateString()
+                  : "N/A"}
               </p>
             )}
           </div>
         </div>
-
-        {/* Existing Member Since field - unchanged */}
-        <div className="flex items-start gap-4">
-          <Calendar className="text-primary shrink-0 mt-1" size={20} />
-          <div>
-            <p className="text-sm">Member Since</p>
-            <p className="font-semibold">
-              {userProfile?.createAt || "99/99/9999"}
-            </p>
-          </div>
-        </div>
-
       </div>
 
       {isEditMode && (

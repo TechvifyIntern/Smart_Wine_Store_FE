@@ -12,21 +12,24 @@ interface AppState {
   refreshToken: string | null;
   authOpen: boolean; // Add authOpen
   authMode: "signin" | "signup" | "forgot" | "otp"; // Add authMode
+  _hasHydrated: boolean; // Track hydration status
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   setAccessToken: (accessToken: string) => void;
   logout: () => void;
   setAuthOpen: (open: boolean) => void; // Add setAuthOpen
   setAuthMode: (mode: "signin" | "signup" | "forgot" | "otp") => void; // Add setAuthMode
+  setHasHydrated: (hasHydrated: boolean) => void;
 }
 
 const decodeToken = (token: string): User | null => {
   try {
     const decodedToken = jwtDecode(token);
+    const roleId = (decodedToken as any).roleId;
     return {
       id: decodedToken.sub,
       email: (decodedToken as any).email,
-      roleId: (decodedToken as any).roleId,
+      roleId: String(roleId), // Convert to string for consistency
     };
   } catch (e) {
     console.error("Failed to decode token", e);
@@ -51,12 +54,17 @@ export const useAppStore = create<AppState>()(
       refreshToken: null,
       authOpen: false, // Initialize authOpen
       authMode: "signin", // Initialize authMode
+      _hasHydrated: false,
       setUser: (user) => set({ user }),
       setTokens: (accessToken, refreshToken) => {
         const user = decodeToken(accessToken);
         set({ user, accessToken, refreshToken });
         if (typeof window !== 'undefined') {
           localStorage.setItem("token", accessToken);
+          // Save roleId to localStorage for easy access
+          if (user?.roleId) {
+            localStorage.setItem("roleId", user.roleId);
+          }
         }
         setAuthToken(accessToken);
         fetchCartAndSetStore();
@@ -66,6 +74,10 @@ export const useAppStore = create<AppState>()(
         set({ user, accessToken });
         if (typeof window !== 'undefined') {
           localStorage.setItem("token", accessToken);
+          // Save roleId to localStorage for easy access
+          if (user?.roleId) {
+            localStorage.setItem("roleId", user.roleId);
+          }
         }
         setAuthToken(accessToken);
       },
@@ -73,20 +85,27 @@ export const useAppStore = create<AppState>()(
         set({ user: null, accessToken: null, refreshToken: null });
         if (typeof window !== 'undefined') {
           localStorage.removeItem("token");
+          localStorage.removeItem("roleId");
         }
         setAuthToken("");
         useCartStore.getState().clearCart();
       },
       setAuthOpen: (open) => set({ authOpen: open }), // Implement setAuthOpen
       setAuthMode: (mode) => set({ authMode: mode }), // Implement setAuthMode
+      setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
     }),
     {
       name: "auth-storage", // name of the item in the storage (must be unique)
-      onRehydrateStorage: (state) => {
-        if (state.accessToken) {
-          setAuthToken(state.accessToken);
-          fetchCartAndSetStore();
-        }
+      onRehydrateStorage: () => {
+        return (state, error) => {
+          if (!error && state) {
+            state.setHasHydrated(true);
+            if (state.accessToken) {
+              setAuthToken(state.accessToken);
+              fetchCartAndSetStore();
+            }
+          }
+        };
       },
     }
   )

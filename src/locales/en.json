@@ -8,7 +8,10 @@
     "language": "Language",
     "logout": "Logout",
     "signIn": "Sign In",
-    "signUp": "Sign Up"
+    "signUp": "Sign Up",
+    "notifications": "Notifications",
+    "unread": "unread",
+    "noNotifications": "No notifications"
   },
   "languages": {
     "vi": "Tiếng Việt",
@@ -353,6 +356,11 @@
         "shipped": "Shipped",
         "delivered": "Delivered",
         "cancelled": "Cancelled"
+      },
+      "filterStatus": {
+        "all": "All Status",
+        "pending": "Pending",
+        "done": "Done (Delivered)"
       },
       "noOrders": "No orders found",
       "noOrdersSearch": "No orders match your search",

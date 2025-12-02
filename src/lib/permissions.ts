@@ -19,7 +19,7 @@ export interface Permission {
 /**
  * Check if user can perform CRUD operations on products
  */
-export const getProductPermissions = (roleId?: string): Permission => {
+export const getProductPermissions = (roleId?: string | number): Permission => {
   if (!roleId)
     return {
       canCreate: false,
@@ -28,8 +28,11 @@ export const getProductPermissions = (roleId?: string): Permission => {
       canView: false,
     };
 
+  // Convert to string for comparison
+  const roleIdStr = String(roleId);
+
   // Both Admin and Manager can CRUD products
-  if (roleId === ROLES.ADMIN || roleId === ROLES.MANAGER) {
+  if (roleIdStr === ROLES.ADMIN || roleIdStr === ROLES.MANAGER) {
     return { canCreate: true, canEdit: true, canDelete: true, canView: true };
   }
 
@@ -38,8 +41,10 @@ export const getProductPermissions = (roleId?: string): Permission => {
 
 /**
  * Check if user can perform CRUD operations on categories
+ * Only Admin can create/edit/delete categories
+ * Manager can only view categories
  */
-export const getCategoryPermissions = (roleId?: string): Permission => {
+export const getCategoryPermissions = (roleId?: string | number): Permission => {
   if (!roleId)
     return {
       canCreate: false,
@@ -48,9 +53,17 @@ export const getCategoryPermissions = (roleId?: string): Permission => {
       canView: false,
     };
 
-  // Both Admin and Manager can CRUD categories
-  if (roleId === ROLES.ADMIN || roleId === ROLES.MANAGER) {
+  // Convert to string for comparison
+  const roleIdStr = String(roleId);
+
+  // Only Admin can CRUD categories
+  if (roleIdStr === ROLES.ADMIN) {
     return { canCreate: true, canEdit: true, canDelete: true, canView: true };
+  }
+
+  // Manager can only view
+  if (roleIdStr === ROLES.MANAGER) {
+    return { canCreate: false, canEdit: false, canDelete: false, canView: true };
   }
 
   return { canCreate: false, canEdit: false, canDelete: false, canView: false };
