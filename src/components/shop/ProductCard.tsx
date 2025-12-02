@@ -19,7 +19,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product.ProductID, 1);
-    toast.success(`${product.ProductName} has been added to your cart.`);
   };
   return (
     <div
@@ -56,13 +55,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="flex items-center justify-between flex-wrap gap-1">
           <div>
             <span className="font-bold text-sm sm:text-base md:text-lg dark:text-white">
+              {formatCurrency(
+                product.SalePrice * (1 - (product.DiscountValue ?? 0) / 100)
+              )}
+            </span>
+            <span className="line-through text-xs sm:text-sm dark:text-gray-500 ml-1 sm:ml-2">
               {formatCurrency(product.SalePrice)}
             </span>
-            {Number(product.CostPrice) < Number(product.SalePrice) && (
-              <span className="line-through text-xs sm:text-sm dark:text-gray-500 ml-1 sm:ml-2">
-                {formatCurrency(product.CostPrice)}
-              </span>
-            )}
           </div>
         </div>
       </Link>

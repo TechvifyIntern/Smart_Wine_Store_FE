@@ -66,15 +66,15 @@ export function ProductInfo({ product }: ProductInfoProps) {
       </div>
 
       {/* Price */}
-      <div className="flex items-baseline gap-2">
-        <span className="text-3xl font-bold">
+      <div className="flex items-baseline gap-2 text-3xl">
+        <span className="font-bold dark:text-white">
+          {formatCurrency(
+            product.SalePrice * (1 - (product.DiscountValue ?? 0) / 100)
+          )}
+        </span>
+        <span className="line-through text-xs sm:text-sm dark:text-gray-500 ml-1 sm:ml-2">
           {formatCurrency(product.SalePrice)}
         </span>
-        {Number(product.CostPrice) > product.SalePrice && (
-          <span className="line-through text-muted-foreground text-lg">
-            {formatCurrency(product.CostPrice)}
-          </span>
-        )}
       </div>
 
       {/* Quantity Selector */}

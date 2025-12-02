@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { Edit2, Wine } from "lucide-react";
-import { Product } from "@/data/products";
 import {
   Select,
   SelectContent,
@@ -12,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useAppStore } from "@/store/auth";
 import { getProductPermissions } from "@/lib/permissions";
+import { Product } from "@/types/product-detail";
 
 interface ProductRowProps {
   product: Product;
@@ -79,7 +79,7 @@ export default function ProductRow({
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-center">
         <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-700 dark:bg-slate-700 dark:text-slate-300">
-          {product.CategoryName || 'N/A'}
+          {product.CategoryName || "N/A"}
         </span>
       </td>
       <td className="px-6 py-4 whitespace-nowrap">

@@ -54,7 +54,6 @@ export function UserGrowthChart() {
         }
 
         const response = await reportsRepository.getNewUsers(granularity);
-        console.log(response.data);
 
         if (response.data && Array.isArray(response.data)) {
           const userData = response.data;
