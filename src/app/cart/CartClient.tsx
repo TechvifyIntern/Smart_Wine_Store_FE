@@ -35,13 +35,12 @@ export default function CartClient() {
     (acc, item) => acc + item.product.SalePrice * item.Quantity,
     0
   );
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + tax - discount;
+
+  const total = subtotal - discount;
 
   const cart = {
     items,
     subtotal,
-    tax,
     discount,
     total,
   };

@@ -336,20 +336,23 @@ export function Header() {
             {/* Right Icons */}
             <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
               {/* Search */}
-              <div className="relative flex items-center">
-                {isSearchOpen && (
-                  <form className="absolute right-0 top-1/2 -translate-y-1/2 w-40 sm:w-48 md:w-64 animate-in slide-in-from-right-10 fade-in duration-200">
-                    <input
-                      value={searchText}
-                      onChange={handleChange}
-                      onKeyDown={handleSearchSubmit}
-                      type="text"
-                      placeholder={t("navigation.search")}
-                      className="w-full px-2 sm:px-3 py-1.5 text-xs sm:text-sm bg-background border border-input rounded-md focus:outline-none focus:ring-1 focus:ring-primary shadow-sm dark:border-white/20"
-                      autoFocus
-                    />
-                  </form>
-                )}
+              <div className="flex items-center transition-all duration-300">
+                {/* Ô tìm kiếm mở rộng khi bấm */}
+                <input
+                  value={searchText}
+                  onChange={handleChange}
+                  onKeyDown={handleSearchSubmit}
+                  type="text"
+                  placeholder={t("navigation.search")}
+                  className={`mr-2 
+      bg-background border border-input rounded-md shadow-sm dark:border-white/20
+      px-2 sm:px-3 py-1.5 text-xs sm:text-sm
+      transition-all duration-300
+      ${isSearchOpen ? "w-40 sm:w-48 md:w-64 opacity-100 ml-2" : "w-0 opacity-0 ml-0 p-0 border-0"}
+    `}
+                />
+
+                {/* Icon search */}
                 <button
                   onClick={() => setIsSearchOpen(!isSearchOpen)}
                   className="p-1.5 sm:p-2 hover:bg-muted rounded-lg transition-colors"

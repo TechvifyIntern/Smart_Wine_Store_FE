@@ -189,10 +189,10 @@ export default function ProductsPage() {
       }
 
       // Use PATCH /products/{id}/status/{isActive} to update product status
-      const updateResponse = await productsRepository.updateProductStatus(id, isActive);
-
-      console.log('Update status response:', updateResponse);
-
+      const updateResponse = await productsRepository.updateProductStatus(
+        id,
+        isActive
+      );
       if (updateResponse.success) {
         // Reload products to get updated data
         const response = await productsRepository.getProducts();
@@ -201,12 +201,10 @@ export default function ProductsPage() {
         }
 
         const statusText = isActive ? "activated" : "deactivated";
-        console.log('Showing success toast:', `Product "${product.ProductName}" ${statusText} successfully!`);
         toast.success(
           `Product "${product.ProductName}" ${statusText} successfully!`
         );
       } else {
-        console.log('Showing error toast:', updateResponse.message);
         toast.error(
           `Failed to update product status: ${updateResponse.message || "Unknown error"}`
         );
@@ -218,7 +216,6 @@ export default function ProductsPage() {
         response: error.response?.data,
         status: error.response?.status,
       });
-      console.log('Showing error toast from catch');
       toast.error(
         `Failed to update product status: ${error.message || "Unknown error"}`
       );

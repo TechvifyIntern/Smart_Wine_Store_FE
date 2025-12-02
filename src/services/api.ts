@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAppStore } from "@/store/auth";
 
 export const api = axios.create({
-  baseURL: process.env.BE_API_URL || "https://erpsystem.io.vn",
+  baseURL: process.env.NEXT_PUBLIC_BE_API_URL || "http://localhost:3000",
 });
 
 // Request interceptor to add the Authorization header

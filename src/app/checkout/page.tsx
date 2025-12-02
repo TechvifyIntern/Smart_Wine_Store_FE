@@ -181,19 +181,18 @@ export default function CheckoutPage() {
       PaymentMethodID:
         paymentMethod === "cod" ? PAYMENT_METHODS.COD : PAYMENT_METHODS.VNPAY,
       ReturnUrl:
-        `${process.env.BE_API_URL}/payment/return` ||
+        `${process.env.NEXT_PUBLIC_BE_API_URL}/payment/return` ||
         "https://erpsystem.io.vn/payment/return",
     };
 
     // 3. Call API Checkout
     try {
       const response = await checkout(payload);
-
       if (response.success) {
         // --- CASE VNPay: Redirect ngay ---
-        if (paymentMethod === "vnpay" && response.data?.ReturnUrl) {
+        if (paymentMethod === "vnpay" && response.data?.paymentUrl) {
           toast({ title: "Redirecting to Payment Gateway..." });
-          window.location.href = response.data.ReturnUrl;
+          window.location.href = response.data.paymentUrl;
           return;
         }
 

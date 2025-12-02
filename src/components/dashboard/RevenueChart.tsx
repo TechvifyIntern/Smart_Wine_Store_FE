@@ -37,7 +37,7 @@ ChartJS.register(
 );
 
 export function RevenueChart() {
-  const [filter, setFilter] = useState<TimeFilter>("week");
+  const [filter, setFilter] = useState<TimeFilter>("year");
   const [isLoading, setIsLoading] = useState(true);
   const [chartLabels, setChartLabels] = useState<string[]>([]);
   const [chartValues, setChartValues] = useState<number[]>([]);
@@ -81,26 +81,33 @@ export function RevenueChart() {
             });
             setChartLabels(labels);
             setChartValues(data);
-          } else if (filter === "week") {
-            // Group by days for this week
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
-            weekStart.setHours(0, 0, 0, 0);
+          } else if (filter === "year") {
+            // Group revenue by month for the current year
+            const monthlyRevenue = new Array(12).fill(0); // Jan → Dec
 
-            const dailyRevenue = new Array(7).fill(0);
             orders.forEach((order: any) => {
               const orderDate = new Date(order.CreatedAt);
-              const daysDiff = Math.floor(
-                (orderDate.getTime() - weekStart.getTime()) /
-                  (1000 * 60 * 60 * 24)
-              );
-              if (daysDiff >= 0 && daysDiff < 7) {
-                dailyRevenue[daysDiff] += order.FinalTotal || 0;
+              if (orderDate.getFullYear() === now.getFullYear()) {
+                const month = orderDate.getMonth(); // 0 = Jan, 11 = Dec
+                monthlyRevenue[month] += order.FinalTotal || 0;
               }
             });
 
-            setChartLabels(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
-            setChartValues(dailyRevenue);
+            setChartLabels([
+              "Jan",
+              "Feb",
+              "Mar",
+              "Apr",
+              "May",
+              "Jun",
+              "Jul",
+              "Aug",
+              "Sep",
+              "Oct",
+              "Nov",
+              "Dec",
+            ]);
+            setChartValues(monthlyRevenue);
           } else if (filter === "month") {
             // Group by weeks for this month
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -203,11 +210,11 @@ export function RevenueChart() {
             <DropdownMenuItem onClick={() => setFilter("day")}>
               Day
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setFilter("week")}>
-              Week
-            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setFilter("month")}>
               Month
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setFilter("year")}>
+              Year
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

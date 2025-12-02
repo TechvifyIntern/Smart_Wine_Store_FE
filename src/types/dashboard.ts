@@ -52,4 +52,4 @@ export interface Order {
 }
 
 // Filter Type
-export type TimeFilter = "day" | "week" | "month";
+export type TimeFilter = "day" | "month" | "year";
