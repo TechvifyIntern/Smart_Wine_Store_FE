@@ -44,6 +44,7 @@ import {
 } from "@/services/recommendation/api";
 import { useCartStore } from "@/store/cart";
 import { RecommendationModal } from "@/components/checkout/RecommendationModal";
+import { useLocale } from "@/contexts/LocaleContext";
 
 const PAYMENT_METHODS = {
   COD: 1,
@@ -51,21 +52,54 @@ const PAYMENT_METHODS = {
 };
 
 export default function CheckoutPage() {
+  const { t } = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setItems: setCartItemsInStore } = useCartStore();
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
-  // Loading state cho quá trình checkout
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  // Loading state cho quá trình gọi API gợi ý sản phẩm
-  const [isRecommendationLoading, setIsRecommendationLoading] = useState(false);
 
-  // State cho phần gợi ý sản phẩm (Upsell)
+  // State
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isRecommendationLoading, setIsRecommendationLoading] = useState(false);
   const [showRecommendation, setShowRecommendation] = useState(true);
   const [recommendedProducts, setRecommendedProducts] = useState<
     RecommendedProduct[]
   >([]);
 
+  const [eventInfo, setEventInfo] = useState<{
+    id: number | null;
+    discount: number;
+  }>({
+    id: null,
+    discount: 0,
+  });
+
+  const [shippingForm, setShippingForm] = useState({
+    userName: "",
+    email: "",
+    address: "",
+    city: "",
+    phone: "",
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const cartStorageStr = localStorage.getItem("cart-storage");
+      if (cartStorageStr) {
+        try {
+          const cartStorage = JSON.parse(cartStorageStr);
+          setEventInfo({
+            id: cartStorage.state?.eventId || null,
+            discount: cartStorage.state?.eventDiscount || 0,
+          });
+        } catch (e) {
+          console.error("Error parsing cart storage", e);
+        }
+      }
+    }
+  }, []);
+
+  // 2. Data Fetching
   const results = useQueries({
     queries: [
       { queryKey: ["cart"], queryFn: getCartItems },
@@ -74,10 +108,7 @@ export default function CheckoutPage() {
     ],
   });
 
-  const cartResult = results[0];
-  const profileResult = results[1];
-  const addressResult = results[2];
-
+  const [cartResult, profileResult, addressResult] = results;
   const {
     data: cartData,
     isLoading: isCartLoading,
@@ -94,28 +125,19 @@ export default function CheckoutPage() {
     isError: isAddressError,
   } = addressResult;
 
-  const [shippingForm, setShippingForm] = useState({
-    userName: "",
-    email: "",
-    address: "",
-    city: "",
-    phone: "",
-  });
-
-  // Load User Info
+  // 3. Effects for Pre-filling Data
   useEffect(() => {
     if (userProfileData?.success) {
       const user = userProfileData.data;
       setShippingForm((prev) => ({
         ...prev,
-        userName: prev.userName || user.UserName,
-        email: prev.email || user.Email,
-        phone: prev.phone || user.PhoneNumber,
+        userName: prev.userName || user.UserName || "",
+        email: prev.email || user.Email || "",
+        phone: prev.phone || user.PhoneNumber || "",
       }));
     }
   }, [userProfileData]);
 
-  // Load Address Info
   useEffect(() => {
     if (addressData?.success && addressData.data.length > 0) {
       const addresses: UserAddress[] = addressData.data;
@@ -124,7 +146,7 @@ export default function CheckoutPage() {
         setShippingForm((prev) => ({
           ...prev,
           address: defaultAddr.StreetAddress,
-          city: `${defaultAddr.Ward}, ${defaultAddr.Province}`,
+          city: `${defaultAddr.Ward}, ${defaultAddr.District}, ${defaultAddr.Province}`,
         }));
       }
     }
@@ -136,13 +158,12 @@ export default function CheckoutPage() {
   };
 
   const handlePlaceOrder = async () => {
-    // 1. Validate Form
+    // Validation
     const { userName, address, city, phone } = shippingForm;
     if (!userName || !address || !city || !phone) {
       toast({
         title: "Missing Information",
-        description:
-          "Please fill out all shipping fields before placing your order.",
+        description: "Please fill out all shipping fields.",
         variant: "destructive",
       });
       return;
@@ -150,8 +171,8 @@ export default function CheckoutPage() {
 
     if (!cartData?.data || !userProfileData?.data) {
       toast({
-        title: "Error",
-        description: "Your session might have expired. Please refresh.",
+        title: "Session Error",
+        description: "Please refresh the page.",
         variant: "destructive",
       });
       return;
@@ -159,11 +180,21 @@ export default function CheckoutPage() {
 
     setIsCheckingOut(true);
 
+    // Safer parsing of City/Ward/District
     const cityParts = shippingForm.city.split(",").map((s) => s.trim());
+    // Fallback logic in case user didn't type commas
     const orderWard = cityParts[0] || "";
-    // Giả định format là: Phường, Quận, Tỉnh. Nếu chỉ có 2 phần tử thì xử lý linh hoạt
-    const orderDistrict = cityParts.length > 2 ? cityParts[1] : "";
     const orderProvince = cityParts[cityParts.length - 1] || "";
+    const orderDistrict =
+      cityParts.length >= 3
+        ? cityParts[1]
+        : cityParts.length === 2
+          ? cityParts[0]
+          : "";
+
+    // Dynamic Return URL
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+    const returnUrl = `${baseUrl}/payment/return`;
 
     const payload: CheckoutPayload = {
       UserName: shippingForm.userName,
@@ -177,87 +208,72 @@ export default function CheckoutPage() {
         ProductID: item.ProductID,
         Quantity: item.Quantity,
       })),
-      DiscountID: cartData.data.discountId || null,
+      EventID: eventInfo.id,
       PaymentMethodID:
         paymentMethod === "cod" ? PAYMENT_METHODS.COD : PAYMENT_METHODS.VNPAY,
-      ReturnUrl:
-        `${process.env.NEXT_PUBLIC_FE_API_URL}/payment/return` ||
-        "https://smart-wine-store-fe.vercel.app/payment/return",
+      ReturnUrl: returnUrl,
     };
 
-    // 3. Call API Checkout
     try {
       const response = await checkout(payload);
+
       if (response.success) {
-        // --- CASE VNPay: Redirect ngay ---
+        // --- VNPAY ---
         if (paymentMethod === "vnpay" && response.data?.paymentUrl) {
           toast({ title: "Redirecting to Payment Gateway..." });
           window.location.href = response.data.paymentUrl;
           return;
         }
 
-        // --- CASE COD: Call Recommendation API ---
+        // --- COD ---
         toast({
           title: "Order Placed Successfully!",
           description: "Generating personalized recommendations...",
         });
 
-        // 1. Invalidate cart to refresh it (for react-query)
+        // Background updates
         await queryClient.invalidateQueries({ queryKey: ["cart"] });
 
-        // 2. Fetch the updated cart items and update the Zustand store
-        const updatedCartResponse = await getCartItems();
-        if (updatedCartResponse.success) {
-          setCartItemsInStore(updatedCartResponse.data.items);
-        } else {
-          console.error("Failed to fetch updated cart for Zustand store.");
-        }
+        // Update Zustand
+        getCartItems().then((res) => {
+          if (res.success) setCartItemsInStore(res.data.items);
+        });
 
-        // 2. Stop checkout loading, start recommendation loading, and show modal
         setIsCheckingOut(false);
         setIsRecommendationLoading(true);
-        setShowRecommendation(true); // Show modal immediately with loading state
+        setShowRecommendation(true);
 
-        // 3. Call API gợi ý với toàn bộ data trả về từ checkout
         try {
           const recommendations = await getRecommendedProducts(response);
-
-          if (recommendations && recommendations.length > 0) {
+          if (recommendations?.length > 0) {
             setRecommendedProducts(recommendations);
-            setIsRecommendationLoading(false); // Stop loading after data is set
-          } else {
-            // No recommendations -> stop loading, but keep modal open so user can close it manually.
-            setIsRecommendationLoading(false);
-            // Optionally, you might decide to immediately redirect if there are absolutely no recommendations,
-            // but for now, we'll let the user close the empty/loading modal.
           }
         } catch (recError) {
           console.error("Failed to load recommendations", recError);
-          // If recommendations fail, stop loading, but keep modal open for user to close.
+        } finally {
           setIsRecommendationLoading(false);
         }
       } else {
-        throw new Error(response.message);
+        throw new Error(response.message || "Checkout failed");
       }
     } catch (err: any) {
       console.error("Checkout failed:", err);
       toast({
         title: "Checkout Failed",
-        description: err.message || "An unexpected error occurred.",
+        description:
+          err.message || "Please check your information and try again.",
         variant: "destructive",
       });
-      setIsCheckingOut(false); // Ensure loading is off on error
+      setIsCheckingOut(false);
     }
   };
 
-  // Hàm xử lý khi đóng Modal
   const handleCloseRecommendation = () => {
     setShowRecommendation(false);
-    // Always redirect to profile/order history when modal is explicitly closed by user
     router.push("/profile");
   };
 
-  // --- Render Loading / Error States ---
+  // --- Render Logic ---
   if (isCartLoading || isProfileLoading || isAddressLoading) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -266,31 +282,25 @@ export default function CheckoutPage() {
     );
   }
 
-  const error =
+  const hasError =
     isCartError ||
     isProfileError ||
-    isAddressError ||
     !cartData?.success ||
     !userProfileData?.success;
   const cartItems: CartItem[] = cartData?.data?.items ?? [];
 
-  if (error || !cartItems || cartItems.length === 0) {
+  if (hasError || cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-30 text-center">
+      <div className="container mx-auto px-4 py-30 text-center mt-20">
         <h2 className="text-2xl font-bold">
-          {error ? "An Error Occurred" : "Your Cart is Empty"}
+          {hasError ? "An Error Occurred" : "Your Cart is Empty"}
         </h2>
-        <p className="text-muted-foreground mt-2">
-          {error
-            ? "Failed to load checkout data."
-            : "Add some wine to your cart before proceeding."}
-        </p>
         <Button className="mt-4" onClick={() => router.push("/products")}>
           Back to Shop
         </Button>
-
+        {/* Render modal to prevent crash if state is somehow active */}
         <RecommendationModal
-          isOpen={showRecommendation}
+          isOpen={showRecommendation && recommendedProducts.length > 0}
           onClose={handleCloseRecommendation}
           products={recommendedProducts}
           isLoading={isRecommendationLoading}
@@ -299,14 +309,33 @@ export default function CheckoutPage() {
     );
   }
 
-  // --- Calculation Logic ---
-  const calculatedSubtotal = cartItems.reduce(
-    (acc: number, item: CartItem) =>
-      acc + item.product.SalePrice * item.Quantity,
+  // Calculations
+  const subtotal = cartItems.reduce(
+    (acc, item) =>
+      acc +
+      item.product.SalePrice *
+        (1 - item.product.DiscountValue / 100) *
+        item.Quantity,
     0
   );
-  const discount = cartData?.data?.discount || 0;
-  const finalTotal = calculatedSubtotal - discount;
+
+  const membershipDiscounts: Record<string, number> = {
+    Bronze: 0,
+    Silver: 0.05,
+    Gold: 0.1,
+  };
+
+  const userTier = profileResult.data?.data.TierName || "Bronze";
+  const tierDiscountRate = membershipDiscounts[userTier] || 0;
+
+  // Calculate discount amounts clearly
+  const tierDiscountAmount = subtotal * tierDiscountRate;
+  const eventDiscountAmount = subtotal * ((eventInfo.discount || 0) / 100);
+
+  const total = Math.max(
+    0,
+    subtotal - tierDiscountAmount - eventDiscountAmount
+  );
 
   return (
     <div className="container mx-auto px-4 py-10 min-h-screen bg-background mt-10">
@@ -324,7 +353,6 @@ export default function CheckoutPage() {
       <div className="grid gap-8 lg:grid-cols-12">
         {/* Left Column: Forms */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Shipping Info Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -340,7 +368,6 @@ export default function CheckoutPage() {
                   placeholder="John Doe"
                   value={shippingForm.userName}
                   onChange={handleInputChange}
-                  className="dark:border-white/20"
                   required
                 />
               </div>
@@ -348,10 +375,9 @@ export default function CheckoutPage() {
                 <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
-                  placeholder="123 Wine St..."
+                  placeholder="123 Wine St"
                   value={shippingForm.address}
                   onChange={handleInputChange}
-                  className="dark:border-white/20"
                   required
                 />
               </div>
@@ -363,7 +389,6 @@ export default function CheckoutPage() {
                     placeholder="Ward, District, Province"
                     value={shippingForm.city}
                     onChange={handleInputChange}
-                    className="dark:border-white/20"
                     required
                   />
                   <p className="text-[10px] text-muted-foreground">
@@ -374,10 +399,9 @@ export default function CheckoutPage() {
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
-                    placeholder="+84123456789"
+                    placeholder="+84..."
                     value={shippingForm.phone}
                     onChange={handleInputChange}
-                    className="dark:border-white/20"
                     required
                   />
                 </div>
@@ -385,15 +409,11 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
-          {/* Payment Method Card */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" /> Payment Method
               </CardTitle>
-              <CardDescription>
-                All transactions are secure and encrypted.
-              </CardDescription>
             </CardHeader>
             <CardContent>
               <RadioGroup
@@ -409,7 +429,7 @@ export default function CheckoutPage() {
                   />
                   <Label
                     htmlFor="cod"
-                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
+                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <Truck className="h-5 w-5" />
@@ -427,7 +447,7 @@ export default function CheckoutPage() {
                   />
                   <Label
                     htmlFor="vnpay"
-                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer transition-all"
+                    className="flex items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary cursor-pointer"
                   >
                     <div className="flex items-center gap-2">
                       <QrCode className="h-5 w-5" />
@@ -445,9 +465,6 @@ export default function CheckoutPage() {
           <Card className="sticky top-8 bg-muted/30 border-muted">
             <CardHeader>
               <CardTitle>Your Order</CardTitle>
-              <CardDescription>
-                Review your items before checkout.
-              </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">
               <div className="space-y-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
@@ -483,12 +500,24 @@ export default function CheckoutPage() {
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Subtotal</span>
-                  <span>{formatCurrency(calculatedSubtotal)}</span>
+                  <span>{formatCurrency(subtotal)}</span>
                 </div>
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span className="">Discount</span>
-                    <span>-{formatCurrency(discount)}</span>
+                <div className="mt-4 flex justify-between">
+                  <span className="text-muted-foreground">
+                    {t("cart.summary.membershipDiscount")} ({userTier})
+                  </span>
+                  <span className="text-primary">
+                    - {formatCurrency(tierDiscountAmount)}
+                  </span>
+                </div>
+                {eventInfo.discount > 0 && (
+                  <div className="mt-4 flex justify-between">
+                    <span className="text-muted-foreground">
+                      {t("cart.summary.eventDiscount")} ({eventInfo.discount}%)
+                    </span>
+                    <span className="text-primary">
+                      - {formatCurrency(eventDiscountAmount)}
+                    </span>
                   </div>
                 )}
               </div>
@@ -498,7 +527,7 @@ export default function CheckoutPage() {
               <div className="flex justify-between items-center font-bold">
                 <span className="text-base">Total</span>
                 <span className="text-xl text-primary">
-                  {formatCurrency(finalTotal)}
+                  {formatCurrency(total)}
                 </span>
               </div>
             </CardContent>
@@ -517,7 +546,7 @@ export default function CheckoutPage() {
                 )}
                 {isCheckingOut
                   ? "Processing..."
-                  : `Place Order (${formatCurrency(finalTotal)})`}
+                  : `Place Order (${formatCurrency(total)})`}
               </Button>
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
@@ -527,6 +556,14 @@ export default function CheckoutPage() {
           </Card>
         </div>
       </div>
+
+      {/* Modal is kept outside conditional returns to ensure it can open */}
+      <RecommendationModal
+        isOpen={showRecommendation && recommendedProducts.length > 0}
+        onClose={handleCloseRecommendation}
+        products={recommendedProducts}
+        isLoading={isRecommendationLoading}
+      />
     </div>
   );
 }

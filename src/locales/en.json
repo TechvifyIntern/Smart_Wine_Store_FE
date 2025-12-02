@@ -320,21 +320,22 @@
     "summary": {
       "title": "Order Summary",
       "subtotal": "Subtotal",
-      "discount": "Discount",
-      "tax": "Tax",
+      "membershipDiscount": "Membership Discount",
+      "eventDiscount": "Event Discount",
       "total": "Total",
-      "promoCode": "Promo Code",
-      "promoPlaceholder": "Enter promo code",
-      "applyButton": "Apply",
-      "checkoutButton": "Checkout",
-      "clearCartButton": "Clear Cart"
+      "selectEvent": "Select an event",
+      "noEvent": "None",
+      "checkout": "Checkout",
+      "clearCart": "Clear Cart",
+      "requires": " (requires {{minValue}})"
     },
     "toast": {
       "quantityUpdated": "Quantity updated successfully!",
       "itemRemoved": "Item removed from cart.",
       "cartCleared": "Cart cleared successfully!",
       "promoApplied": "Promo code applied successfully!",
-      "invalidPromo": "Invalid promo code."
+      "invalidPromo": "Invalid promo code.",
+      "eventMinimumValueNotMet": "Subtotal for '{{eventName}}' event must be at least {{minValue}} to apply discount."
     }
   },
   "admin": {

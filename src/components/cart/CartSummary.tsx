@@ -1,71 +1,135 @@
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { useLocale } from "@/contexts/LocaleContext";
 import { formatCurrency } from "@/lib/utils";
 import { Cart } from "@/types/cart";
-import { useState } from "react";
+import { Event } from "@/types/events";
+import { toast } from "sonner";
 
 interface CartSummaryProps {
   cart: Cart;
   clearCart: () => void;
   isPending: boolean;
-  applyPromoCode: (code: string) => void;
-  onCheckout: () => void; // New prop for checkout action
+  onCheckout: () => void;
+  setEventId: (id: number | null) => void;
+  setEventDiscount: (discount: number | null) => void;
+  eventList: Event[];
 }
 
 export default function CartSummary({
   cart,
   clearCart,
   isPending,
-  applyPromoCode,
-  onCheckout, // Destructure new prop
+  onCheckout,
+  setEventId,
+  setEventDiscount,
+  eventList,
 }: CartSummaryProps) {
-  const [promoCode, setPromoCode] = useState("");
+  const { t } = useLocale();
+
+  const handleEventChange = (eventID: string) => {
+    const selectedEvent = eventList.find(
+      (event) => event.EventID.toString() === eventID
+    );
+    if (selectedEvent) {
+      if (cart.subtotal >= selectedEvent.MinimumValue) {
+        setEventId(selectedEvent.EventID);
+        setEventDiscount(selectedEvent.DiscountValue);
+      } else {
+        setEventId(null);
+        setEventDiscount(null);
+        toast.warning(
+          t("cart.toast.eventMinimumValueNotMet")
+            .replace("{{eventName}}", selectedEvent.EventName)
+            .replace("{{minValue}}", formatCurrency(selectedEvent.MinimumValue))
+        );
+      }
+    } else {
+      setEventId(null);
+      setEventDiscount(null);
+    }
+  };
+
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm min-h-1/3 overflow-y-auto">
       <div className="p-6">
-        <h2 className="text-lg font-semibold">Order Summary</h2>
+        <h2 className="text-lg font-semibold">{t("cart.summary.title")}</h2>
       </div>
       <div className="p-6">
         <div className="flex justify-between">
-          <span>Subtotal</span>
+          <span>{t("cart.summary.subtotal")}</span>
           <span>{formatCurrency(cart.subtotal)}</span>
         </div>
+
         <div className="mt-4 flex justify-between">
-          <span>Discount</span>
-          <span>-{formatCurrency(cart.discount)}</span>
+          <span>{t("cart.summary.membershipDiscount")}</span>
+          <span>
+            -
+            {formatCurrency(
+              cart.subtotal *
+                (cart.membershipDiscounts?.[cart.userTier || ""] || 0)
+            )}
+          </span>
+        </div>
+        <div className="mt-4 flex justify-between">
+          <span>
+            {t("cart.summary.eventDiscount")} - {cart.eventDiscount}%
+          </span>
+          <span>
+            -
+            {formatCurrency(
+              ((cart.eventDiscount || 0) / 100) * cart.subtotal || 0
+            )}
+          </span>
         </div>
         <Separator className="my-4" />
         <div className="flex justify-between font-semibold">
-          <span>Total</span>
+          <span>{t("cart.summary.total")}</span>
           <span>{formatCurrency(cart.total)}</span>
         </div>
       </div>
-      {/* <div className="p-6">
+      <div className="p-6">
         <div className="grid gap-2">
-          <Label htmlFor="promo">Promo Code</Label>
-          <div className="flex space-x-2">
-            <Input
-              className="border-white/20"
-              id="promo"
-              placeholder="Enter promo code"
-              value={promoCode}
-              onChange={(e) => setPromoCode(e.target.value)}
-              disabled={isPending}
-            />
-            <Button
-              onClick={() => applyPromoCode(promoCode)}
-              disabled={isPending || !promoCode}
-            >
-              Apply
-            </Button>
-          </div>
+          <label className="text-sm font-medium">
+            {t("cart.summary.selectEvent")}
+          </label>
+          <Select onValueChange={handleEventChange} disabled={isPending}>
+            <SelectTrigger>
+              <SelectValue placeholder={t("cart.summary.selectEvent")} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">{t("cart.summary.noEvent")}</SelectItem>
+              {eventList.map((event) => (
+                <SelectItem
+                  key={event.EventID}
+                  value={event.EventID.toString()}
+                  disabled={cart.subtotal < event.MinimumValue}
+                >
+                  {event.EventName}
+                  {event.MinimumValue > 0 && (
+                    <span className="text-xs text-muted-foreground">
+                      {t("cart.summary.requires").replace(
+                        "{{minValue}}",
+                        formatCurrency(event.MinimumValue)
+                      )}
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-      </div> */}
+      </div>
       <div className="p-6">
         <Button className="w-full" disabled={isPending} onClick={onCheckout}>
-          Checkout
+          {t("cart.summary.checkout")}
         </Button>
         <Button
           variant="outline"
@@ -73,7 +137,7 @@ export default function CartSummary({
           onClick={clearCart}
           disabled={isPending}
         >
-          Clear Cart
+          {t("cart.summary.clearCart")}
         </Button>
       </div>
     </div>
