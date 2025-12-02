@@ -17,7 +17,6 @@ export function ProductCard({ product }: ProductCardProps) {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product.ProductID, 1);
-    toast.success(`${product.ProductName} has been added to your cart.`);
   };
 
   return (
@@ -47,13 +46,13 @@ export function ProductCard({ product }: ProductCardProps) {
           {/* Price */}
           <div className="flex items-center justify-center gap-2">
             <span className="font-bold text-lg dark:text-white">
+              {formatCurrency(
+                product.SalePrice * (1 - (product.DiscountValue ?? 0) / 100)
+              )}
+            </span>
+            <span className="line-through text-xs sm:text-sm dark:text-gray-500 ml-1 sm:ml-2">
               {formatCurrency(product.SalePrice)}
             </span>
-            {Number(product.CostPrice) < Number(product.SalePrice) && (
-              <span className="line-through text-sm dark:text-gray-500 ml-2">
-                {formatCurrency(product.CostPrice)}
-              </span>
-            )}
           </div>
 
           {/* Add to Cart Button - Overlay at bottom on hover */}

@@ -1,17 +1,17 @@
 import { api } from "@/services/api";
 import { Product } from "@/types/product-detail";
 import { Products } from "@/types/products";
-import { ApiResponse } from "@/types/responses";
+import { PaginatedData } from "@/types/responses";
 
 export const getAllProducts = async (
-  Cursor?: number,
-  Size?: number
-): Promise<ApiResponse<Product[]>> => {
+  page?: number,
+  size?: number
+): Promise<PaginatedData<Product[]>> => {
   const response = await api.get("/products", {
     params:
-      Cursor !== undefined && Size !== undefined ? { Cursor, Size } : undefined,
+      page !== undefined && size !== undefined ? { size, page } : undefined,
   });
-  return response.data;
+  return response.data.data;
 };
 
 export const getFilteredProducts = async (params: {
@@ -21,16 +21,18 @@ export const getFilteredProducts = async (params: {
   maxAbv?: number;
   minSalePrice?: number;
   maxSalePrice?: number;
-  Cursor?: number;
-  Size?: number;
-}): Promise<ApiResponse<Products[]>> => {
+  page?: number;
+  size?: number;
+}): Promise<PaginatedData<Products[]>> => {
   const response = await api.get("/products/filter", { params });
-  return response.data;
+  return response.data.data;
 };
 
 export const getSearchedProducts = async (params: {
   name?: string;
-}): Promise<ApiResponse<Products[]>> => {
+  page?: number;
+  size?: number;
+}): Promise<PaginatedData<Products[]>> => {
   const response = await api.get("/products/search", { params });
-  return response.data;
+  return response.data.data;
 };

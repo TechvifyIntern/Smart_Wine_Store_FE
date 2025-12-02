@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import productsRepository from "@/api/productsRepository";
 import categoriesRepository from "@/api/categoriesRepository";
-import { Product } from "@/data/products";
 import { Category } from "@/types/category";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -39,6 +38,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { Product } from "@/types/product-detail";
 
 const editSchema = z.object({
   ProductName: z.string().min(1, "Product name is required"),

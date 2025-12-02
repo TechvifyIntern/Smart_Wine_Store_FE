@@ -18,6 +18,8 @@ export interface Product {
   ImageURL?: string;
   CostPrice: number;
   SalePrice: number;
+  DiscountValue: number;
+  DiscountTypeID: number | null;
   isActive?: boolean;
   detail?: ProductDetail;
 }
