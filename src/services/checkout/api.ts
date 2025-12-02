@@ -21,7 +21,7 @@ export interface CheckoutPayload {
   ReturnUrl: string;
 }
 
-export type CheckoutResponse = ApiResponse<{ ReturnUrl?: string } | null>;
+export type CheckoutResponse = ApiResponse<{ paymentUrl?: string } | null>;
 
 export const checkout = async (
   payload: CheckoutPayload

@@ -21,12 +21,6 @@ export default function ProductCategoriesTable({
     const permissions = getCategoryPermissions(user?.roleId);
     const showActions = permissions.canEdit || permissions.canDelete;
 
-    // Debug logs
-    console.log('[ProductCategoriesTable] User:', user);
-    console.log('[ProductCategoriesTable] RoleId:', user?.roleId, 'Type:', typeof user?.roleId);
-    console.log('[ProductCategoriesTable] Permissions:', permissions);
-    console.log('[ProductCategoriesTable] Show Actions:', showActions);
-
     return (
         <div className="dark:bg-slate-900/50 dark:backdrop-blur-sm border border-[#F2F2F2] dark:border-slate-800/50 rounded-2xl">
             <div className="overflow-x-auto">

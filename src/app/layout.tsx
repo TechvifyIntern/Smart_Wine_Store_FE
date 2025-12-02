@@ -4,10 +4,11 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "sonner";
 import { Nunito } from "next/font/google";
-import AuthInitializer from "@/components/auth/AuthInitializer";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
 import { Chatbot } from "@/components/chatbot/Chatbot";
+import AuthInitializer from "@/components/auth/AuthInitializer";
+import ScrollToTop from "@/components/ScrollToTop";
 
 export const metadata: Metadata = {
   title: "WINEICY",
@@ -44,6 +45,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <ScrollToTop />
               <AuthInitializer>{children}</AuthInitializer>
               <Toaster />
               <Sonner />
