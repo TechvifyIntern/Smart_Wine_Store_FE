@@ -4,19 +4,29 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Download, ClipboardList } from "lucide-react";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Search, Download, ClipboardList, Filter } from "lucide-react";
 import ordersRepository, { Order } from "@/api/ordersRepository";
 import { useRouter } from "next/navigation";
 import jsPDF from "jspdf";
 import PageHeader from "@/components/discount-events/PageHeader";
 import Pagination from "@/components/admin/pagination/Pagination";
 import { useLocale } from "@/contexts/LocaleContext";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function OrdersManagementPage() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedOrders, setSelectedOrders] = useState<number[]>([]);
+    const [statusFilter, setStatusFilter] = useState<string>("all"); // all, pending, done
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const router = useRouter();
@@ -61,6 +71,16 @@ export default function OrdersManagementPage() {
     const filteredOrders = orders.filter((order) => {
         const statusText = getStatusText(order.StatusID);
         const address = getFormattedAddress(order);
+
+        // Apply status filter
+        if (statusFilter === "pending" && order.StatusID !== 1) {
+            return false;
+        }
+        if (statusFilter === "done" && order.StatusID !== 4) { // 4 = Delivered
+            return false;
+        }
+
+        // Apply search filter
         return order.OrderID.toString().includes(searchTerm) ||
             statusText.toLowerCase().includes(searchTerm.toLowerCase()) ||
             address.toLowerCase().includes(searchTerm.toLowerCase());
@@ -396,7 +416,7 @@ export default function OrdersManagementPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <div className="text-lg">{t("admin.orders.loading")}</div>
+                <Spinner size="lg" />
             </div>
         );
     }
@@ -409,7 +429,7 @@ export default function OrdersManagementPage() {
                 iconColor="text-black"
             />
 
-            {/* Toolbar with Search and Export Button */}
+            {/* Toolbar with Search and Actions */}
             <div className="flex items-center justify-between gap-4 mb-6">
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -421,13 +441,72 @@ export default function OrdersManagementPage() {
                         className="pl-10"
                     />
                 </div>
-                <Button
-                    onClick={handleExportPDFs}
-                    className="dark:bg-[#7C653E] flex items-center justify-center gap-2 h-10 px-4 py-2 text-white font-medium rounded-full"
-                >
-                    <Download className="w-4 h-4" />
-                    {t("admin.orders.exportButton")}
-                </Button>
+
+                <div className="flex items-center gap-2">
+                    {/* Status Filter Popover */}
+                    <Popover>
+                        <PopoverTrigger asChild>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className={`${statusFilter !== "all"
+                                        ? "bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white border-[#ad8d5e]"
+                                        : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                                    }`}
+                            >
+                                <Filter className="w-4 h-4" />
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-56 p-2" align="end">
+                            <div className="space-y-1">
+                                <button
+                                    onClick={() => {
+                                        setStatusFilter("all");
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "all"
+                                            ? "bg-[#ad8d5e] text-white"
+                                            : "hover:bg-gray-100 text-gray-700"
+                                        }`}
+                                >
+                                    {t("admin.orders.filterStatus.all") || "All Status"}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setStatusFilter("pending");
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "pending"
+                                            ? "bg-[#ad8d5e] text-white"
+                                            : "hover:bg-gray-100 text-gray-700"
+                                        }`}
+                                >
+                                    {t("admin.orders.filterStatus.pending") || "Pending"}
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setStatusFilter("done");
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "done"
+                                            ? "bg-[#ad8d5e] text-white"
+                                            : "hover:bg-gray-100 text-gray-700"
+                                        }`}
+                                >
+                                    {t("admin.orders.filterStatus.done") || "Done (Delivered)"}
+                                </button>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+
+                    <Button
+                        onClick={handleExportPDFs}
+                        className="dark:bg-[#7C653E] flex items-center justify-center gap-2 h-10 px-4 py-2 text-white font-medium rounded-full"
+                    >
+                        <Download className="w-4 h-4" />
+                        {t("admin.orders.exportButton")}
+                    </Button>
+                </div>
             </div>
 
             {/* Orders Table */}

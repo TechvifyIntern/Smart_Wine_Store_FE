@@ -1,5 +1,9 @@
-import Loading from "@/components/ui/loading";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function ProductDetailLoading() {
-  return <Loading />;
+  return (
+    <div className="flex items-center justify-center h-screen w-full">
+      <Spinner size="lg" />
+    </div>
+  );
 }

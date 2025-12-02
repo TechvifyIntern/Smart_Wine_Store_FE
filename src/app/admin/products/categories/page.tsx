@@ -8,6 +8,7 @@ import categoriesRepository from "@/api/categoriesRepository";
 import { Category } from "@/types/category";
 import { useToast } from "@/hooks/use-toast";
 import PageHeader from "@/components/discount-events/PageHeader";
+import { Spinner } from "@/components/ui/spinner";
 import ProductCategoriesTable from "@/components/categories/ProductCategoriesTable";
 import Pagination from "@/components/admin/pagination/Pagination";
 import ProductCategoriesToolbar from "@/components/categories/ProductCategoriesToolbar";
@@ -154,16 +155,18 @@ export default function ProductCategoriesPage() {
             };
             await categoriesRepository.createCategory(apiData);
             toast({
-                title: "Success",
-                description: `Category "${data.CategoryName}" created successfully!`,
+                title: "Thành công",
+                description: `Danh mục "${data.CategoryName}" đã được tạo thành công!`,
             });
-            // Refresh categories data from API
-            await fetchCategories();
+            // Auto refresh page after successful creation
+            setTimeout(() => {
+                router.refresh();
+            }, 1500);
         } catch (error) {
             console.error("Error creating category:", error);
             toast({
-                title: "Error",
-                description: "Failed to create category. Please try again.",
+                title: "Lỗi",
+                description: "Không thể tạo danh mục. Vui lòng thử lại.",
                 variant: "destructive",
             });
         }
@@ -198,10 +201,7 @@ export default function ProductCategoriesPage() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-gray-200 dark:border-slate-600 border-t-[#ad8d5e] rounded-full animate-spin mx-auto mb-4"></div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Loading categories...</h2>
-                </div>
+                <Spinner size="lg" />
             </div>
         );
     }

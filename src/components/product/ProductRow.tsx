@@ -124,20 +124,18 @@ export default function ProductRow({
         </div>
       </td>
       <td className="px-6 py-4">
-        <div className="flex items-center justify-center">
-          {/* Edit Button */}
-          {permissions.canEdit && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                router.push(`/admin/products/${product.ProductID}?edit=true`);
-              }}
-              title="Edit product"
-              className="w-9 h-9 flex items-center justify-center rounded-lg transition-all text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#ad8d5e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#ad8d5e]/50 dark:text-slate-400 dark:hover:text-[#ad8d5e]"
-            >
-              <Edit2 className="w-4 h-4" />
-            </button>
-          )}
+        <div className="flex items-center justify-center gap-2">
+          {/* Edit Button - Always visible for admin pages */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/admin/products/${product.ProductID}?edit=true`);
+            }}
+            title="Edit product"
+            className="w-9 h-9 flex items-center justify-center rounded-lg transition-all hover:bg-[#ad8d5e]/10 text-[#ad8d5e] dark:bg-slate-800/50 dark:hover:bg-[#ad8d5e]/20 dark:border dark:border-slate-700/50 dark:hover:border-[#ad8d5e]/50 dark:text-slate-400 dark:hover:text-[#ad8d5e]"
+          >
+            <Edit2 className="w-4 h-4" />
+          </button>
         </div>
       </td>
     </tr>

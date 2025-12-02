@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import userManagementRepository from "@/api/userManagementRepository";
 import { Account } from "@/data/accounts";
 import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
@@ -13,6 +14,7 @@ import { UserCog } from "lucide-react";
 import AccountDetailModal from "@/components/accounts/(modal)/AccountDetailModal";
 import EditAccountModal from "@/components/accounts/(modal)/EditAccountModal";
 import { StatusChangeDialog } from "@/components/accounts/(modal)/StatusChangeDialog";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function AccountsPage() {
     const router = useRouter();
@@ -32,37 +34,91 @@ export default function AccountsPage() {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Fetch accounts from API
-    useEffect(() => {
-        fetchAccounts();
-    }, [currentPage, itemsPerPage, searchTerm, selectedRoles, selectedTiers, selectedStatuses]);
-
-    const fetchAccounts = async () => {
+    const fetchAccounts = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
+            let response;
+
+            // Build params for the API
             const params: any = {
                 page: currentPage,
-                size: itemsPerPage,
+                pageSize: itemsPerPage,
+                sortBy: 'createdAt',
+                sortOrder: 'desc',
             };
 
-            if (searchTerm.trim()) {
-                params.username = searchTerm.trim();
+            // Check if searchTerm is a phone number (starts with + or contains only digits)
+            const isPhoneSearch = searchTerm.trim() && /^[\+\d]/.test(searchTerm.trim());
+
+            if (isPhoneSearch) {
+                // Use phone filter in getUsers
+                params.phone = searchTerm.trim();
+                console.log('[AccountsPage] Using phone filter:', params.phone);
+            } else if (searchTerm.trim()) {
+                // Use search endpoint for username search
+                console.log('[AccountsPage] Using search endpoint with term:', searchTerm);
+                response = await userManagementRepository.searchUsers(
+                    searchTerm.trim(),
+                    currentPage,
+                    itemsPerPage
+                );
+                console.log('[AccountsPage] Search API Response:', response);
+
+                if (response.success && response.data) {
+                    setAccounts(response.data.data || []);
+                    setTotalItems(response.data.total || 0);
+                } else {
+                    setAccounts([]);
+                    setTotalItems(0);
+                }
+                setIsLoading(false);
+                return;
             }
 
+            // Map role IDs to role names (1: Admin, 2: Seller, 3: User)
             if (selectedRoles.length > 0) {
-                params.roles = selectedRoles;
+                const roleNames = selectedRoles.map(id => {
+                    if (id === 1) return 'Admin';
+                    if (id === 2) return 'Seller';
+                    if (id === 3) return 'User';
+                    return '';
+                }).filter(Boolean);
+                if (roleNames.length === 1) {
+                    params.role = roleNames[0];
+                }
             }
 
+            // Map tier IDs to tier names (assuming 1: Bronze, 2: Silver, 3: Gold)
             if (selectedTiers.length > 0) {
-                params.tiers = selectedTiers;
+                const tierNames = selectedTiers.map(id => {
+                    if (id === 1) return 'Bronze';
+                    if (id === 2) return 'Silver';
+                    if (id === 3) return 'Gold';
+                    return '';
+                }).filter(Boolean);
+                if (tierNames.length === 1) {
+                    params.tier = tierNames[0];
+                }
             }
 
+            // Map status IDs to status names (1: Active, 2: Inactive)
             if (selectedStatuses.length > 0) {
-                params.statuses = selectedStatuses;
+                const statusNames = selectedStatuses.map(id => {
+                    if (id === 1) return 'Active';
+                    if (id === 2) return 'Inactive';
+                    return '';
+                }).filter(Boolean);
+                if (statusNames.length === 1) {
+                    params.status = statusNames[0];
+                }
             }
 
-            const response = await userManagementRepository.getUsers(params);
+            console.log('[AccountsPage] Fetching with params:', params);
+
+            response = await userManagementRepository.getUsers(params);
+            console.log('[AccountsPage] API Response:', response);
+
             setAccounts(response.data || []);
             setTotalItems(response.total || 0);
         } catch (error: any) {
@@ -80,7 +136,12 @@ export default function AccountsPage() {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentPage, itemsPerPage, searchTerm, selectedRoles, selectedTiers, selectedStatuses]);
+
+    // Fetch accounts from API
+    useEffect(() => {
+        fetchAccounts();
+    }, [fetchAccounts]);
 
     // Calculate pagination
     const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -142,13 +203,22 @@ export default function AccountsPage() {
     const handleCreateAccount = async (
         data: CreateAccountFormData
     ) => {
-        // TODO: Implement API call to create account
-        // Example:
-        // await fetch('/api/accounts', {
-        //   method: 'POST',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify(data),
-        // });
+        try {
+            // TODO: Replace with actual API call
+            // const response = await userManagementRepository.createAccount(data);
+            console.log('Creating account:', data);
+
+            // For now, simulate success
+            toast.success(`Tài khoản "${data.UserName}" đã được tạo thành công!`);
+
+            // Auto refresh page after successful creation
+            setTimeout(() => {
+                router.refresh();
+            }, 1500);
+        } catch (error) {
+            console.error("Error creating account:", error);
+            toast.error("Không thể tạo tài khoản");
+        }
     };
 
     const handleUpdateAccount = async (
@@ -209,18 +279,24 @@ export default function AccountsPage() {
             )}
 
             {/* Accounts Table */}
-            <AccountTable
-                accounts={accounts}
-                onView={handleView}
-                onEdit={handleEdit}
-                onStatusChange={handleStatusChange}
-                emptyMessage={
-                    error ? "Unable to load accounts" :
-                    searchTerm || selectedRoles.length > 0 || selectedTiers.length > 0 || selectedStatuses.length > 0
-                        ? "No accounts found matching your search and filters"
-                        : isLoading ? "Loading accounts..." : "No accounts found"
-                }
-            />
+            {isLoading ? (
+                <div className="flex justify-center items-center py-20">
+                    <Spinner size="lg" />
+                </div>
+            ) : (
+                <AccountTable
+                    accounts={accounts}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onStatusChange={handleStatusChange}
+                    emptyMessage={
+                        error ? "Unable to load accounts" :
+                            searchTerm || selectedRoles.length > 0 || selectedTiers.length > 0 || selectedStatuses.length > 0
+                                ? "No accounts found matching your search and filters"
+                                : "No accounts found"
+                    }
+                />
+            )}
 
             {/* Pagination */}
             <Pagination

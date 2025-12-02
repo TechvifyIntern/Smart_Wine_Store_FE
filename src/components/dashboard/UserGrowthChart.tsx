@@ -21,7 +21,7 @@ import {
   Legend,
 } from "chart.js";
 import { TimeFilter } from "@/types/dashboard";
-import userManagementRepository from "@/api/userManagementRepository.js";
+import reportsRepository from "@/api/reportsRepository";
 
 ChartJS.register(
   CategoryScale,
@@ -42,69 +42,48 @@ export function UserGrowthChart() {
     const loadUserGrowthData = async () => {
       try {
         setIsLoading(true);
-        const response = await userManagementRepository.getAll();
 
-        if (response.success && response.data && Array.isArray(response.data.data)) {
-          const users = response.data.data;
-          const now = new Date();
+        // Map filter to granularity
+        let granularity: 'day' | 'month' | 'year' = 'day';
+        if (filter === 'month') {
+          granularity = 'month';
+        } else if (filter === 'week') {
+          granularity = 'day';
+        }
+
+        const response = await reportsRepository.getNewUsers(granularity);
+
+        if (response.data && Array.isArray(response.data)) {
+          const userData = response.data;
 
           if (filter === "day") {
-            // Group by hours for today
-            const hourlyUsers = new Array(24).fill(0);
-            users.forEach((user: any) => {
-              const userDate = new Date(user.CreatedAt);
-              if (userDate.toDateString() === now.toDateString()) {
-                const hour = userDate.getHours();
-                hourlyUsers[hour]++;
-              }
-            });
+            // API returns hourly data with label and count
+            // Group every 3 hours for better visualization
+            const labels: string[] = [];
+            const data: number[] = [];
 
-            // Get data for every 3 hours
-            const labels = ["00:00", "03:00", "06:00", "09:00", "12:00", "15:00", "18:00", "21:00"];
-            const data = [0, 3, 6, 9, 12, 15, 18, 21].map(hour => {
-              return hourlyUsers.slice(hour, hour + 3).reduce((sum, val) => sum + val, 0);
-            });
+            for (let i = 0; i < userData.length; i += 3) {
+              const item = userData[i];
+              labels.push(item.label || `${i}:00`);
+              // Sum 3 hours together
+              const sum = userData.slice(i, i + 3).reduce((acc: number, curr: any) => acc + (curr.count || 0), 0);
+              data.push(sum);
+            }
+
             setChartLabels(labels);
             setChartValues(data);
           } else if (filter === "week") {
-            // Group by days for this week
-            const weekStart = new Date(now);
-            weekStart.setDate(now.getDate() - now.getDay() + 1); // Monday
-            weekStart.setHours(0, 0, 0, 0);
-
-            const dailyUsers = new Array(7).fill(0);
-            users.forEach((user: any) => {
-              const userDate = new Date(user.CreatedAt);
-              const daysDiff = Math.floor((userDate.getTime() - weekStart.getTime()) / (1000 * 60 * 60 * 24));
-              if (daysDiff >= 0 && daysDiff < 7) {
-                dailyUsers[daysDiff]++;
-              }
-            });
-
-            setChartLabels(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
-            setChartValues(dailyUsers);
-          } else if (filter === "month") {
-            // Group by weeks for this month
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-            const weeklyUsers = [0, 0, 0, 0, 0];
-
-            users.forEach((user: any) => {
-              const userDate = new Date(user.CreatedAt);
-              if (userDate.getMonth() === now.getMonth() && userDate.getFullYear() === now.getFullYear()) {
-                const weekNum = Math.floor((userDate.getDate() - 1) / 7);
-                if (weekNum < 5) {
-                  weeklyUsers[weekNum]++;
-                }
-              }
-            });
-
-            // Remove weeks with no data from the end
-            const lastNonZero = weeklyUsers.findLastIndex(val => val > 0);
-            const trimmedData = weeklyUsers.slice(0, Math.max(lastNonZero + 1, 4));
-            const labels = trimmedData.map((_, i) => `Week ${i + 1}`);
-
+            // API returns daily data with label and count
+            const labels = userData.map((item: any) => item.label || "");
+            const data = userData.map((item: any) => item.count || 0);
             setChartLabels(labels);
-            setChartValues(trimmedData);
+            setChartValues(data);
+          } else if (filter === "month") {
+            // API returns weekly/monthly data with label and count
+            const labels = userData.map((item: any) => item.label || "");
+            const data = userData.map((item: any) => item.count || 0);
+            setChartLabels(labels);
+            setChartValues(data);
           }
         } else {
           // Set default empty data
