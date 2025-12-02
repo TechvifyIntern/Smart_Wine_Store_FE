@@ -25,11 +25,13 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
 
     // Nếu thiếu token → chỉ cấm admin route
     const handleNoToken = () => {
+      console.log("No token");
       if (isAdminRoute) router.push("/unauthorized");
     };
 
     // Check sai quyền
     const redirectUnauthorized = () => {
+      console.log("No permisstion to access");
       router.push("/unauthorized");
     };
 

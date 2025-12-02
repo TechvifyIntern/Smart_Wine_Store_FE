@@ -7,6 +7,9 @@ export interface Cart {
   subtotal: number;
   discount: number;
   total: number;
+  membershipDiscounts?: Record<string, number>;
+  eventDiscount?: number;
+  userTier?: string;
 }
 
 export interface CartItem {

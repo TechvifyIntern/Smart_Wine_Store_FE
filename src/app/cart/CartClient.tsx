@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import {
   Table,
   TableBody,
@@ -12,37 +11,73 @@ import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
-import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
-
-const TAX_RATE = 0.1; // 10% tax
+import { useQuery } from "@tanstack/react-query";
+import { getAvailableEvents } from "@/services/event/api";
+import { getProfile } from "@/services/profile/api";
+import { Event } from "@/types/events";
 
 export default function CartClient() {
   const { t } = useLocale();
-  const [isPending, startTransition] = useTransition();
+
   const {
     items,
     updateQuantity: updateStoreQuantity,
     removeFromCart,
     clearCart: clearStoreCart,
+    eventDiscount,
+    setEventId,
+    setEventDiscount,
+    isUpdating,
   } = useCartStore();
-  const [discount, setDiscount] = useState(0);
 
   const router = useRouter();
 
+  const { data: eventsData } = useQuery({
+    queryKey: ["availableEvents"],
+    queryFn: getAvailableEvents,
+  });
+
+  console.log(eventsData);
+
+  const { data: profileData } = useQuery({
+    queryKey: ["profile"],
+    queryFn: getProfile,
+  });
+
+  const eventList: Event[] = eventsData?.data || [];
+  const userTier = profileData?.data?.TierName || "Bronze";
+
   const subtotal = items.reduce(
-    (acc, item) => acc + item.product.SalePrice * item.Quantity,
+    (acc, item) =>
+      acc +
+      item.product.SalePrice *
+        (1 - item.product.DiscountValue / 100) *
+        item.Quantity,
     0
   );
+  const membershipDiscounts: Record<string, number> = {
+    Bronze: 0,
+    Silver: 0.05,
+    Gold: 0.1,
+  };
 
-  const total = subtotal - discount;
+  const total = Math.max(
+    0,
+    subtotal -
+      subtotal * membershipDiscounts[userTier] -
+      (((eventDiscount ?? 0) / 100) * subtotal || 0)
+  );
 
   const cart = {
     items,
     subtotal,
-    discount,
     total,
+    membershipDiscounts,
+    eventDiscount: eventDiscount || 0,
+    discount: 0,
+    userTier,
   };
 
   const updateQuantity = (id: number, quantity: number) => {
@@ -50,35 +85,15 @@ export default function CartClient() {
       removeItem(id);
       return;
     }
-    startTransition(() => {
-      updateStoreQuantity(id, quantity);
-      toast.success(t("cart.toast.quantityUpdated"));
-    });
+    updateStoreQuantity(id, quantity);
   };
 
   const removeItem = (id: number) => {
-    startTransition(() => {
-      removeFromCart(id);
-      toast.success(t("cart.toast.itemRemoved"));
-    });
+    removeFromCart(id);
   };
 
   const clearCart = () => {
-    startTransition(() => {
-      clearStoreCart();
-      toast.success(t("cart.toast.cartCleared"));
-    });
-  };
-
-  const applyPromoCode = (code: string) => {
-    // In a real app, you'd validate the code with an API
-    if (code === "SAVE10") {
-      const discountAmount = subtotal * 0.1;
-      setDiscount(discountAmount);
-      toast.success(t("cart.toast.promoApplied"));
-    } else {
-      toast.error(t("cart.toast.invalidPromo"));
-    }
+    clearStoreCart();
   };
 
   const handleCheckout = () => {
@@ -137,8 +152,10 @@ export default function CartClient() {
           <CartSummary
             cart={cart}
             clearCart={clearCart}
-            isPending={isPending}
-            applyPromoCode={applyPromoCode}
+            isPending={isUpdating}
+            setEventId={setEventId}
+            setEventDiscount={setEventDiscount}
+            eventList={eventList}
             onCheckout={handleCheckout}
           />
         </div>
