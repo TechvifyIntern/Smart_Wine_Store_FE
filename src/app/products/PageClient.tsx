@@ -5,25 +5,40 @@ import { useSearchParams } from "next/navigation";
 import SidebarFilters from "@/components/shop/SidebarFilters";
 import ProductsGrid from "@/components/shop/ProductsGrid";
 import { Spinner } from "@/components/ui/spinner";
-import { getFilteredProducts } from "@/services/products/api";
-import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
+import { getFilteredProducts } from "@/services/products/api";
 import { Products } from "@/types/products";
 
-export default function PageClient() {
-  const [cursor, setCursor] = useState<number>(0);
-  const [cursorHistory, setCursorHistory] = useState<number[]>([0]);
+import ShopPagination from "@/components/shop/Pagination";
 
+export default function PageClient() {
   const searchParams = useSearchParams();
+  const [page, setPage] = useState(1);
+  const pageSize = 12;
 
   const category = searchParams.get("category") || undefined;
   const origin = searchParams.get("origin") || undefined;
-  const minAbv = Number(searchParams.get("minAbv")) || undefined;
-  const maxAbv = Number(searchParams.get("maxAbv")) || undefined;
-  const minPrice = Number(searchParams.get("minPrice")) || undefined;
-  const maxPrice = Number(searchParams.get("maxPrice")) || undefined;
+  const minAbv = searchParams.get("minAbv")
+    ? Number(searchParams.get("minAbv"))
+    : undefined;
+  const maxAbv = searchParams.get("maxAbv")
+    ? Number(searchParams.get("maxAbv"))
+    : undefined;
+  const minPrice = searchParams.get("minPrice")
+    ? Number(searchParams.get("minPrice"))
+    : undefined;
+  const maxPrice = searchParams.get("maxPrice")
+    ? Number(searchParams.get("maxPrice"))
+    : undefined;
 
-  const pageSize = 12;
+  // Reset về page 1 mỗi khi filter thay đổi
+  useEffect(() => {
+    setPage(1);
+  }, [category, origin, minAbv, maxAbv, minPrice, maxPrice]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [page]);
 
   const {
     data: response,
@@ -38,7 +53,7 @@ export default function PageClient() {
       maxAbv,
       minPrice,
       maxPrice,
-      cursor,
+      page,
     ],
     queryFn: () =>
       getFilteredProducts({
@@ -48,43 +63,15 @@ export default function PageClient() {
         maxAbv,
         minSalePrice: minPrice,
         maxSalePrice: maxPrice,
-        Cursor: cursor,
-        Size: pageSize,
+        page,
+        size: pageSize,
       }),
-    placeholderData: (prev) => prev,
   });
 
   const products: Products[] = response?.data || [];
-  const nextCursor =
-    products.length === pageSize
-      ? products[products.length - 1].ProductID
-      : null;
 
-  useEffect(() => {
-    setCursor(0);
-    setCursorHistory([0]);
-  }, [category, origin, minAbv, maxAbv, minPrice, maxPrice]);
-
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [cursor]);
-
-  const handleNextPage = () => {
-    if (nextCursor !== null) {
-      setCursorHistory([...cursorHistory, nextCursor]);
-      setCursor(nextCursor);
-    }
-  };
-
-  const handlePrevPage = () => {
-    if (cursorHistory.length > 1) {
-      const newHistory = [...cursorHistory];
-      newHistory.pop();
-      const previousCursor = newHistory[newHistory.length - 1];
-      setCursor(previousCursor);
-      setCursorHistory(newHistory);
-    }
-  };
+  const totalItems = response?.total || 0;
+  const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
     <main className="flex flex-col md:flex-row mt-16 sm:mt-20 md:mt-28 min-h-screen">
@@ -104,7 +91,7 @@ export default function PageClient() {
             Product
           </h1>
           <p className="mb-3 sm:mb-4 dark:text-gray-400 text-xs sm:text-sm">
-            Browse our collection of premium product.
+            Browse our collection of premium products.
           </p>
         </div>
 
@@ -116,22 +103,13 @@ export default function PageClient() {
           <ProductsGrid products={products} />
         )}
 
-        {products.length > 0 && (
-          <div className="flex justify-center items-center my-8">
-            <Button
-              onClick={handlePrevPage}
-              disabled={cursorHistory.length <= 1 || isFetching}
-              className="mr-4"
-            >
-              Previous
-            </Button>
-            <Button
-              onClick={handleNextPage}
-              disabled={nextCursor === null || isFetching}
-            >
-              Next
-            </Button>
-          </div>
+        {/* Pagination */}
+        {products.length > 0 && totalPages > 1 && (
+          <ShopPagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
         )}
       </div>
     </main>

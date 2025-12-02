@@ -1,6 +1,6 @@
-import { ApiResponse } from './responses';
-import { Category } from './category';
-import { Product } from '../data/products';
+import { ApiResponse } from "./responses";
+import { Category } from "./category";
+import { Product } from "./product-detail";
 
 // Category API response types
 export type GetCategoriesResponse = ApiResponse<Category[]>;

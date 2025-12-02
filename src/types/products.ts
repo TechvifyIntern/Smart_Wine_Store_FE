@@ -8,4 +8,6 @@ export interface Products {
   isActive: boolean;
   Size: number;
   ABV: string;
+  DiscountValue: number;
+  DiscountTypeID: number | null;
 }

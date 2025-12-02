@@ -16,10 +16,7 @@ export default function CartItem({
   updateQuantity,
   removeItem,
 }: CartItemProps) {
-  const price =
-    Number(item.product.SalePrice) < Number(item.product.CostPrice)
-      ? item.product.SalePrice
-      : item.product.CostPrice;
+  const price = item.product.SalePrice * (1 - item.product.DiscountValue / 100);
   return (
     <TableRow>
       <TableCell className="font-medium text-xs sm:text-sm">
@@ -40,7 +37,12 @@ export default function CartItem({
         </Link>
       </TableCell>
       <TableCell className="text-xs sm:text-sm">
-        {formatCurrency(price)}
+        <div className="flex flex-col">
+          <span>{formatCurrency(price)}</span>
+          <span className="line-through text-gray-500">
+            {formatCurrency(item.product.SalePrice)}
+          </span>
+        </div>
       </TableCell>
       <TableCell>
         <div className="flex items-center">
@@ -84,7 +86,7 @@ export default function CartItem({
         </div>
       </TableCell>
       <TableCell className="text-xs sm:text-sm">
-        {formatCurrency(item.product.SalePrice * item.Quantity)}
+        {formatCurrency(price * item.Quantity)}
       </TableCell>
       <TableCell>
         <Button

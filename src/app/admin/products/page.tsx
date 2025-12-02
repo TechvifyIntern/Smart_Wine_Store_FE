@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
 import { toast } from "sonner";
-import { Product } from "@/data/products";
 import productsRepository from "@/api/productsRepository";
 import categoriesRepository from "@/api/categoriesRepository";
 import { Category } from "@/types/category";
@@ -14,6 +13,7 @@ import ProductToolbar from "@/components/product/ProductToolbar";
 import Pagination from "@/components/admin/pagination/Pagination";
 import { CreateProductModal } from "@/components/product/(modal)/CreateProductModal";
 import { Spinner } from "@/components/ui/spinner";
+import { Product } from "@/types/product-detail";
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -24,7 +24,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSearching, setIsSearching] = useState(false);
+  const [totalItems, setTotalItems] = useState(0);
 
   // Filter states
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
@@ -54,68 +54,41 @@ export default function ProductsPage() {
   useEffect(() => {
     const loadProducts = async () => {
       try {
-        setIsSearching(true);
-        let response;
+        setIsLoading(true);
+        const params = {
+          page: currentPage,
+          size: itemsPerPage,
+          category:
+            selectedCategoryId !== "all" ? selectedCategoryId : undefined,
+          minSalePrice: priceRange[0],
+          maxSalePrice: priceRange[1],
+        };
 
+        let response;
         if (searchTerm.trim()) {
           response = await productsRepository.searchProducts({
             name: searchTerm,
+            ...params,
           });
         } else {
-          response = await productsRepository.getProducts();
+          response = await productsRepository.filterProducts(params);
         }
 
-        if (response.success && response.data) {
-          setProducts(response.data);
-          // Update max price for slider
-          const maxPrice = Math.max(
-            ...response.data.map((p) => p.SalePrice),
-            1000000
-          );
-          setPriceRange([0, maxPrice]);
-        } else {
-          console.error("Failed to load products:", response.message);
-        }
+        setProducts(response.data);
+        setTotalItems(response.total);
       } catch (err) {
         console.error("Error loading products:", err);
+        toast.error("Failed to load products");
       } finally {
-        setIsSearching(false);
         setIsLoading(false);
       }
     };
 
-    const timeoutId = setTimeout(() => {
-      loadProducts();
-    }, 300);
+    const debounceTimeout = setTimeout(loadProducts, 300);
+    return () => clearTimeout(debounceTimeout);
+  }, [searchTerm, currentPage, itemsPerPage, selectedCategoryId, priceRange]);
 
-    return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
-
-  // Filter products based on category and price range
-  const filteredProducts = products.filter((product) => {
-    // Category filter
-    if (selectedCategoryId !== "all") {
-      const categoryId = parseInt(selectedCategoryId);
-      if (product.CategoryID !== categoryId) {
-        return false;
-      }
-    }
-
-    // Price range filter
-    if (
-      product.SalePrice < priceRange[0] ||
-      product.SalePrice > priceRange[1]
-    ) {
-      return false;
-    }
-
-    return true;
-  });
-
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handleView = (id: number) => {
     router.push(`/admin/products/${id}`);
@@ -139,7 +112,7 @@ export default function ProductsPage() {
       try {
         await productsRepository.deleteProduct(id);
         const response = await productsRepository.getProducts();
-        if (response.success && response.data) {
+        if (response.data) {
           setProducts(response.data);
         }
         toast.success(`Product "${product.ProductName}" deleted successfully!`);
@@ -196,7 +169,7 @@ export default function ProductsPage() {
       if (updateResponse.success) {
         // Reload products to get updated data
         const response = await productsRepository.getProducts();
-        if (response.success && response.data) {
+        if (response.data) {
           setProducts(response.data);
         }
 
@@ -310,7 +283,7 @@ export default function ProductsPage() {
         </div>
       ) : (
         <ProductTable
-          products={currentProducts}
+          products={products}
           onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
@@ -328,7 +301,7 @@ export default function ProductsPage() {
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalItems={filteredProducts.length}
+        totalItems={totalItems}
         itemsPerPage={itemsPerPage}
         onPageChange={setCurrentPage}
         onItemsPerPageChange={handleItemsPerPageChange}
