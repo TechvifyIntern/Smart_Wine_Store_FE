@@ -181,8 +181,8 @@ export default function CheckoutPage() {
       PaymentMethodID:
         paymentMethod === "cod" ? PAYMENT_METHODS.COD : PAYMENT_METHODS.VNPAY,
       ReturnUrl:
-        `${process.env.NEXT_PUBLIC_BE_API_URL}/payment/return` ||
-        "https://erpsystem.io.vn/payment/return",
+        `${process.env.NEXT_PUBLIC_FE_API_URL}/payment/return` ||
+        "https://smart-wine-store-fe.vercel.app/payment/return",
     };
 
     // 3. Call API Checkout
