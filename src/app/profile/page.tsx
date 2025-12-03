@@ -19,7 +19,6 @@ import { useAppStore } from "@/store/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
-import { RecommendationModal } from "@/components/checkout/RecommendationModal";
 
 export default function Page() {
   const [isEditMode, setIsEditMode] = useState(false);
@@ -138,7 +137,7 @@ export default function Page() {
               setIsEditMode={setIsEditMode}
             />
             <SavedAddresses userAddresses={userAddresses?.data || []} />
-            <RecentOrders userOrders={userOrders?.data || []} />
+            <RecentOrders userOrders={userOrders?.data.data || []} />
             <Settings />
           </div>
         </div>

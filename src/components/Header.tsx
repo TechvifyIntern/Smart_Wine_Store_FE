@@ -53,7 +53,9 @@ import { useCartStore } from "@/store/cart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Category } from "@/types/category";
 import { getParentCategory, getChildrenCategory } from "@/services/header/api";
-import notificationsRepository, { Notification } from "@/api/notificationsRepository";
+import notificationsRepository, {
+  Notification,
+} from "@/api/notificationsRepository";
 
 export function Header() {
   const router = useRouter();
@@ -166,6 +168,7 @@ export function Header() {
         setNotifications([]);
         setUnreadCount(0);
       }
+      console.log(notifications);
     };
 
     fetchNotifications();
@@ -249,10 +252,11 @@ export function Header() {
                   <div key={link.label} className="relative group">
                     {hasDropdown ? (
                       <div
-                        className={`text-sm font-medium cursor-pointer flex items-center transition relative ${isActive
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                          }`}
+                        className={`text-sm font-medium cursor-pointer flex items-center transition relative ${
+                          isActive
+                            ? "text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
                       >
                         {t(`navigation.${link.key}`)}
                         <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
@@ -263,10 +267,11 @@ export function Header() {
                     ) : (
                       <Link
                         href={link.href}
-                        className={`text-sm font-medium flex items-center transition relative ${isActive
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                          }`}
+                        className={`text-sm font-medium flex items-center transition relative ${
+                          isActive
+                            ? "text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
                       >
                         {t(`navigation.${link.key}`)}
                         {isActive && (
@@ -369,14 +374,16 @@ export function Header() {
                       <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
                       {unreadCount > 0 && (
                         <span className="absolute -top-0.5 sm:-top-1 -right-0.5 sm:-right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-red-500 text-white text-[9px] sm:text-[10px] font-bold flex items-center justify-center">
-                          {unreadCount > 9 ? '9+' : unreadCount}
+                          {unreadCount > 9 ? "9+" : unreadCount}
                         </span>
                       )}
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="w-80" align="end">
                     <div className="flex items-center justify-between px-4 py-2 border-b">
-                      <h3 className="font-semibold text-sm">{t("header.notifications") || "Notifications"}</h3>
+                      <h3 className="font-semibold text-sm">
+                        {t("header.notifications") || "Notifications"}
+                      </h3>
                       {unreadCount > 0 && (
                         <span className="text-xs text-muted-foreground">
                           {unreadCount} {t("header.unread") || "unread"}
@@ -392,22 +399,33 @@ export function Header() {
                         notifications.map((notification) => (
                           <div
                             key={notification.NotificationID}
-                            className={`px-4 py-3 border-b hover:bg-muted cursor-pointer transition-colors ${!notification.IsRead ? "bg-blue-50 dark:bg-blue-950/20" : ""
-                              }`}
+                            className={`px-4 py-3 border-b hover:bg-muted cursor-pointer transition-colors ${
+                              !notification.IsRead
+                                ? "bg-blue-50 dark:bg-blue-950/20"
+                                : ""
+                            }`}
                             onClick={async () => {
                               if (!notification.IsRead) {
                                 try {
-                                  await notificationsRepository.markAsRead(notification.NotificationID);
+                                  await notificationsRepository.markAsRead(
+                                    notification.NotificationID
+                                  );
                                   setNotifications((prev) =>
                                     prev.map((n) =>
-                                      n.NotificationID === notification.NotificationID
+                                      n.NotificationID ===
+                                      notification.NotificationID
                                         ? { ...n, IsRead: true }
                                         : n
                                     )
                                   );
-                                  setUnreadCount((prev) => Math.max(0, prev - 1));
+                                  setUnreadCount((prev) =>
+                                    Math.max(0, prev - 1)
+                                  );
                                 } catch (error) {
-                                  console.error("Error marking notification as read:", error);
+                                  console.error(
+                                    "Error marking notification as read:",
+                                    error
+                                  );
                                 }
                               }
                             }}
@@ -424,7 +442,9 @@ export function Header() {
                                   {notification.Message}
                                 </p>
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(notification.CreatedAt).toLocaleString()}
+                                  {new Date(
+                                    notification.CreatedAt
+                                  ).toLocaleString()}
                                 </p>
                               </div>
                             </div>
@@ -767,10 +787,11 @@ function MobileMenu({
                 <button
                   key={link.label}
                   onClick={() => handleNavigation(link.href)}
-                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${isActive
-                    ? "text-primary font-semibold bg-muted"
-                    : "hover:bg-muted"
-                    }`}
+                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${
+                    isActive
+                      ? "text-primary font-semibold bg-muted"
+                      : "hover:bg-muted"
+                  }`}
                 >
                   {t(`navigation.${link.key}`)}
                 </button>
@@ -866,16 +887,18 @@ function MobileMenu({
                   <div className="pl-4 space-y-1">
                     <button
                       onClick={() => setLocale("vi")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "vi" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "vi" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.vi")}</span>
                       {locale === "vi" && <Check className="h-4 w-4" />}
                     </button>
                     <button
                       onClick={() => setLocale("en")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "en" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "en" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.en")}</span>
                       {locale === "en" && <Check className="h-4 w-4" />}

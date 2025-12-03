@@ -36,8 +36,8 @@ export default function PageClient() {
     window.scrollTo(0, 0);
   }, [currentPage]);
 
-  const products: Products[] = response?.data || [];
-  const totalItems = response?.total || 0;
+  const products = response?.data.data || [];
+  const totalItems = response?.data.total || 0;
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
