@@ -16,7 +16,7 @@ export function CollectionsContainer() {
   } = useQuery({
     queryKey: ["featuredProducts"],
     queryFn: () => getAllProducts(0, 9),
-    select: (data) => data.data,
+    select: (data) => data.data.data,
   });
 
   useEffect(() => {

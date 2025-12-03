@@ -17,6 +17,7 @@ interface AppState {
   setTokens: (accessToken: string, refreshToken: string) => void;
   setAccessToken: (accessToken: string) => void;
   logout: () => void;
+  clearAuth: () => void; // Add clearAuth
   setAuthOpen: (open: boolean) => void; // Add setAuthOpen
   setAuthMode: (mode: "signin" | "signup" | "forgot" | "otp") => void; // Add setAuthMode
   setHasHydrated: (hasHydrated: boolean) => void;
@@ -48,7 +49,7 @@ const fetchCartAndSetStore = async () => {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       accessToken: null,
       refreshToken: null,
@@ -59,7 +60,7 @@ export const useAppStore = create<AppState>()(
       setTokens: (accessToken, refreshToken) => {
         const user = decodeToken(accessToken);
         set({ user, accessToken, refreshToken });
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem("token", accessToken);
           // Save roleId to localStorage for easy access
           if (user?.roleId) {
@@ -72,7 +73,7 @@ export const useAppStore = create<AppState>()(
       setAccessToken: (accessToken) => {
         const user = decodeToken(accessToken);
         set({ user, accessToken });
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.setItem("token", accessToken);
           // Save roleId to localStorage for easy access
           if (user?.roleId) {
@@ -81,21 +82,24 @@ export const useAppStore = create<AppState>()(
         }
         setAuthToken(accessToken);
       },
-      logout: () => {
+      clearAuth: () => {
         set({ user: null, accessToken: null, refreshToken: null });
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           localStorage.removeItem("token");
           localStorage.removeItem("roleId");
         }
         setAuthToken("");
-        useCartStore.getState().clearCart();
+      },
+      logout: () => {
+        get().clearAuth();
+        useCartStore.getState().clearCartStore();
       },
       setAuthOpen: (open) => set({ authOpen: open }), // Implement setAuthOpen
       setAuthMode: (mode) => set({ authMode: mode }), // Implement setAuthMode
       setHasHydrated: (hasHydrated) => set({ _hasHydrated: hasHydrated }),
     }),
     {
-      name: "auth-storage", // name of the item in the storage (must be unique)
+      name: "auth-storage",
       onRehydrateStorage: () => {
         return (state, error) => {
           if (!error && state) {

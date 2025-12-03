@@ -14,7 +14,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
     accessToken,
     refreshToken: rt,
     setTokens,
-    logout,
+    clearAuth,
     _hasHydrated,
   } = useAppStore();
 
@@ -25,7 +25,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
 
     // Nếu thiếu token → chỉ cấm admin route
     const handleNoToken = () => {
-      console.log("No token");
       if (isAdminRoute) router.push("/unauthorized");
     };
 
@@ -56,7 +55,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
         // ===== Token hết hạn =====
         if (decoded.exp * 1000 < Date.now()) {
           if (!rt) {
-            logout();
+            clearAuth();
             handleNoToken();
             return;
           }
@@ -71,7 +70,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
             validateRole(newDecoded.roleId);
             return;
           } catch {
-            logout();
+            clearAuth();
             handleNoToken();
             return;
           }
@@ -81,7 +80,7 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
         validateRole(decoded.roleId);
       } catch (err) {
         console.error("Decode token error:", err);
-        logout();
+        clearAuth();
         handleNoToken();
       }
     };

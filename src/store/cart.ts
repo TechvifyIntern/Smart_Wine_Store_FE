@@ -22,6 +22,7 @@ interface CartState {
   removeFromCart: (productId: number) => Promise<void>;
   updateQuantity: (productId: number, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  clearCartStore: () => Promise<void>;
   setEventDiscount: (discount: number | null) => void;
   setEventId: (id: number | null) => void;
 }
@@ -155,11 +156,21 @@ export const useCartStore = create<CartState>()(
         set({ isUpdating: true });
         try {
           await clearCartAPI();
-          set({ items: [] });
-          toast({
-            title: "Cart cleared",
-            description: "All items have been removed from your cart.",
-          });
+          const cartResponse = await getCartItems();
+          if (cartResponse.success) {
+            set({ items: cartResponse.data.items });
+            toast({
+              title: "Cart cleared",
+              description: "All items have been removed from your cart.",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description:
+                cartResponse.message || "Failed to update cart after clearing.",
+              variant: "destructive",
+            });
+          }
         } catch (error) {
           console.error("Failed to clear cart:", error);
           toast({
@@ -171,6 +182,9 @@ export const useCartStore = create<CartState>()(
         } finally {
           set({ isUpdating: false });
         }
+      },
+      clearCartStore: async () => {
+        set({ items: [] });
       },
     }),
     {

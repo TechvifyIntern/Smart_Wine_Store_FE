@@ -23,7 +23,7 @@ export default function EventsClient() {
         if (!response.success) {
           setError(response.message);
         } else {
-          setEventsData(response.data);
+          setEventsData(response.data.data);
         }
       } finally {
         setIsLoading(false);

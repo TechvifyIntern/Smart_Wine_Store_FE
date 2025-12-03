@@ -41,7 +41,7 @@ export const updateCartItemQuantity = async (
 export const removeCartItem = async (productId: number) => {
   try {
     const response = await api.delete(`/cart/items/${productId}`);
-    return response; // Return the full response for delete, as data might be empty
+    return response;
   } catch (error) {
     console.error("API Error - removeCartItem:", error);
     throw error;

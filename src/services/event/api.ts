@@ -1,17 +1,13 @@
 import { Event } from "@/types/events";
 import { api } from "../api";
-import { ApiResponse } from "@/api/inventoriesRepository";
+import { ApiResponse, ApiResponsePaging } from "@/types/responses";
 
 export const getEvents = async (
   Cursor: number = 0,
   Size: number = 10
-): Promise<ApiResponse<Event[]>> => {
+): Promise<ApiResponsePaging<Event[]>> => {
   try {
-    const { data: res } = await api.get<{
-      success: boolean;
-      data: Event[];
-      message?: string;
-    }>("/events", {
+    const { data: res } = await api.get<ApiResponsePaging<Event[]>>("/events", {
       params: { cursor: Cursor, size: Size },
     });
 
@@ -20,7 +16,10 @@ export const getEvents = async (
         success: false,
         statusCode: 500,
         message: res.message || "Failed to fetch events",
-        data: [],
+        data: {
+          data: [],
+          total: 0,
+        },
       };
     }
 
@@ -36,7 +35,10 @@ export const getEvents = async (
       statusCode: error?.response?.status ?? 500,
       message:
         error?.response?.data?.message ?? "An unexpected error occurred.",
-      data: [],
+      data: {
+        data: [],
+        total: 0,
+      },
     };
   }
 };

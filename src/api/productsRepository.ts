@@ -65,7 +65,7 @@ class ProductsRepository extends BaseRepository {
   ): Promise<SearchProductsResponse> {
     try {
       const response = await api.get(`${this.endpoint}/search`, { params });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       throw new Error(`Failed to search products: ${message}`);
@@ -80,7 +80,7 @@ class ProductsRepository extends BaseRepository {
   ): Promise<FilterProductsResponse> {
     try {
       const response = await api.get(`${this.endpoint}/filter`, { params });
-      return response.data;
+      return response.data.data;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown error";
       throw new Error(`Failed to filter products: ${message}`);

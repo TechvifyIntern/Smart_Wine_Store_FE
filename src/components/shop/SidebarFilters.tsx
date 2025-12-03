@@ -159,7 +159,7 @@ const SidebarFilters = ({ category }: SidebarFiltersProps) => {
                   className="dark:border-white/20"
                   id={`origin-${origin.id}`}
                   checked={isChecked("origin", origin.id)}
-                  onCheckedChange={() => updateParam("origin", origin.id, true)}
+                  onCheckedChange={() => updateParam("origin", origin.id)}
                 />
                 <label
                   htmlFor={`origin-${origin.id}`}

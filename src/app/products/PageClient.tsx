@@ -40,11 +40,7 @@ export default function PageClient() {
     window.scrollTo(0, 0);
   }, [page]);
 
-  const {
-    data: response,
-    isLoading,
-    isFetching,
-  } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: [
       "products",
       category,
@@ -68,9 +64,9 @@ export default function PageClient() {
       }),
   });
 
-  const products: Products[] = response?.data || [];
+  const products = data?.data.data || [];
+  const totalItems = data?.data.total || 0;
 
-  const totalItems = response?.total || 0;
   const totalPages = Math.ceil(totalItems / pageSize);
 
   return (
@@ -104,7 +100,7 @@ export default function PageClient() {
         )}
 
         {/* Pagination */}
-        {products.length > 0 && totalPages > 1 && (
+        {totalItems > 0 && totalPages > 1 && (
           <ShopPagination
             currentPage={page}
             totalPages={totalPages}
