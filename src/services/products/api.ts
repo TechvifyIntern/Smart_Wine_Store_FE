@@ -15,7 +15,7 @@ export const getAllProducts = async (
 };
 
 export const getFilteredProducts = async (params: {
-  category?: string;
+  categoryId?: number;
   origin?: string;
   minAbv?: number;
   maxAbv?: number;

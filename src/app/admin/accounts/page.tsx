@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import userManagementRepository from "@/api/userManagementRepository";
 import { Account } from "@/data/accounts";
 import { CreateAccountFormData } from "@/validations/accounts/accountSchema";
@@ -230,7 +230,10 @@ export default function AccountsPage() {
       // const response = await userManagementRepository.createAccount(data);
 
       // For now, simulate success
-      toast.success(`Tài khoản "${data.UserName}" đã được tạo thành công!`);
+      toast({
+        title: "Account created",
+        description: `Account "${data.UserName}" created successflly`,
+      });
 
       // Auto refresh page after successful creation
       setTimeout(() => {
@@ -238,7 +241,11 @@ export default function AccountsPage() {
       }, 1500);
     } catch (error) {
       console.error("Error creating account:", error);
-      toast.error("Không thể tạo tài khoản");
+      toast({
+        title: "Account create error",
+        description: `Can not create account`,
+        variant: "destructive",
+      });
     }
   };
 

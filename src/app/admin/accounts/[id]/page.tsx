@@ -68,9 +68,7 @@ export default function AccountDetailPage() {
 
   // Form management
   const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { isSubmitting },
     reset,
     setValue,
     watch,
@@ -81,8 +79,6 @@ export default function AccountDetailPage() {
 
   // Watch form values
   const roleID = watch("RoleID");
-  const tierID = watch("TierID");
-  const statusID = watch("StatusID");
 
   // Fetch account data on component mount
   useEffect(() => {
@@ -114,16 +110,7 @@ export default function AccountDetailPage() {
   // Initialize form when account changes or edit mode toggles
   useEffect(() => {
     if (account && isEditing) {
-      setValue("UserName", account.UserName);
-      setValue("Email", account.Email);
-      setValue("PhoneNumber", account.PhoneNumber);
-      setValue("Birthday", account.Birthday);
       setValue("RoleID", account.RoleID);
-      setValue("TierID", account.TierID);
-      setValue("StatusID", account.StatusID);
-      setValue("StreetAddress", account.StreetAddress);
-      setValue("Ward", account.Ward);
-      setValue("Province", account.Province);
     }
   }, [account, isEditing, setValue]);
 
@@ -163,29 +150,12 @@ export default function AccountDetailPage() {
     try {
       const formData = getValues();
 
-      // Transform phone number to international format if it starts with 0
-      let phoneNumber = formData.PhoneNumber;
-      if (phoneNumber.startsWith("0")) {
-        // Remove leading 0 and prepend +84
-        phoneNumber = "+84" + phoneNumber.substring(1);
-      }
-
-      // Prepare the data for API call
       const updateData = {
-        UserName: formData.UserName,
-        Email: formData.Email,
-        PhoneNumber: phoneNumber,
-        Birthday: formData.Birthday,
         RoleID: formData.RoleID,
-        TierID: formData.TierID,
-        StatusID: formData.StatusID,
-        StreetAddress: formData.StreetAddress || "",
-        Ward: formData.Ward || "",
-        Province: formData.Province || "",
       };
 
       // Call the API to update user
-      const response = await userManagementRepository.updateUser(
+      const response = await userManagementRepository.updateUserRole(
         accountId,
         updateData
       );
@@ -193,14 +163,9 @@ export default function AccountDetailPage() {
       // Update local state with the new data
       const updatedAccount = {
         ...account,
-        ...updateData,
+        RoleID: formData.RoleID,
         RoleName:
           roles.find((r) => r.id === formData.RoleID)?.name || account.RoleName,
-        TierName:
-          tiers.find((t) => t.id === formData.TierID)?.name || account.TierName,
-        StatusName:
-          statuses.find((s) => s.id === formData.StatusID)?.name ||
-          account.StatusName,
       };
 
       setAccount(updatedAccount);
@@ -543,23 +508,9 @@ export default function AccountDetailPage() {
                     <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       User Name
                     </p>
-                    {isEditing ? (
-                      <div>
-                        <Input
-                          {...register("UserName")}
-                          className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.UserName ? "border-red-500" : ""}`}
-                        />
-                        {errors.UserName && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.UserName.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-medium text-gray-900 dark:text-slate-100">
-                        {account.UserName}
-                      </p>
-                    )}
+                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                      {account.UserName}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -570,24 +521,9 @@ export default function AccountDetailPage() {
                     <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       Email
                     </p>
-                    {isEditing ? (
-                      <div>
-                        <Input
-                          {...register("Email")}
-                          type="email"
-                          className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.Email ? "border-red-500" : ""}`}
-                        />
-                        {errors.Email && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.Email.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-medium text-gray-900 dark:text-slate-100 break-all">
-                        {account.Email}
-                      </p>
-                    )}
+                    <p className="font-medium text-gray-900 dark:text-slate-100 break-all">
+                      {account.Email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -598,23 +534,10 @@ export default function AccountDetailPage() {
                     <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       Phone
                     </p>
-                    {isEditing ? (
-                      <div>
-                        <Input
-                          {...register("PhoneNumber")}
-                          className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.PhoneNumber ? "border-red-500" : ""}`}
-                        />
-                        {errors.PhoneNumber && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.PhoneNumber.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-medium text-gray-900 dark:text-slate-100">
-                        {account.PhoneNumber}
-                      </p>
-                    )}
+
+                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                      {account.PhoneNumber}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -625,24 +548,10 @@ export default function AccountDetailPage() {
                     <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       Birthday
                     </p>
-                    {isEditing ? (
-                      <div>
-                        <Input
-                          {...register("Birthday")}
-                          type="date"
-                          className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.Birthday ? "border-red-500" : ""}`}
-                        />
-                        {errors.Birthday && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.Birthday.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-medium text-gray-900 dark:text-slate-100">
-                        {formatDate(account.Birthday)}
-                      </p>
-                    )}
+
+                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                      {formatDate(account.Birthday)}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -678,9 +587,9 @@ export default function AccountDetailPage() {
                       </div>
                     ) : (
                       <span
-                        className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(account.RoleName)}`}
+                        className={`inline-flex px-2 py-1 rounded-md text-xs font-medium ${getRoleColor(account.RoleName)}`}
                       >
-                        {account.RoleName}
+                        {roles.find((r) => r.id === account.RoleID)?.name}
                       </span>
                     )}
                   </div>
@@ -771,23 +680,10 @@ export default function AccountDetailPage() {
                     <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                       Street Address
                     </p>
-                    {isEditing ? (
-                      <div>
-                        <Input
-                          {...register("StreetAddress")}
-                          className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.StreetAddress ? "border-red-500" : ""}`}
-                        />
-                        {errors.StreetAddress && (
-                          <p className="text-xs text-red-500 mt-1">
-                            {errors.StreetAddress.message}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-medium text-gray-900 dark:text-slate-100">
-                        {account.StreetAddress}
-                      </p>
-                    )}
+
+                    <p className="font-medium text-gray-900 dark:text-slate-100">
+                      {account.StreetAddress}
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -797,23 +693,10 @@ export default function AccountDetailPage() {
                       <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                         Ward
                       </p>
-                      {isEditing ? (
-                        <div>
-                          <Input
-                            {...register("Ward")}
-                            className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.Ward ? "border-red-500" : ""}`}
-                          />
-                          {errors.Ward && (
-                            <p className="text-xs text-red-500 mt-1">
-                              {errors.Ward.message}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="font-medium text-gray-900 dark:text-slate-100">
-                          {account.Ward}
-                        </p>
-                      )}
+
+                      <p className="font-medium text-gray-900 dark:text-slate-100">
+                        {account.Ward}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-4 bg-white/60 dark:bg-slate-700/60 rounded-lg border border-white/80 dark:border-slate-600">
@@ -822,23 +705,10 @@ export default function AccountDetailPage() {
                       <p className="text-xs text-gray-500 dark:text-slate-400 uppercase tracking-wide">
                         Province
                       </p>
-                      {isEditing ? (
-                        <div>
-                          <Input
-                            {...register("Province")}
-                            className={`bg-white dark:bg-slate-600 text-gray-900 dark:text-slate-100 border-gray-300 dark:border-slate-500 ${errors.Province ? "border-red-500" : ""}`}
-                          />
-                          {errors.Province && (
-                            <p className="text-xs text-red-500 mt-1">
-                              {errors.Province.message}
-                            </p>
-                          )}
-                        </div>
-                      ) : (
-                        <p className="font-medium text-gray-900 dark:text-slate-100">
-                          {account.Province}
-                        </p>
-                      )}
+
+                      <p className="font-medium text-gray-900 dark:text-slate-100">
+                        {account.Province}
+                      </p>
                     </div>
                   </div>
                 </div>

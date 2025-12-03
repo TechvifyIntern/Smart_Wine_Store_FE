@@ -78,7 +78,7 @@ class UserManagementRepository extends BaseRepository {
         total: 0,
       };
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       throw new Error(`Failed to fetch users: ${error.message}`);
     }
   }
@@ -132,11 +132,29 @@ class UserManagementRepository extends BaseRepository {
   }
 
   /**
+   * Create a new user account.
+   * @param {Object} data - The user account data.
+   * @returns {Promise<Object>} The created user account data.
+   */
+  async createAccount(data) {
+    return this.create(data);
+  }
+
+  /**
    * Update user
    * @param {number} id - User ID
    * @param {Object} userData - User data to update
    */
   async updateUser(id, userData) {
+    return this.update(id, userData);
+  }
+
+  /**
+   * Update user role
+   * @param {number} id - User ID
+   * @param {Object} userData - User data to update
+   */
+  async updateUserRole(id, userData) {
     return this.update(id, userData);
   }
 
@@ -186,6 +204,22 @@ class UserManagementRepository extends BaseRepository {
    */
   async deleteUser(id) {
     return this.delete(id);
+  }
+
+  /**
+   * Send password reset email to user
+   * @param {number} id - User ID
+   * @param {string} email - User email (for verification)
+   */
+  async sendPasswordReset(id, email) {
+    try {
+      const response = await api.post(`auth/reset-password`, {
+        email,
+      });
+      return response.data;
+    } catch (error) {
+      throw new Error(`Failed to send password reset: ${error.message}`);
+    }
   }
 }
 

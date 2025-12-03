@@ -10,7 +10,7 @@ import Pagination from "@/components/admin/pagination/Pagination";
 import ProductsToolbar from "@/components/discount-products/ProductsToolbar";
 import { CreateDiscountProduct } from "@/components/discount-products/(modal)/CreateDiscountProduct";
 import { DeleteConfirmDialog } from "@/components/discount-products/(modal)/DeleteConfirmDialog";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export default function DiscountProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,7 +44,10 @@ export default function DiscountProductsPage() {
       }
     } catch (err) {
       console.error("Error loading discount products:", err);
-      toast.error("Failed to load discount products");
+      toast({
+        title: "Failed to load discount products",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -230,14 +233,23 @@ export default function DiscountProductsPage() {
       });
 
       if (response.success) {
-        toast.success("Product discount created successfully!");
+        toast({
+          title: "Product discount created successfully!",
+          variant: "success",
+        });
         await loadDiscountProducts();
       } else {
-        toast.error(response.message || "Failed to create product discount");
+        toast({
+          title: response.message || "Failed to create product discount",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating product discount:", error);
-      toast.error("An error occurred while creating the product discount");
+      toast({
+        title: "An error occurred while creating the product discount",
+        variant: "destructive",
+      });
     }
   };
 
@@ -255,14 +267,23 @@ export default function DiscountProductsPage() {
       );
 
       if (response.success) {
-        toast.success(`Product discount updated successfully!`);
+        toast({
+          title: `Product discount updated successfully!`,
+          variant: "success",
+        });
         await loadDiscountProducts();
       } else {
-        toast.error(response.message || "Failed to update product discount");
+        toast({
+          title: response.message || "Failed to update product discount",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error updating product discount:", error);
-      toast.error("An error occurred while updating the product discount");
+      toast({
+        title: "An error occurred while updating the product discount",
+        variant: "destructive",
+      });
     }
   };
 

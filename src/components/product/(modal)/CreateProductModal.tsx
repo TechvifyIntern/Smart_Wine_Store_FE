@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRef, useEffect, useState } from "react";
 import { CldImage, CldUploadWidget } from "next-cloudinary";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
@@ -212,7 +212,10 @@ export function CreateProductModal({
                     }}
                     onError={(error: any) => {
                       console.error("Cloudinary upload error:", error);
-                      toast.error("Failed to upload image");
+                      toast({
+                        title: "Failed to upload image",
+                        variant: "destructive",
+                      });
                     }}
                     options={{
                       cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,

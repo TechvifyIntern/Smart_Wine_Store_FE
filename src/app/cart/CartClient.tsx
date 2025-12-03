@@ -3,13 +3,14 @@
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import CartItem from "@/components/cart/CartItem";
 import CartSummary from "@/components/cart/CartSummary";
-import { ShoppingCart } from "lucide-react";
+import { Loader2, ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useRouter } from "next/navigation";
 import { useLocale } from "@/contexts/LocaleContext";
@@ -17,9 +18,22 @@ import { useQuery } from "@tanstack/react-query";
 import { getAvailableEvents } from "@/services/event/api";
 import { getProfile } from "@/services/profile/api";
 import { Event } from "@/types/events";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
 
 export default function CartClient() {
   const { t } = useLocale();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleBackToShop = async () => {
+    setIsLoading(true);
+    try {
+      await new Promise((res) => setTimeout(res, 500));
+      router.push("/products");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const {
     items,
@@ -38,8 +52,6 @@ export default function CartClient() {
     queryKey: ["availableEvents"],
     queryFn: getAvailableEvents,
   });
-
-  console.log(eventsData);
 
   const { data: profileData } = useQuery({
     queryKey: ["profile"],
@@ -136,14 +148,37 @@ export default function CartClient() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {cart.items.map((item) => (
-                  <CartItem
-                    key={item.CartItemID}
-                    item={item}
-                    updateQuantity={updateQuantity}
-                    removeItem={removeItem}
-                  />
-                ))}
+                {cart.items.length === 0 ? (
+                  <TableRow className="h-64">
+                    <TableCell
+                      colSpan={5}
+                      className="p-0 bg-transparent hover:bg-none"
+                    >
+                      <div className="flex flex-col items-center justify-center h-full gap-2">
+                        <p className="text-sm sm:text-base">Giỏ hàng trống</p>
+                        <Button
+                          onClick={handleBackToShop}
+                          disabled={isLoading}
+                          className="flex items-center justify-center gap-2"
+                        >
+                          {isLoading && (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          )}
+                          Back to shop
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  cart.items.map((item: any) => (
+                    <CartItem
+                      key={item.CartItemID}
+                      item={item}
+                      updateQuantity={updateQuantity}
+                      removeItem={removeItem}
+                    />
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

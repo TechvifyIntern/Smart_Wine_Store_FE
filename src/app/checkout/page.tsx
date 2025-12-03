@@ -43,8 +43,20 @@ import {
   RecommendedProduct,
 } from "@/services/recommendation/api";
 import { useCartStore } from "@/store/cart";
-import { RecommendationModal } from "@/components/checkout/RecommendationModal";
 import { useLocale } from "@/contexts/LocaleContext";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { useForm } from "react-hook-form";
+import {
+  ShippingFormValues,
+  ShippingSchema,
+} from "@/validations/checkout/shippingFormSchemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 
 const PAYMENT_METHODS = {
   COD: 1,
@@ -60,8 +72,7 @@ export default function CheckoutPage() {
   // State
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "vnpay">("cod");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [isRecommendationLoading, setIsRecommendationLoading] = useState(false);
-  const [showRecommendation, setShowRecommendation] = useState(true);
+  const [isRecommendationLoading, setIsRecommendationLoading] = useState(true);
   const [recommendedProducts, setRecommendedProducts] = useState<
     RecommendedProduct[]
   >([]);
@@ -74,14 +85,24 @@ export default function CheckoutPage() {
     discount: 0,
   });
 
-  const [shippingForm, setShippingForm] = useState({
-    userName: "",
-    email: "",
-    address: "",
-    city: "",
-    phone: "",
+  // react-hook-form + zod
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<ShippingFormValues>({
+    resolver: zodResolver(ShippingSchema),
+    defaultValues: {
+      userName: "",
+      email: "",
+      address: "",
+      city: "",
+      phone: "",
+    },
   });
 
+  // prefill eventInfo from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const cartStorageStr = localStorage.getItem("cart-storage");
@@ -125,50 +146,34 @@ export default function CheckoutPage() {
     isError: isAddressError,
   } = addressResult;
 
-  // 3. Effects for Pre-filling Data
+  // Prefill values from profile
   useEffect(() => {
     if (userProfileData?.success) {
       const user = userProfileData.data;
-      setShippingForm((prev) => ({
-        ...prev,
-        userName: prev.userName || user.UserName || "",
-        email: prev.email || user.Email || "",
-        phone: prev.phone || user.PhoneNumber || "",
-      }));
+      if (user.UserName) setValue("userName", user.UserName);
+      if (user.Email) setValue("email", user.Email);
+      if (user.PhoneNumber) setValue("phone", user.PhoneNumber);
     }
-  }, [userProfileData]);
+  }, [userProfileData, setValue]);
 
+  // Prefill default address if present
   useEffect(() => {
     if (addressData?.success && addressData.data.length > 0) {
       const addresses: UserAddress[] = addressData.data;
       const defaultAddr = addresses.find((addr) => addr.IsDefault);
       if (defaultAddr) {
-        setShippingForm((prev) => ({
-          ...prev,
-          address: defaultAddr.StreetAddress,
-          city: `${defaultAddr.Ward}, ${defaultAddr.District}, ${defaultAddr.Province}`,
-        }));
+        setValue("address", defaultAddr.StreetAddress || "");
+        setValue(
+          "city",
+          `${defaultAddr.Ward}, ${defaultAddr.District}, ${defaultAddr.Province}`
+        );
       }
     }
-  }, [addressData]);
+  }, [addressData, setValue]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setShippingForm((prev) => ({ ...prev, [id]: value }));
-  };
-
-  const handlePlaceOrder = async () => {
-    // Validation
-    const { userName, address, city, phone } = shippingForm;
-    if (!userName || !address || !city || !phone) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill out all shipping fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  // onSubmit uses validated values
+  const onSubmit = handleSubmit(async (values: ShippingFormValues) => {
+    // ensure cart and profile data exist
     if (!cartData?.data || !userProfileData?.data) {
       toast({
         title: "Session Error",
@@ -181,8 +186,7 @@ export default function CheckoutPage() {
     setIsCheckingOut(true);
 
     // Safer parsing of City/Ward/District
-    const cityParts = shippingForm.city.split(",").map((s) => s.trim());
-    // Fallback logic in case user didn't type commas
+    const cityParts = values.city.split(",").map((s) => s.trim());
     const orderWard = cityParts[0] || "";
     const orderProvince = cityParts[cityParts.length - 1] || "";
     const orderDistrict =
@@ -197,10 +201,10 @@ export default function CheckoutPage() {
     const returnUrl = `${baseUrl}/payment/return`;
 
     const payload: CheckoutPayload = {
-      UserName: shippingForm.userName,
+      UserName: values.userName,
       Email: userProfileData.data.Email,
-      PhoneNumber: shippingForm.phone,
-      OrderStreetAddress: shippingForm.address,
+      PhoneNumber: values.phone,
+      OrderStreetAddress: values.address,
       OrderWard: orderWard,
       OrderDistrict: orderDistrict,
       OrderProvince: orderProvince,
@@ -241,7 +245,6 @@ export default function CheckoutPage() {
 
         setIsCheckingOut(false);
         setIsRecommendationLoading(true);
-        setShowRecommendation(true);
 
         try {
           const recommendations = await getRecommendedProducts(response);
@@ -266,12 +269,7 @@ export default function CheckoutPage() {
       });
       setIsCheckingOut(false);
     }
-  };
-
-  const handleCloseRecommendation = () => {
-    setShowRecommendation(false);
-    router.push("/profile");
-  };
+  });
 
   // --- Render Logic ---
   if (isCartLoading || isProfileLoading || isAddressLoading) {
@@ -293,18 +291,66 @@ export default function CheckoutPage() {
     return (
       <div className="container mx-auto px-4 py-30 text-center mt-20">
         <h2 className="text-2xl font-bold">
-          {hasError ? "An Error Occurred" : "Your Cart is Empty"}
+          {hasError
+            ? "An Error Occurred - You must be login first!"
+            : "Your Cart is Empty"}
         </h2>
-        <Button className="mt-4" onClick={() => router.push("/products")}>
+        <Button className="mt-4 mr-10" onClick={() => router.push("/products")}>
           Back to Shop
         </Button>
-        {/* Render modal to prevent crash if state is somehow active */}
-        <RecommendationModal
-          isOpen={showRecommendation && recommendedProducts.length > 0}
-          onClose={handleCloseRecommendation}
-          products={recommendedProducts}
-          isLoading={isRecommendationLoading}
-        />
+        <Button className="mt-8" onClick={() => router.push("/profile")}>
+          Go to Profile
+        </Button>
+        <div className="mt-10">
+          <h3 className="text-xl font-semibold mb-4">Recommended for you</h3>
+        </div>
+        {isRecommendationLoading && (
+          <div className="flex justify-center py-10">
+            <Spinner />
+          </div>
+        )}
+        {recommendedProducts.length > 0 && (
+          <div className="mt-10">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {recommendedProducts.map((product) => (
+                  <CarouselItem
+                    key={product.product_id}
+                    className="basis-1/2 md:basis-1/4"
+                  >
+                    <div
+                      className="border dark:border-white/20 rounded-lg p-4 hover:shadow transition cursor-pointer h-full"
+                      onClick={() =>
+                        router.push(`/products/${product.product_id}`)
+                      }
+                    >
+                      <img
+                        src={product.img_link}
+                        alt={product.name}
+                        className="w-full h-32 object-contain"
+                      />
+                      <h4 className="text-sm font-medium mt-2 line-clamp-1">
+                        {product.name}
+                      </h4>
+                      <span>
+                        {formatCurrency(
+                          product.price * 1 - product.discount_value / 100
+                        )}{" "}
+                        -{" "}
+                      </span>
+                      <span className="line-through text-gray-500">
+                        {formatCurrency(product.price)}
+                      </span>
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+
+              <CarouselPrevious />
+              <CarouselNext />
+            </Carousel>
+          </div>
+        )}
       </div>
     );
   }
@@ -366,20 +412,26 @@ export default function CheckoutPage() {
                 <Input
                   id="userName"
                   placeholder="John Doe"
-                  value={shippingForm.userName}
-                  onChange={handleInputChange}
-                  required
+                  {...register("userName")}
                 />
+                {errors.userName && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.userName.message}
+                  </p>
+                )}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="address">Address</Label>
                 <Input
                   id="address"
                   placeholder="123 Wine St"
-                  value={shippingForm.address}
-                  onChange={handleInputChange}
-                  required
+                  {...register("address")}
                 />
+                {errors.address && (
+                  <p className="text-xs text-destructive mt-1">
+                    {errors.address.message}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
@@ -387,23 +439,29 @@ export default function CheckoutPage() {
                   <Input
                     id="city"
                     placeholder="Ward, District, Province"
-                    value={shippingForm.city}
-                    onChange={handleInputChange}
-                    required
+                    {...register("city")}
                   />
                   <p className="text-[10px] text-muted-foreground">
                     Format: Ward, District, Province
                   </p>
+                  {errors.city && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.city.message}
+                    </p>
+                  )}
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
                     placeholder="+84..."
-                    value={shippingForm.phone}
-                    onChange={handleInputChange}
-                    required
+                    {...register("phone")}
                   />
+                  {errors.phone && (
+                    <p className="text-xs text-destructive mt-1">
+                      {errors.phone.message}
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -536,15 +594,15 @@ export default function CheckoutPage() {
               <Button
                 className="w-full py-6 text-lg shadow-lg"
                 size="lg"
-                onClick={handlePlaceOrder}
-                disabled={isCheckingOut}
+                onClick={onSubmit}
+                disabled={isCheckingOut || isSubmitting}
               >
-                {isCheckingOut ? (
+                {isCheckingOut || isSubmitting ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : (
                   <Lock className="mr-2 h-4 w-4" />
                 )}
-                {isCheckingOut
+                {isCheckingOut || isSubmitting
                   ? "Processing..."
                   : `Place Order (${formatCurrency(total)})`}
               </Button>
@@ -556,14 +614,6 @@ export default function CheckoutPage() {
           </Card>
         </div>
       </div>
-
-      {/* Modal is kept outside conditional returns to ensure it can open */}
-      <RecommendationModal
-        isOpen={showRecommendation && recommendedProducts.length > 0}
-        onClose={handleCloseRecommendation}
-        products={recommendedProducts}
-        isLoading={isRecommendationLoading}
-      />
     </div>
   );
 }

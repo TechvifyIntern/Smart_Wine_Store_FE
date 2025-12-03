@@ -198,7 +198,7 @@ CONSTRAINT fk_discount_type FOREIGN KEY(TypeID) REFERENCES Discount_Types(Discou
 );
 
 CREATE TABLE Discount_Event (
-DiscountEventID SERIAL PRIMARY KEY,
+EventID SERIAL PRIMARY KEY,
 DiscountID INT NULL,
 EventName VARCHAR(100) NOT NULL,
 Description VARCHAR(255),

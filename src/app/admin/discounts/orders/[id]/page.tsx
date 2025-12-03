@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { CreateDiscountOrder } from "@/components/discount-orders/(modal)/CreateDiscountOrder";
 import { DeleteConfirmDialog } from "@/components/discount-orders/(modal)/DeleteConfirmDialog";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -45,7 +45,11 @@ export default function OrderDetailPage() {
         }
       } catch (error) {
         console.error("Error loading order:", error);
-        toast.error("Failed to load order data");
+        toast({
+          title: "Loading failed",
+          description: "Failed to load order data",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -136,7 +140,10 @@ export default function OrderDetailPage() {
       });
 
       if (response.success) {
-        toast.success(`Order discount updated successfully!`);
+        toast({
+          title: "Update successfully",
+          description: "Order discount updated successfully!",
+        });
         // Reload the order data
         const reloadResponse =
           await discountOrdersRepository.getDiscountOrders();
@@ -148,24 +155,35 @@ export default function OrderDetailPage() {
         }
         setIsEditModalOpen(false);
       } else {
-        toast.error(response.message || "Failed to update order discount");
+        toast({
+          title: "Update failed",
+          description: "Failed to update order discount",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error updating order discount:", error);
-      toast.error("An error occurred while updating the order discount");
+      toast({
+        title: "Update failed",
+        description: "An error occurred while updating the order discount",
+        variant: "destructive",
+      });
     }
   };
 
   const handleConfirmDelete = () => {
     if (!discountOrder) return;
     // TODO: Implement DELETE API call
-    toast.success(`Order discount deleted successfully!`);
+    toast({
+      title: "Delete successfully",
+      description: "Order discount deleted successfully!",
+    });
     setIsDeleteDialogOpen(false);
     router.push("/admin/discounts/orders");
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
