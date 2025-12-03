@@ -11,7 +11,7 @@ export const getAllProducts = async (
     params:
       page !== undefined && size !== undefined ? { size, page } : undefined,
   });
-  return response.data.data;
+  return response.data;
 };
 
 export const getFilteredProducts = async (params: {
@@ -30,7 +30,7 @@ export const getFilteredProducts = async (params: {
       page: params.page !== undefined ? params.page - 1 : undefined,
     },
   });
-  return response.data.data;
+  return response.data;
 };
 
 export const getSearchedProducts = async (params: {
@@ -44,5 +44,5 @@ export const getSearchedProducts = async (params: {
       page: params.page !== undefined ? params.page - 1 : undefined,
     },
   });
-  return response.data.data;
+  return response.data;
 };
