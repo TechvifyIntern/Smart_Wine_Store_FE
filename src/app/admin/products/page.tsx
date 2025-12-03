@@ -28,13 +28,14 @@ export default function ProductsPage() {
 
   // Filter states
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]); // Default range
+  const [priceRange, setPriceRange] = useState<[number, number]>([
+    0, 260000000,
+  ]); // Default range
 
-  // Calculate max price from products
   const maxPrice =
     products.length > 0
       ? Math.max(...products.map((p) => p.SalePrice))
-      : 1000000;
+      : 260000000;
 
   // Load categories on mount
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function ProductsPage() {
       try {
         setIsLoading(true);
         const params = {
-          page: currentPage,
+          page: currentPage - 1,
           size: itemsPerPage,
           category:
             selectedCategoryId !== "all" ? selectedCategoryId : undefined,

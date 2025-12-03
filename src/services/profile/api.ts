@@ -1,5 +1,5 @@
 import { api } from "@/services/api";
-import { ApiResponse } from "@/types/responses";
+import { ApiResponse, ApiResponsePaging } from "@/types/responses";
 import {
   UserProfile,
   UserAddress,
@@ -45,9 +45,9 @@ export const getUserAddress = async (): Promise<ApiResponse<UserAddress[]>> => {
   }
 };
 
-export const getUserOrder = async (): Promise<ApiResponse<Order[]>> => {
+export const getUserOrder = async (): Promise<ApiResponsePaging<Order[]>> => {
   try {
-    const response = await api.get<ApiResponse<Order[]>>("/orders");
+    const response = await api.get<ApiResponsePaging<Order[]>>("/orders");
     return response.data;
   } catch (error) {
     console.error("API Error - getUserOrder:", error);
