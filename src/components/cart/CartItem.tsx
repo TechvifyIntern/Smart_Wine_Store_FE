@@ -78,6 +78,7 @@ export default function CartItem({
             type="text"
             inputMode="numeric"
             readOnly
+            max={999}
             pattern="[1-9][0-9]*"
             value={item.Quantity === 0 ? "" : item.Quantity}
             onChange={(e) => {

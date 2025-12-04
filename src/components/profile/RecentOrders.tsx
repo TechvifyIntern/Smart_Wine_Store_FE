@@ -204,7 +204,7 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                 selectedOrder.Details.length > 0 && (
                   <p>
                     <strong>Discount:</strong>{" "}
-                    {formatCurrency(selectedOrder.DiscountEventValue)}
+                    {selectedOrder.DiscountEventValue} %
                   </p>
                 )}
               {selectedOrder.Details.length > 0 && (
@@ -215,7 +215,10 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                       <p className="font-medium">{detail.ProductName}</p>
                       <p className="text-sm">
                         Quantity: {detail.Quantity} | Unit Price:{" "}
-                        {formatCurrency(detail.UnitPrice)} | Final Item Price:{" "}
+                        {formatCurrency(
+                          detail.UnitPrice * (1 - detail.DiscountValue / 100)
+                        )}{" "}
+                        | Final Item Price:{" "}
                         {formatCurrency(detail.FinalItemPrice)}
                       </p>
                     </div>

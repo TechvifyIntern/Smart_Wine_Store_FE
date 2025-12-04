@@ -23,15 +23,19 @@ export function RecentOrdersTable() {
       try {
         setIsLoading(true);
         const response = await ordersRepository.getOrders();
-        if (response.success && response.data && Array.isArray(response.data)) {
+        if (response.success && response.data) {
           // Sort by CreatedAt descending and take first 10
-          const sortedOrders = response.data
-            .sort((a: any, b: any) => new Date(b.CreatedAt).getTime() - new Date(a.CreatedAt).getTime())
+          const sortedOrders = response.data.data
+            .sort(
+              (a: any, b: any) =>
+                new Date(b.CreatedAt).getTime() -
+                new Date(a.CreatedAt).getTime()
+            )
             .slice(0, 10);
           setOrders(sortedOrders);
         }
       } catch (error) {
-        console.error('Error loading recent orders:', error);
+        console.error("Error loading recent orders:", error);
       } finally {
         setIsLoading(false);
       }
@@ -64,8 +68,12 @@ export function RecentOrdersTable() {
   };
 
   const getFormattedAddress = (order: any): string => {
-    const parts = [order.OrderStreetAddress, order.OrderWard, order.OrderProvince].filter(Boolean);
-    return parts.join(", ") || 'N/A';
+    const parts = [
+      order.OrderStreetAddress,
+      order.OrderWard,
+      order.OrderProvince,
+    ].filter(Boolean);
+    return parts.join(", ") || "N/A";
   };
 
   const formatDate = (dateString: string) => {
@@ -105,15 +113,21 @@ export function RecentOrdersTable() {
                   <TableHead>Shipping Address</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                   <TableHead className="w-[110px]">Date</TableHead>
-                  <TableHead className="w-[100px] text-center">Status</TableHead>
+                  <TableHead className="w-[100px] text-center">
+                    Status
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.OrderID}>
-                    <TableCell className="font-medium">#{order.OrderID}</TableCell>
+                    <TableCell className="font-medium">
+                      #{order.OrderID}
+                    </TableCell>
                     <TableCell>User #{order.UserID}</TableCell>
-                    <TableCell className="max-w-[200px] truncate">{getFormattedAddress(order)}</TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      {getFormattedAddress(order)}
+                    </TableCell>
                     <TableCell className="text-right">
                       {formatAmount(order.FinalTotal)}
                     </TableCell>
