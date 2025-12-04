@@ -23,7 +23,7 @@ import {
   Filler,
 } from "chart.js";
 import { TimeFilter } from "@/types/dashboard";
-import ordersRepository from "@/api/ordersRepository";
+import ordersRepository, { ApiResponse, Order } from "@/api/ordersRepository";
 
 ChartJS.register(
   CategoryScale,
@@ -37,7 +37,7 @@ ChartJS.register(
 );
 
 export function RevenueChart() {
-  const [filter, setFilter] = useState<TimeFilter>("year");
+  const [filter, setFilter] = useState<TimeFilter>("day");
   const [isLoading, setIsLoading] = useState(true);
   const [chartLabels, setChartLabels] = useState<string[]>([]);
   const [chartValues, setChartValues] = useState<number[]>([]);
@@ -48,22 +48,26 @@ export function RevenueChart() {
         setIsLoading(true);
         const response = await ordersRepository.getOrders();
 
-        if (response.success && response.data && Array.isArray(response.data)) {
-          const orders = response.data;
+        if (response.success && response.data) {
+          const orders = response.data.data;
+
           const now = new Date();
 
           if (filter === "day") {
-            // Group by hours for today
+            // Logic giữ nguyên
             const hourlyRevenue = new Array(24).fill(0);
-            orders.forEach((order: any) => {
-              const orderDate = new Date(order.CreatedAt);
-              if (orderDate.toDateString() === now.toDateString()) {
-                const hour = orderDate.getHours();
-                hourlyRevenue[hour] += order.FinalTotal || 0;
-              }
-            });
+            if (Array.isArray(orders)) {
+              orders.forEach((order: any) => {
+                const orderDate = new Date(order.CreatedAt);
+                // So sánh ngày của order với ngày hiện tại (now)
+                if (orderDate.toDateString() === now.toDateString()) {
+                  const hour = orderDate.getHours();
+                  // Dùng FinalTotal từ dữ liệu
+                  hourlyRevenue[hour] += order.FinalTotal || 0;
+                }
+              });
+            }
 
-            // Get data for every 3 hours
             const labels = [
               "00:00",
               "03:00",
@@ -82,16 +86,17 @@ export function RevenueChart() {
             setChartLabels(labels);
             setChartValues(data);
           } else if (filter === "year") {
-            // Group revenue by month for the current year
-            const monthlyRevenue = new Array(12).fill(0); // Jan → Dec
-
-            orders.forEach((order: any) => {
-              const orderDate = new Date(order.CreatedAt);
-              if (orderDate.getFullYear() === now.getFullYear()) {
-                const month = orderDate.getMonth(); // 0 = Jan, 11 = Dec
-                monthlyRevenue[month] += order.FinalTotal || 0;
-              }
-            });
+            // Logic giữ nguyên
+            const monthlyRevenue = new Array(12).fill(0);
+            if (Array.isArray(orders)) {
+              orders.forEach((order: any) => {
+                const orderDate = new Date(order.CreatedAt);
+                if (orderDate.getFullYear() === now.getFullYear()) {
+                  const month = orderDate.getMonth();
+                  monthlyRevenue[month] += order.FinalTotal || 0;
+                }
+              });
+            }
 
             setChartLabels([
               "Jan",
@@ -109,24 +114,26 @@ export function RevenueChart() {
             ]);
             setChartValues(monthlyRevenue);
           } else if (filter === "month") {
-            // Group by weeks for this month
-            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            // Logic giữ nguyên
             const weeklyRevenue = [0, 0, 0, 0, 0];
+            if (Array.isArray(orders)) {
+              orders.forEach((order: any) => {
+                const orderDate = new Date(order.CreatedAt);
+                if (
+                  orderDate.getMonth() === now.getMonth() &&
+                  orderDate.getFullYear() === now.getFullYear()
+                ) {
+                  // Tính tuần tương đối trong tháng
+                  const day = orderDate.getDate();
+                  const weekNum = Math.floor((day - 1) / 7);
 
-            orders.forEach((order: any) => {
-              const orderDate = new Date(order.CreatedAt);
-              if (
-                orderDate.getMonth() === now.getMonth() &&
-                orderDate.getFullYear() === now.getFullYear()
-              ) {
-                const weekNum = Math.floor((orderDate.getDate() - 1) / 7);
-                if (weekNum < 5) {
-                  weeklyRevenue[weekNum] += order.FinalTotal || 0;
+                  if (weekNum < 5) {
+                    weeklyRevenue[weekNum] += order.FinalTotal || 0;
+                  }
                 }
-              }
-            });
+              });
+            }
 
-            // Remove weeks with no data from the end
             const lastNonZero = weeklyRevenue.findLastIndex((val) => val > 0);
             const trimmedData = weeklyRevenue.slice(
               0,
@@ -138,7 +145,6 @@ export function RevenueChart() {
             setChartValues(trimmedData);
           }
         } else {
-          // Set default empty data
           setChartLabels([]);
           setChartValues([]);
         }

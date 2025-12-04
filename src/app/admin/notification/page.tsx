@@ -124,59 +124,84 @@ export default function NotificationPage() {
         await notificationsRepository.createNotification(data);
 
       if (response.success) {
-        let title: string;
-        let description: string;
-        let variant: "default" | "destructive" = "default";
+        // Reset form immediately on success
+        reset();
 
-        title = "Notification Sent Successfully!";
+        // CASE 1: Scheduled for the future
+        // We use the form data to check this, as the stats won't exist yet
+        if (data.sendOption === "SCHEDULED") {
+          toast({
+            title: "📅 Notification Scheduled",
+            description: (
+              <div className="mt-2 space-y-1">
+                <p>Your notification has been queued successfully.</p>
+                <p className="text-muted-foreground text-xs">
+                  Scheduled for: {new Date(data.scheduledAt!).toLocaleString()}
+                </p>
+              </div>
+            ),
+            variant: "default",
+            duration: 5000,
+          });
+          return; // Exit early
+        }
 
-        if (response.scheduledJobId) {
+        // CASE 2: Sent Immediately (Job Processed)
+        // We check if we actually have delivery stats
+        if (response.deliveryStatus) {
           const { sent, pendingOffline, failed } = response.deliveryStatus;
           const total = sent + pendingOffline + failed;
 
-          // Build detailed delivery breakdown
-          let breakdown = `📊 Delivery Summary:\n• Total Recipients: ${total}`;
+          let title = "Notification Sent";
+          let variant: "default" | "destructive" = "default";
 
-          if (sent > 0) breakdown += `\n✅ Successfully Delivered: ${sent}`;
-          if (pendingOffline > 0)
-            breakdown += `\n⏳ Pending (Offline): ${pendingOffline}`;
-          if (failed > 0) {
-            breakdown += `\n❌ Failed Delivery: ${failed}`;
-            variant = "destructive"; // Show as destructive toast if there are failures
-          }
-
-          description = breakdown;
-
-          if (failed === 0) {
-            title = "✅ All Notifications Delivered!";
-            if (total > 10) {
-              description += `\n\n🎉 Successfully notified ${total} users!`;
-            }
-          } else if (sent > 0) {
-            title = "⚠️ Partial Delivery Complete";
-          } else {
-            title = "❌ Notification Delivery Failed";
+          // Determine Title & Variant based on success rate
+          if (failed > 0 && sent === 0) {
+            title = "❌ Delivery Failed";
             variant = "destructive";
+          } else if (failed > 0) {
+            title = "⚠️ Completed with Errors";
+            variant = "destructive"; // Warning state often uses destructive or a custom yellow
+          } else {
+            title = "✅ Delivered Successfully";
           }
+
+          toast({
+            title: title,
+            // Use JSX for clean formatting
+            description: (
+              <div className="mt-2 flex flex-col gap-1 text-sm">
+                <p className="font-semibold">Delivery Summary:</p>
+                <ul className="list-disc pl-4 space-y-0.5">
+                  <li>Total Targets: {total}</li>
+                  <li className="text-green-600">Delivered: {sent}</li>
+                  {pendingOffline > 0 && (
+                    <li className="text-amber-600">
+                      Pending (Offline): {pendingOffline}
+                    </li>
+                  )}
+                  {failed > 0 && (
+                    <li className="text-red-600">Failed: {failed}</li>
+                  )}
+                </ul>
+              </div>
+            ),
+            variant: variant,
+            duration: 7000,
+          });
         } else {
-          title = "⏰ Notification Scheduled Successfully!";
-          description =
-            "⏰ Notification has been scheduled for delivery.\n\nYou'll receive a confirmation when it's sent.";
+          // CASE 3: Sent, but no detailed stats returned
+          toast({
+            title: "Notification Sent",
+            description: "The notification request was accepted by the server.",
+            duration: 3000,
+          });
         }
-
-        toast({
-          title,
-          description,
-          variant,
-          duration: 7000, // Longer duration for detailed messages
-        });
-
-        // Reset form after successful creation
-        reset();
       } else {
+        // Handle API returning success: false
         toast({
-          title: "Notification Creation Failed",
-          description: "The notification was not created successfully.",
+          title: "Creation Failed",
+          description: "The server could not create the notification.",
           variant: "destructive",
         });
       }
@@ -184,8 +209,7 @@ export default function NotificationPage() {
       console.error("Error creating notification:", error);
       toast({
         title: "Error",
-        description:
-          error.message || "Failed to create notification. Please try again.",
+        description: error.message || "Failed to connect to the server.",
         variant: "destructive",
       });
     }

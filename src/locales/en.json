@@ -327,7 +327,7 @@
       "membershipDiscount": "Membership Discount",
       "eventDiscount": "Event Discount",
       "total": "Total",
-      "selectEvent": "Select an event",
+      "selectEvent": "Select an discount",
       "noEvent": "None",
       "checkout": "Proceed to Checkout",
       "clearCart": "Clear Cart",
