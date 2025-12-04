@@ -111,7 +111,26 @@ export function AuthDialog({
       signInForm.reset();
     } catch (error: any) {
       console.error("Sign in error:", error);
-      if (error.response?.status === 401) {
+      const errorMessage = error.response?.data?.message || "";
+
+      if (error.response?.status === 403) {
+        // Check if account is inactive (needs OTP verification)
+        if (errorMessage.includes("inactive")) {
+          setEmailForOtp(data.identifier);
+          onModeChange("otp");
+          toast({
+            title: "Account Inactive",
+            description: "Please verify your email with the OTP code sent to your inbox.",
+            variant: "default",
+          });
+        } else {
+          // Account banned
+          signInForm.setError("root", {
+            type: "manual",
+            message: errorMessage || "Your account has been banned. Please contact support for assistance.",
+          });
+        }
+      } else if (error.response?.status === 401) {
         signInForm.setError("root", {
           type: "manual",
           message: t("auth.signInDialog.errors.invalidCredentials"),
@@ -505,7 +524,7 @@ export function AuthDialog({
                   {signUpForm.watch("Password") &&
                     signUpForm.watch("ConfirmPassword") &&
                     signUpForm.watch("Password") ===
-                      signUpForm.watch("ConfirmPassword") &&
+                    signUpForm.watch("ConfirmPassword") &&
                     !signUpForm.formState.errors.ConfirmPassword && (
                       <Check className="w-5 h-5 text-green-500" />
                     )}
