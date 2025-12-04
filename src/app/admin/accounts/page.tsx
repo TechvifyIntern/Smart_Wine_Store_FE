@@ -12,7 +12,6 @@ import Pagination from "@/components/admin/pagination/Pagination";
 import PageHeader from "@/components/discount-events/PageHeader";
 import { UserCog } from "lucide-react";
 import AccountDetailModal from "@/components/accounts/(modal)/AccountDetailModal";
-import EditAccountModal from "@/components/accounts/(modal)/EditAccountModal";
 import { StatusChangeDialog } from "@/components/accounts/(modal)/StatusChangeDialog";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -226,19 +225,7 @@ export default function AccountsPage() {
 
   const handleCreateAccount = async (data: CreateAccountFormData) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await userManagementRepository.createAccount(data);
-
-      // For now, simulate success
-      toast({
-        title: "Account created",
-        description: `Account "${data.UserName}" created successflly`,
-      });
-
-      // Auto refresh page after successful creation
-      setTimeout(() => {
-        router.refresh();
-      }, 1500);
+      fetchAccounts();
     } catch (error) {
       console.error("Error creating account:", error);
       toast({
@@ -247,30 +234,6 @@ export default function AccountsPage() {
         variant: "destructive",
       });
     }
-  };
-
-  const handleUpdateAccount = async (
-    id: number,
-    data: Omit<
-      Account,
-      | "UserID"
-      | "RoleName"
-      | "TierName"
-      | "MinimumPoint"
-      | "Point"
-      | "StatusName"
-      | "StreetAddress"
-      | "Ward"
-      | "Province"
-    >
-  ) => {
-    // TODO: Implement API call to update account
-    // Example:
-    // await fetch(`/api/accounts/${id}`, {
-    //   method: 'PUT',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify(data),
-    // });
   };
 
   return (
@@ -364,14 +327,6 @@ export default function AccountsPage() {
         open={isDetailModalOpen}
         onOpenChange={setIsDetailModalOpen}
         account={selectedAccount}
-      />
-
-      {/* Edit Account Modal */}
-      <EditAccountModal
-        open={isEditModalOpen}
-        onOpenChange={setIsEditModalOpen}
-        account={selectedAccount}
-        onUpdate={handleUpdateAccount}
       />
 
       {/* Status Change Confirmation Dialog */}

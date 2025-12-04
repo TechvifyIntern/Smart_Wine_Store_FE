@@ -79,9 +79,6 @@ export function CreateAccountModal({
       TierID: 1,
       Password: "",
       ConfirmPassword: "",
-      StreetAddress: "",
-      Ward: "",
-      Province: "",
     },
   });
 
@@ -308,43 +305,6 @@ export function CreateAccountModal({
                     {errors.ConfirmPassword.message}
                   </p>
                 )}
-              </div>
-            </div>
-
-            {/* Address */}
-            <div className="border-t border-gray-300 dark:border-neutral-700 pt-4">
-              <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">
-                Default Address (Optional)
-              </h4>
-
-              <div className="space-y-3">
-                <Input
-                  placeholder="Street Address"
-                  {...register("StreetAddress")}
-                  className="
-                                        bg-white border-gray-300 text-gray-900
-                                        dark:bg-neutral-800 dark:border-neutral-700 dark:text-white
-                                    "
-                />
-
-                <div className="grid grid-cols-2 gap-4">
-                  <Input
-                    placeholder="Ward"
-                    {...register("Ward")}
-                    className="
-                                            bg-white border-gray-300 text-gray-900
-                                            dark:bg-neutral-800 dark:border-neutral-700 dark:text-white
-                                        "
-                  />
-                  <Input
-                    placeholder="Province"
-                    {...register("Province")}
-                    className="
-                                            bg-white border-gray-300 text-gray-900
-                                            dark:bg-neutral-800 dark:border-neutral-700 dark:text-white
-                                        "
-                  />
-                </div>
               </div>
             </div>
           </form>
