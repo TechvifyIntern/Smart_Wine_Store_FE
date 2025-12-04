@@ -13,6 +13,7 @@ import { useCartStore } from "@/store/cart";
 import { Cart } from "@/types/cart";
 import { Event } from "@/types/events";
 import { toast } from "@/hooks/use-toast";
+import { AlertCircle } from "lucide-react";
 
 interface CartSummaryProps {
   cart: Cart;
@@ -36,6 +37,10 @@ export default function CartSummary({
   const { t } = useLocale();
   const eventId = useCartStore((state) => state.eventId);
 
+  // Định nghĩa giới hạn tối đa
+  const MAX_ORDER_VALUE = 1000000000;
+  const isOverLimit = cart.subtotal > MAX_ORDER_VALUE;
+
   const handleEventChange = (eventID: string) => {
     const selectedEvent = eventList.find(
       (event) => event.EventID.toString() === eventID
@@ -50,7 +55,10 @@ export default function CartSummary({
         toast({
           title: t("cart.toast.eventMinimumValueNotMet")
             .replace("{{eventName}}", selectedEvent.EventName)
-            .replace("{{minValue}}", formatCurrency(selectedEvent.MinimumValue)),
+            .replace(
+              "{{minValue}}",
+              formatCurrency(selectedEvent.MinimumValue)
+            ),
           variant: "warning",
         });
       }
@@ -68,7 +76,9 @@ export default function CartSummary({
       <div className="p-6">
         <div className="flex justify-between">
           <span>{t("cart.summary.subtotal")}</span>
-          <span>{formatCurrency(cart.subtotal)}</span>
+          <span className={isOverLimit ? "text-destructive font-bold" : ""}>
+            {formatCurrency(cart.subtotal)}
+          </span>
         </div>
 
         <div className="mt-4 flex justify-between">
@@ -135,9 +145,19 @@ export default function CartSummary({
         </div>
       </div>
       <div className="p-6">
+        {/* Phần thông báo lỗi khi vượt quá giới hạn */}
+        {isOverLimit && (
+          <div className="mb-4 flex items-start gap-2 rounded-md bg-destructive/15 p-3 text-sm text-destructive dark:bg-destructive/25">
+            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+            <span className="font-medium">
+              {`Orders cannot exceed ${formatCurrency(MAX_ORDER_VALUE)}`}
+            </span>
+          </div>
+        )}
+
         <Button
           className="w-full"
-          disabled={isPending || cart.items.length === 0}
+          disabled={isPending || cart.items.length === 0 || isOverLimit}
           onClick={onCheckout}
         >
           {t("cart.summary.checkout")}

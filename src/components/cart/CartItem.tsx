@@ -8,6 +8,7 @@ import { CartItem as CartItemType } from "@/types/cart";
 import { X } from "lucide-react";
 import Link from "next/link";
 import { Loader2 } from "lucide-react"; // spinner icon
+import { toast } from "@/hooks/use-toast";
 
 interface CartItemProps {
   item: CartItemType;
@@ -78,7 +79,6 @@ export default function CartItem({
             type="text"
             inputMode="numeric"
             readOnly
-            max={999}
             pattern="[1-9][0-9]*"
             value={item.Quantity === 0 ? "" : item.Quantity}
             onChange={(e) => {
@@ -98,7 +98,16 @@ export default function CartItem({
           />
           <button
             className="px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 w-7 sm:w-9 md:w-10 hover:bg-primary dark:hover:text-white rounded-r-lg border border-primary text-xs sm:text-sm"
-            onClick={() => updateQuantity(item.ProductID, item.Quantity + 1)}
+            onClick={() => {
+              if (item.Quantity >= 99) {
+                toast({
+                  title: "Cannot increase further",
+                  description: "The maximum quantity is 99.",
+                });
+                return;
+              }
+              updateQuantity(item.ProductID, item.Quantity + 1);
+            }}
           >
             +
           </button>
