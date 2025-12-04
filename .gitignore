@@ -2,9 +2,7 @@
 /dist
 /node_modules
 
-# Logs
-logs
-*.log
+
 
 # nyc test coverage
 coverage
