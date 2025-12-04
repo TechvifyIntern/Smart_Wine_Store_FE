@@ -197,11 +197,17 @@ export function AuthDialog({
       forgotPasswordForm.reset();
     } catch (error: any) {
       console.error("Forgot password error:", error);
-      forgotPasswordForm.setError("root", {
-        type: "manual",
-        message:
-          error.response?.data?.message || "An unexpected error occurred.",
-      });
+      if (error.response?.status === 404) {
+        forgotPasswordForm.setError("root", {
+          type: "manual",
+          message: t("auth.forgotPasswordDialog.errors.emailNotFound"),
+        });
+      } else {
+        forgotPasswordForm.setError("root", {
+          type: "manual",
+          message: t("auth.forgotPasswordDialog.errors.unexpectedError"),
+        });
+      }
     }
   };
 
@@ -620,6 +626,11 @@ export function AuthDialog({
                 ? t("auth.forgotPasswordDialog.processing")
                 : t("auth.forgotPasswordDialog.sendButton")}
             </Button>
+            {forgotPasswordForm.formState.errors.root && (
+              <p className="text-sm text-red-500 text-center">
+                {forgotPasswordForm.formState.errors.root.message}
+              </p>
+            )}
           </form>
         )}
 

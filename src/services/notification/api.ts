@@ -1,30 +1,25 @@
+// services/notification/api.ts
 import { api } from "@/services/api";
 import { ApiResponse } from "@/types/responses";
-import { Notification } from "@/api/notificationsRepository";
+import { CreateNotificationFormData } from "@/validations/notifications/notificationSchema";
 
 /**
- * Get all notifications for the current user
- * @param limit - Number of notifications to fetch (default: 10)
- * @param offset - Number of notifications to skip (default: 0)
+ * Get notifications for the current user
  */
-export const getNotifications = async (
-  limit: number = 10,
-  offset: number = 0
-) => {
+export const getNotifications = async (limit = 10, offset = 0) => {
   try {
     const response = await api.get(
       `/notifications?limit=${limit}&offset=${offset}`
     );
-    // Backend returns { success, data: { notifications: [], total, limit, offset, hasMore } }
-    const notifications = response.data.data?.notifications || [];
 
-    // Map backend format to frontend format for backward compatibility
-    const mappedNotifications = notifications.map((n: any) => ({
+    const list = response.data.data?.notifications || [];
+
+    // Normalized mapping
+    return list.map((n: any) => ({
       ...n,
-      Message: n.Content || n.Message, // Map Content to Message
-      IsRead: n.isRead ?? n.IsRead, // Map isRead to IsRead
+      Message: n.Content || n.Message,
+      IsRead: n.isRead ?? n.IsRead,
     }));
-    return mappedNotifications;
   } catch (error) {
     console.error("API Error - getNotifications:", error);
     throw error;
@@ -71,16 +66,8 @@ export const markAllNotificationsAsRead = async (): Promise<
 export const acknowledgeNotification = async (
   notificationId: number
 ): Promise<ApiResponse<void>> => {
-  // Validate notificationId
-  if (
-    !notificationId ||
-    notificationId <= 0 ||
-    !Number.isInteger(notificationId)
-  ) {
-    console.error("Invalid notificationId:", notificationId);
-    throw new Error(
-      `Invalid notificationId: ${notificationId}. Must be a positive integer.`
-    );
+  if (!Number.isInteger(notificationId) || notificationId <= 0) {
+    throw new Error(`Invalid notificationId: ${notificationId}`);
   }
 
   try {
@@ -92,8 +79,10 @@ export const acknowledgeNotification = async (
     console.error("API Error - acknowledgeNotification:", error);
     throw error;
   }
-}; /**
- * Check SSE connection status
+};
+
+/**
+ * Check SSE status
  */
 export const checkSSEStatus = async (): Promise<ApiResponse<any>> => {
   try {
@@ -106,17 +95,22 @@ export const checkSSEStatus = async (): Promise<ApiResponse<any>> => {
 };
 
 /**
- * Create SSE connection URL with token
- * EventSource doesn't support custom headers, so we pass token as query parameter
+ * Create SSE URL
  */
 export const createSSEUrl = (token: string): string => {
-  if (!token) {
-    console.error("SSE URL: No token provided");
-    throw new Error("Token is required for SSE connection");
-  }
+  if (!token) throw new Error("Token is required for SSE connection");
 
   const baseURL = process.env.NEXT_PUBLIC_BE_API_URL || "http://localhost:3000";
-  const url = `${baseURL}/sse/stream?token=${encodeURIComponent(token)}`;
 
-  return url;
+  return `${baseURL}/sse/stream?token=${encodeURIComponent(token)}`;
+};
+
+export const createNotification = async (data: CreateNotificationFormData) => {
+  try {
+    const response = await api.post("/notifications/admin-create", data);
+    return response.data;
+  } catch (error) {
+    console.error("API Error - createNotification:", error);
+    throw error;
+  }
 };

@@ -16,6 +16,7 @@ import {
   History,
   ChartNoAxesCombined,
   ClipboardList,
+  Bell,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -94,6 +95,12 @@ export default function Sidebar({
       icon: ClipboardList,
     },
     {
+      label: "Create Notification",
+      href: "/admin/notification",
+      icon: Bell,
+      canAccess: (roleId?: string) => IsAccessWithAdmin(roleId),
+    },
+    {
       label: "Discount Management",
       icon: Tag,
       hasDropdown: true,
@@ -152,10 +159,11 @@ export default function Sidebar({
                           ? toggleDiscountDropdown
                           : toggleProductDropdown
                       }
-                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${isParentActive(item.subItems)
+                      className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all ${
+                        isParentActive(item.subItems)
                           ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white dark:text-white/90 shadow-md"
                           : "text-[#020202] dark:text-white/90 "
-                        }`}
+                      }`}
                     >
                       <div className="flex items-center">
                         <item.icon className="w-5 h-5 mr-3" />
@@ -164,14 +172,15 @@ export default function Sidebar({
                         </span>
                       </div>
                       <ChevronDown
-                        className={`w-4 h-4 transition-transform ${(
+                        className={`w-4 h-4 transition-transform ${
+                          (
                             item.isDiscountMenu
                               ? isDiscountDropdownOpen
                               : isProductDropdownOpen
                           )
                             ? "rotate-180"
                             : ""
-                          }`}
+                        }`}
                       />
                     </button>
 
@@ -179,34 +188,36 @@ export default function Sidebar({
                     {(item.isDiscountMenu
                       ? isDiscountDropdownOpen
                       : isProductDropdownOpen) && (
-                        <ul className="mt-1 ml-4 space-y-1">
-                          {item.subItems?.map((subItem, subIndex) => (
-                            <li key={subIndex}>
-                              <Link
-                                href={subItem.href}
-                                onClick={onClose}
-                                className={`flex items-center px-4 py-2.5 rounded-lg transition-all ${isActive(subItem.href)
-                                    ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
-                                    : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
-                                  }`}
-                              >
-                                <subItem.icon className="w-4 h-4 mr-3" />
-                                <span className="text-sm">{subItem.label}</span>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      <ul className="mt-1 ml-4 space-y-1">
+                        {item.subItems?.map((subItem, subIndex) => (
+                          <li key={subIndex}>
+                            <Link
+                              href={subItem.href}
+                              onClick={onClose}
+                              className={`flex items-center px-4 py-2.5 rounded-lg transition-all ${
+                                isActive(subItem.href)
+                                  ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
+                                  : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
+                              }`}
+                            >
+                              <subItem.icon className="w-4 h-4 mr-3" />
+                              <span className="text-sm">{subItem.label}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </>
                 ) : (
                   /* Regular Menu Item */
                   <Link
                     href={item.href!}
                     onClick={onClose}
-                    className={`flex items-center px-4 py-3 rounded-lg transition-all ${isActive(item.href)
+                    className={`flex items-center px-4 py-3 rounded-lg transition-all ${
+                      isActive(item.href)
                         ? "bg-[#AD8D5E] dark:bg-[#7C653E] text-white shadow-md"
                         : "text-[#020202] dark:text-white/90 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      }`}
+                    }`}
                   >
                     <item.icon className="w-5 h-5 mr-3" />
                     <span className="font-medium text-sm">{item.label}</span>
@@ -243,8 +254,9 @@ export default function Sidebar({
 
       {/* Sidebar - Mobile */}
       <aside
-        className={`md:hidden fixed top-[73px] left-0 w-60 border-r h-[calc(100vh-73px)] z-40 transform transition-transform duration-300 overflow-y-auto ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } ${className}`}
+        className={`md:hidden fixed top-[73px] left-0 w-60 border-r h-[calc(100vh-73px)] z-40 transform transition-transform duration-300 overflow-y-auto ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } ${className}`}
       >
         <SidebarContent isMobile={true} />
       </aside>

@@ -24,7 +24,7 @@ export default function AdminLayout({
       <div className="flex pt-0 dark:bg-background/70">
         {/* Sidebar */}
         <Sidebar
-          className="w-64 hidden md:flex md:flex-shrink-0"
+          className="w-64 hidden md:flex md:shrink-0"
           isMobileSidebarOpen={isMobileSidebarOpen}
           onClose={() => setIsMobileSidebarOpen(false)}
         />

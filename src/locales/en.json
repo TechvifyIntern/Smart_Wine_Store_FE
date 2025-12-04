@@ -74,7 +74,11 @@
       "sendButton": "Send Reset Link",
       "processing": "Processing...",
       "rememberPassword": "Remember your password?",
-      "backToSignIn": "Back to Sign In"
+      "backToSignIn": "Back to Sign In",
+      "errors": {
+        "emailNotFound": "No account found with this email address.",
+        "unexpectedError": "An unexpected error occurred. Please try again."
+      }
     },
     "otpVerification": {
       "title": "Verify Your Email",
