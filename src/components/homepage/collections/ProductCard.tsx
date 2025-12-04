@@ -2,21 +2,19 @@
 
 import Link from "next/link";
 import { Product } from "@/types/product-detail";
-import { useCartStore } from "@/store/cart";
-import { toast } from "sonner";
 import { formatCurrency } from "@/lib/utils";
 import { Wine } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface ProductCardProps {
   product: Product;
 }
-export function ProductCard({ product }: ProductCardProps) {
-  const { addToCart } = useCartStore();
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart(product.ProductID, 1);
+export function ProductCard({ product }: ProductCardProps) {
+  const router = useRouter();
+
+  const handleClick = () => {
+    router.push(`/product-detail/${product.ProductID}`);
   };
 
   return (
@@ -55,13 +53,13 @@ export function ProductCard({ product }: ProductCardProps) {
             </span>
           </div>
 
-          {/* Add to Cart Button - Overlay at bottom on hover */}
+          {/* View More Button */}
           <div className="absolute bottom-4 left-4 right-4 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
             <button
               className="w-full py-3 px-4 bg-primary text-white text-sm font-medium rounded hover:bg-primary-dark transition-colors"
-              onClick={handleAddToCart}
+              onClick={handleClick}
             >
-              Add To Cart
+              View More
             </button>
           </div>
         </div>

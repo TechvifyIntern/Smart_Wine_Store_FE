@@ -86,7 +86,7 @@ export function Header() {
     isLoading,
     markAsRead,
     markAllAsRead,
-    loadMore
+    loadMore,
   } = useNotifications();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,8 +114,8 @@ export function Header() {
   const isInAdminPage = pathname?.startsWith("/admin");
 
   const handleLogout = () => {
-    logout();
     router.push("/");
+    logout();
   };
 
   const handleAuthModeChange = (mode: "signin" | "signup" | "forgot" | "otp") =>
@@ -245,25 +245,29 @@ export function Header() {
                 return (
                   <div key={link.label} className="relative group">
                     {hasDropdown ? (
-                      <div
-                        className={`text-sm font-medium cursor-pointer flex items-center transition relative ${isActive
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
+                      <Link href={link.href}>
+                        <div
+                          className={`text-sm font-medium cursor-pointer flex items-center transition relative ${
+                            isActive
+                              ? "text-primary font-semibold"
+                              : "text-muted-foreground hover:text-foreground"
                           }`}
-                      >
-                        {t(`navigation.${link.key}`)}
-                        <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
-                        {isActive && (
-                          <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
-                        )}
-                      </div>
+                        >
+                          {t(`navigation.${link.key}`)}
+                          <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+                          {isActive && (
+                            <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
+                          )}
+                        </div>
+                      </Link>
                     ) : (
                       <Link
                         href={link.href}
-                        className={`text-sm font-medium flex items-center transition relative ${isActive
-                          ? "text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground"
-                          }`}
+                        className={`text-sm font-medium flex items-center transition relative ${
+                          isActive
+                            ? "text-primary font-semibold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
                       >
                         {t(`navigation.${link.key}`)}
                         {isActive && (
@@ -292,7 +296,7 @@ export function Header() {
                               className="relative group/sub"
                             >
                               <Link
-                                href={`/products?category=${cat.CategoryName}`}
+                                href={`/products?category=${cat.CategoryID}`}
                                 className="flex items-center justify-between px-4 py-2 hover:bg-muted text-sm text-foreground transition-colors"
                               >
                                 {cat.CategoryName}
@@ -312,7 +316,7 @@ export function Header() {
                                   {subChildren.map((sub) => (
                                     <Link
                                       key={sub.CategoryID}
-                                      href={`/products?category=${sub.CategoryName}`}
+                                      href={`/products?category=${sub.CategoryID}`}
                                       className="block px-4 py-2 hover:bg-muted text-sm text-foreground transition-colors"
                                     >
                                       {sub.CategoryName}
@@ -382,7 +386,10 @@ export function Header() {
                           {t("header.notifications") || "Notifications"}
                         </h3>
                         {unreadCount > 0 && (
-                          <Badge variant="destructive" className="h-5 px-1.5 text-xs">
+                          <Badge
+                            variant="destructive"
+                            className="h-5 px-1.5 text-xs"
+                          >
                             {unreadCount}
                           </Badge>
                         )}
@@ -407,20 +414,23 @@ export function Header() {
                     </div>
 
                     {/* SSE Status */}
-                    {!sseStatus.isConnected && sseStatus.reconnectAttempts > 0 && (
-                      <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-b text-xs">
-                        <p className="text-yellow-800 dark:text-yellow-300">
-                          Reconnecting... (Attempt {sseStatus.reconnectAttempts})
-                        </p>
-                      </div>
-                    )}
+                    {!sseStatus.isConnected &&
+                      sseStatus.reconnectAttempts > 0 && (
+                        <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-b text-xs">
+                          <p className="text-yellow-800 dark:text-yellow-300">
+                            Reconnecting... (Attempt{" "}
+                            {sseStatus.reconnectAttempts})
+                          </p>
+                        </div>
+                      )}
 
                     {/* Notifications List */}
                     {notifications.length === 0 ? (
                       <div className="px-4 py-12 text-center">
                         <Bell className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
                         <p className="text-sm text-muted-foreground">
-                          {t("header.noNotifications") || "No notifications yet"}
+                          {t("header.noNotifications") ||
+                            "No notifications yet"}
                         </p>
                       </div>
                     ) : (
@@ -430,22 +440,34 @@ export function Header() {
                             {notifications.map((notification) => (
                               <div
                                 key={notification.NotificationID}
-                                className={`px-4 py-3 hover:bg-muted cursor-pointer transition-colors ${!(notification.IsRead ?? notification.isRead)
-                                  ? "bg-blue-50 dark:bg-blue-950/20"
-                                  : ""
-                                  }`}
+                                className={`px-4 py-3 hover:bg-muted cursor-pointer transition-colors ${
+                                  !(notification.IsRead ?? notification.isRead)
+                                    ? "bg-blue-50 dark:bg-blue-950/20"
+                                    : ""
+                                }`}
                                 onClick={async () => {
-                                  if (!(notification.IsRead ?? notification.isRead)) {
+                                  if (
+                                    !(
+                                      notification.IsRead ?? notification.isRead
+                                    )
+                                  ) {
                                     try {
-                                      await markAsRead(notification.NotificationID);
+                                      await markAsRead(
+                                        notification.NotificationID
+                                      );
                                     } catch (error) {
-                                      console.error("Failed to mark as read:", error);
+                                      console.error(
+                                        "Failed to mark as read:",
+                                        error
+                                      );
                                     }
                                   }
                                 }}
                               >
                                 <div className="flex items-start gap-3">
-                                  {!(notification.IsRead ?? notification.isRead) && (
+                                  {!(
+                                    notification.IsRead ?? notification.isRead
+                                  ) && (
                                     <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                                   )}
                                   <div className="flex-1 min-w-0">
@@ -463,40 +485,44 @@ export function Header() {
                                       )}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                      {notification.Message || notification.Content}
+                                      {notification.Message ||
+                                        notification.Content}
                                     </p>
                                     <p className="text-xs text-muted-foreground/70 mt-1.5">
-                                      {formatNotificationTime(notification.CreatedAt)}
+                                      {formatNotificationTime(
+                                        notification.CreatedAt
+                                      )}
                                     </p>
                                   </div>
                                 </div>
                               </div>
                             ))}
                             {/* Footer - Fixed at bottom */}
-                            
                           </div>
                           {hasMore && (
-                              <div className="sticky px-4 py-2 mt-3 border-t bg-primary bottom-0 w-full">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="w-full text-xs"
-                                  onClick={async () => {
-                                    try {
-                                      await loadMore();
-                                    } catch (error) {
-                                      toast.error("Failed to load more notifications");
-                                    }
-                                  }}
-                                  disabled={isLoading}
-                                >
-                                  {isLoading ? "Loading..." : "Load more notifications"}
-                                </Button>
-                              </div>
-                            )}
+                            <div className="sticky px-4 py-2 mt-3 border-t bg-primary bottom-0 w-full">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-xs"
+                                onClick={async () => {
+                                  try {
+                                    await loadMore();
+                                  } catch (error) {
+                                    toast.error(
+                                      "Failed to load more notifications"
+                                    );
+                                  }
+                                }}
+                                disabled={isLoading}
+                              >
+                                {isLoading
+                                  ? "Loading..."
+                                  : "Load more notifications"}
+                              </Button>
+                            </div>
+                          )}
                         </ScrollArea>
-
-
                       </div>
                     )}
                   </DropdownMenuContent>
@@ -795,7 +821,7 @@ function MobileMenu({
                                           key={sub.CategoryID}
                                           onClick={() =>
                                             handleNavigation(
-                                              `/products?category=${sub.CategoryName}`
+                                              `/products?category=${sub.CategoryID}`
                                             )
                                           }
                                           className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
@@ -814,7 +840,7 @@ function MobileMenu({
                                 key={cat.CategoryID}
                                 onClick={() =>
                                   handleNavigation(
-                                    `/products?category=${cat.CategoryName}`
+                                    `/products?category=${cat.CategoryID}`
                                   )
                                 }
                                 className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
@@ -834,10 +860,11 @@ function MobileMenu({
                 <button
                   key={link.label}
                   onClick={() => handleNavigation(link.href)}
-                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${isActive
-                    ? "text-primary font-semibold bg-muted"
-                    : "hover:bg-muted"
-                    }`}
+                  className={`w-full text-left py-3 px-2 rounded-md text-sm transition ${
+                    isActive
+                      ? "text-primary font-semibold bg-muted"
+                      : "hover:bg-muted"
+                  }`}
                 >
                   {t(`navigation.${link.key}`)}
                 </button>
@@ -933,16 +960,18 @@ function MobileMenu({
                   <div className="pl-4 space-y-1">
                     <button
                       onClick={() => setLocale("vi")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "vi" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "vi" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.vi")}</span>
                       {locale === "vi" && <Check className="h-4 w-4" />}
                     </button>
                     <button
                       onClick={() => setLocale("en")}
-                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${locale === "en" ? "text-primary font-semibold" : ""
-                        }`}
+                      className={`w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md flex items-center justify-between ${
+                        locale === "en" ? "text-primary font-semibold" : ""
+                      }`}
                     >
                       <span>{t("languages.en")}</span>
                       {locale === "en" && <Check className="h-4 w-4" />}

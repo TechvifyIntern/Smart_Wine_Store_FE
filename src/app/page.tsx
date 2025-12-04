@@ -9,7 +9,7 @@ import Parallax from "@/components/homepage/parallax";
 
 export default function Home() {
   return (
-    <main className="bg-background ">
+    <main className="bg-background">
       <Header />
       <HeroSlider />
       <CollectionsContainer />

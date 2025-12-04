@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { NotificationData, SSEConnectionStatus } from '@/types/notification';
-import { useAppStore } from '@/store/auth';
-import { createSSEUrl } from '@/services/notification/api';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { NotificationData, SSEConnectionStatus } from "@/types/notification";
+import { useAppStore } from "@/store/auth";
+import { createSSEUrl } from "@/services/notification/api";
 
 interface UseSSENotificationsOptions {
   onNotification?: (notification: NotificationData) => void;
@@ -34,16 +34,11 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
 
   const connect = useCallback(() => {
     if (!accessToken || !user) {
-      console.log('SSE: Cannot connect - missing credentials', {
-        hasToken: !!accessToken,
-        hasUser: !!user,
-      });
       return;
     }
 
     // Close existing connection
     if (eventSourceRef.current) {
-      console.log('SSE: Closing existing connection');
       eventSourceRef.current.close();
     }
 
@@ -55,7 +50,6 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
     try {
       // Create SSE URL with token from service API
       const url = createSSEUrl(accessToken);
-      console.log('SSE: Connecting to', url.replace(/token=[^&]+/, 'token=***'));
 
       // Create EventSource with authorization via URL parameter
       // Note: withCredentials requires backend to set specific origin, not wildcard '*'
@@ -67,10 +61,6 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
 
       // Handle connection open
       eventSource.onopen = () => {
-        console.log('SSE: Connection opened successfully', {
-          readyState: eventSource.readyState,
-          url: eventSource.url.replace(/token=[^&]+/, 'token=***'),
-        });
         reconnectAttemptsRef.current = 0;
         setStatus((prev) => ({
           ...prev,
@@ -81,9 +71,8 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
       };
 
       // Handle connected event
-      eventSource.addEventListener('connected', (event: MessageEvent) => {
+      eventSource.addEventListener("connected", (event: MessageEvent) => {
         const data = JSON.parse(event.data);
-        console.log('SSE: Connected', data);
         setStatus((prev) => ({
           ...prev,
           connectionId: data.connectionId,
@@ -92,42 +81,39 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
       });
 
       // Handle heartbeat event
-      eventSource.addEventListener('heartbeat', () => {
+      eventSource.addEventListener("heartbeat", () => {
         // Silent heartbeat - just keeps connection alive
       });
 
       // Handle notification event
-      eventSource.addEventListener('notification', (event: MessageEvent) => {
+      eventSource.addEventListener("notification", (event: MessageEvent) => {
         const notification: NotificationData = JSON.parse(event.data);
-        console.log('SSE: Notification received', notification);
         onNotification?.(notification);
       });
 
       // Handle message event
-      eventSource.addEventListener('message', (event: MessageEvent) => {
-        console.log('SSE: Message', event.data);
-      });
+      eventSource.addEventListener("message", (event: MessageEvent) => {});
 
       // Handle error event from server
-      eventSource.addEventListener('error', (event: MessageEvent) => {
+      eventSource.addEventListener("error", (event: MessageEvent) => {
         try {
           if (event.data) {
             const data = JSON.parse(event.data);
-            console.error('SSE: Error event from server', data);
+            console.error("SSE: Error event from server", data);
             setStatus((prev) => ({
               ...prev,
-              lastError: data.message || 'Server error',
+              lastError: data.message || "Server error",
             }));
             onError?.(data.message);
           }
         } catch (parseError) {
-          console.error('SSE: Could not parse error event data', event);
+          console.error("SSE: Could not parse error event data", event);
         }
       });
 
       // Handle connection error
       eventSource.onerror = (error) => {
-        console.error('SSE: Connection error', {
+        console.error("SSE: Connection error", {
           readyState: eventSource.readyState,
           url: eventSource.url,
           error,
@@ -135,14 +121,14 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
 
         // Only close if connection is truly broken
         if (eventSource.readyState === EventSource.CLOSED) {
-          console.log('SSE: Connection closed by server');
         }
 
         eventSource.close();
 
-        const errorMessage = eventSource.readyState === EventSource.CONNECTING
-          ? 'Reconnecting...'
-          : 'Connection error';
+        const errorMessage =
+          eventSource.readyState === EventSource.CONNECTING
+            ? "Reconnecting..."
+            : "Connection error";
 
         setStatus((prev) => ({
           ...prev,
@@ -153,11 +139,8 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
         // Attempt to reconnect only if not at max attempts
         if (reconnectAttemptsRef.current < maxReconnectAttempts) {
           reconnectAttemptsRef.current++;
-          const delay = reconnectDelay * Math.pow(2, reconnectAttemptsRef.current - 1);
-
-          console.log(
-            `SSE: Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts})`
-          );
+          const delay =
+            reconnectDelay * Math.pow(2, reconnectAttemptsRef.current - 1);
 
           setStatus((prev) => ({
             ...prev,
@@ -165,12 +148,11 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
           }));
 
           reconnectTimeoutRef.current = setTimeout(() => {
-            console.log('SSE: Attempting reconnection...');
             connect();
           }, delay);
         } else {
-          const maxErrorMsg = 'Max reconnection attempts reached';
-          console.error('SSE:', maxErrorMsg);
+          const maxErrorMsg = "Max reconnection attempts reached";
+          console.error("SSE:", maxErrorMsg);
           setStatus((prev) => ({
             ...prev,
             lastError: maxErrorMsg,
@@ -179,14 +161,22 @@ export function useSSENotifications(options: UseSSENotificationsOptions = {}) {
         }
       };
     } catch (error) {
-      console.error('SSE: Failed to create connection', error);
+      console.error("SSE: Failed to create connection", error);
       setStatus((prev) => ({
         ...prev,
-        lastError: 'Failed to create connection',
+        lastError: "Failed to create connection",
       }));
-      onError?.('Failed to create connection');
+      onError?.("Failed to create connection");
     }
-  }, [accessToken, user, onNotification, onConnected, onError, maxReconnectAttempts, reconnectDelay]);
+  }, [
+    accessToken,
+    user,
+    onNotification,
+    onConnected,
+    onError,
+    maxReconnectAttempts,
+    reconnectDelay,
+  ]);
 
   const disconnect = useCallback(() => {
     if (eventSourceRef.current) {

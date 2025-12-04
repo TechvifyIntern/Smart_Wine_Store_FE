@@ -38,6 +38,25 @@ class BaseRepository {
     }
   }
 
+  async updateUserRole(id, data) {
+    try {
+      const response = await api.put(`${this.endpoint}/${id}/role`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update ${this.endpoint.slice(1)}:`, {
+        statusCode,
+        message: errorMessage,
+        requestData: data,
+        responseData: errorData,
+        fullError: error,
+      });
+
+      throw new Error(
+        `Failed to update ${this.endpoint.slice(1)}: ${errorMessage}`
+      );
+    }
+  }
+
   async update(id, data) {
     try {
       const response = await api.put(`${this.endpoint}/${id}`, data);

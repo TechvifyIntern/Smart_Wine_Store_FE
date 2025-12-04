@@ -8,7 +8,7 @@ import {
   clearCart as clearCartAPI,
 } from "@/services/cart/api";
 import { useAppStore } from "@/store/auth"; // Import useAppStore
-import { toast } from "@/hooks/use-toast"; // Import toast
+import { toast } from "@/hooks/use-toast";
 import { persist } from "zustand/middleware";
 
 // Define the state shape
@@ -30,7 +30,7 @@ interface CartState {
 // Create the store
 export const useCartStore = create<CartState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       items: [],
       isUpdating: false,
       eventDiscount: null,
@@ -157,6 +157,8 @@ export const useCartStore = create<CartState>()(
         try {
           await clearCartAPI();
           const cartResponse = await getCartItems();
+          get().setEventDiscount(null);
+          get().setEventId(null);
           if (cartResponse.success) {
             set({ items: cartResponse.data.items });
             toast({

@@ -80,7 +80,7 @@ export const changePassword = async (
 };
 
 export const forgotPassword = async (email: ForgotPasswordInput) => {
-  const response = await api.post("/auth/forgot-password", { email });
+  const response = await api.post("/auth/forgot-password", email);
   return response.data;
 };
 

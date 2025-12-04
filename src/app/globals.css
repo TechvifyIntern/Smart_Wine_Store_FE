@@ -104,8 +104,17 @@
   }
   
   /* Responsive base styles */
+  /* Hide scroll bar */
   html {
     @apply scroll-smooth;
+    scrollbar-width: none !important;     /* Firefox */
+    -ms-overflow-style: none !important;  /* IE + Edge */
+  }
+
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    display: none !important;             /* Chrome, Safari, Edge */
   }
   
   body {
@@ -248,8 +257,12 @@
 
 
 .scrollbar-hide {
-    -ms-overflow-style: none;  /* IE and Edge */
-    scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Edge */
 }
 
 @layer utilities {

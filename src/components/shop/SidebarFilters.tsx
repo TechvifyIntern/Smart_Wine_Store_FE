@@ -25,11 +25,7 @@ const origins = [
   { id: "Nam Phi", label: "Nam Phi" },
 ];
 
-interface SidebarFiltersProps {
-  category?: string;
-}
-
-const SidebarFilters = ({ category }: SidebarFiltersProps) => {
+const SidebarFilters = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

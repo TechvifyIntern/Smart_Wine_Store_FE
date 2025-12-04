@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import DiscountProductTable from "@/components/discount-products/DiscountProductTable";
 import DiscountProductToolbar from "@/components/discount-products/DiscountProductToolbar";
 import AddDiscountModal from "@/components/discount-products/(modal)/AddDiscountModal";
@@ -15,6 +15,7 @@ import {
   removeProductDiscount,
 } from "@/services/discount-products/api";
 import Pagination from "@/components/admin/pagination/Pagination";
+
 
 export default function DiscountProductManagement() {
   // State
@@ -77,10 +78,12 @@ export default function DiscountProductManagement() {
         setProducts([]);
         setTotalPages(1);
       }
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast.error("Failed to load products");
-      setProducts([]);
+    } catch (err) {
+      console.error("Error loading discount products:", err);
+      toast({
+        title: "Failed to load discount products",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -211,7 +214,10 @@ export default function DiscountProductManagement() {
       );
 
       if (response.success) {
-        toast.success("Discount updated successfully");
+         toast({
+          title: "Product discount created successfully!",
+          variant: "success",
+        });
         setShowEditModal(false);
         setEditingProduct(null);
         // Add small delay to ensure backend processes the update
@@ -219,11 +225,17 @@ export default function DiscountProductManagement() {
           fetchProducts();
         }, 300);
       } else {
-        toast.error(response.message || "Failed to update discount");
+         toast({
+          title: response.message || "Failed to create product discount",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error updating discount:", error);
-      toast.error(error.response?.data?.message || "Failed to update discount");
+     toast({
+        title: "An error occurred while creating the product discount",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -236,7 +248,10 @@ export default function DiscountProductManagement() {
       const response = await removeProductDiscount(productId);
 
       if (response.success) {
-        toast.success("Discount removed successfully");
+        toast({
+          title: `Product discount updated successfully!`,
+          variant: "success",
+        });
         setShowEditModal(false);
         setEditingProduct(null);
         // Add small delay to ensure backend processes the update
@@ -244,11 +259,17 @@ export default function DiscountProductManagement() {
           fetchProducts();
         }, 300);
       } else {
-        toast.error(response.message || "Failed to remove discount");
+        toast({
+          title: response.message || "Failed to update product discount",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error removing discount:", error);
-      toast.error(error.response?.data?.message || "Failed to remove discount");
+      toast({
+        title: "An error occurred while updating the product discount",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

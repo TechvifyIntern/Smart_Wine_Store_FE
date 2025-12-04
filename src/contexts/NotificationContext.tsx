@@ -1,11 +1,19 @@
 "use client";
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { NotificationData, SSEConnectionStatus } from '@/types/notification';
-import { useSSENotifications } from '@/hooks/useSSENotifications';
-import notificationsRepository, { Notification } from '@/api/notificationsRepository';
-import { useAppStore } from '@/store/auth';
-import { toast } from 'sonner';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+import { NotificationData, SSEConnectionStatus } from "@/types/notification";
+import { useSSENotifications } from "@/hooks/useSSENotifications";
+import notificationsRepository, {
+  Notification,
+} from "@/api/notificationsRepository";
+import { useAppStore } from "@/store/auth";
+import { toast } from "sonner";
 
 interface NotificationContextType {
   notifications: Notification[];
@@ -20,9 +28,15 @@ interface NotificationContextType {
   reconnect: () => void;
 }
 
-const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextType | undefined>(
+  undefined
+);
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+export function NotificationProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const { user } = useAppStore();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -44,20 +58,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setIsLoading(true);
       const result = await notificationsRepository.getNotifications(LIMIT, 0);
       if (result && Array.isArray(result)) {
-        console.log(`Loaded ${result.length} notifications from DB`);
         setNotifications(result);
         setOffset(result.length);
         setHasMore(result.length >= LIMIT);
         // Check both isRead and IsRead for compatibility
         setUnreadCount(result.filter((n) => !(n.IsRead ?? n.isRead)).length);
       } else {
-        console.warn('Invalid notifications response:', result);
+        console.warn("Invalid notifications response:", result);
         setNotifications([]);
         setUnreadCount(0);
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
       setNotifications([]);
       setUnreadCount(0);
       setHasMore(false);
@@ -83,7 +96,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       };
 
       // Prepend new notification to the top of the list
-      console.log('Adding new notification to the top:', newNotification.Title);
       setNotifications((prev) => [newNotification, ...prev]);
       setUnreadCount((prev) => (newNotification.IsRead ? prev : prev + 1));
 
@@ -92,13 +104,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         description: notification.content,
         action: notification.linkUrl
           ? {
-            label: 'View',
-            onClick: () => {
-              if (notification.linkUrl) {
-                window.location.href = notification.linkUrl;
-              }
-            },
-          }
+              label: "View",
+              onClick: () => {
+                if (notification.linkUrl) {
+                  window.location.href = notification.linkUrl;
+                }
+              },
+            }
           : undefined,
       });
 
@@ -106,13 +118,17 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       try {
         // Validate notification ID before sending
         const notificationId = Number(notification.id);
-        if (notificationId && notificationId > 0 && Number.isInteger(notificationId)) {
+        if (
+          notificationId &&
+          notificationId > 0 &&
+          Number.isInteger(notificationId)
+        ) {
           await notificationsRepository.acknowledgeNotification(notificationId);
         } else {
-          console.warn('Invalid notification ID for ACK:', notification.id);
+          console.warn("Invalid notification ID for ACK:", notification.id);
         }
       } catch (error) {
-        console.error('Failed to acknowledge notification:', error);
+        console.error("Failed to acknowledge notification:", error);
       }
     },
     []
@@ -121,11 +137,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   // SSE connection
   const { status: sseStatus, reconnect } = useSSENotifications({
     onNotification: handleNewNotification,
-    onConnected: (connectionId) => {
-      console.log('SSE Connected with ID:', connectionId);
-    },
+    onConnected: (connectionId) => {},
     onError: (error) => {
-      console.error('SSE Error:', error);
+      console.error("SSE Error:", error);
     },
   });
 
@@ -138,7 +152,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
       throw error;
     }
   }, []);
@@ -150,7 +164,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       setNotifications((prev) => prev.map((n) => ({ ...n, IsRead: true })));
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error("Error marking all notifications as read:", error);
       throw error;
     }
   }, []);
@@ -161,9 +175,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     try {
       setIsLoading(true);
-      const result = await notificationsRepository.getNotifications(LIMIT, offset);
+      const result = await notificationsRepository.getNotifications(
+        LIMIT,
+        offset
+      );
       if (result && Array.isArray(result)) {
-        console.log(`Loaded ${result.length} more notifications from DB`);
         setNotifications((prev) => [...prev, ...result]);
         setOffset((prev) => prev + result.length);
         setHasMore(result.length >= LIMIT);
@@ -171,7 +187,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         setHasMore(false);
       }
     } catch (error) {
-      console.error('Error loading more notifications:', error);
+      console.error("Error loading more notifications:", error);
       setHasMore(false);
     } finally {
       setIsLoading(false);
@@ -196,13 +212,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     reconnect,
   };
 
-  return <NotificationContext.Provider value={value}>{children}</NotificationContext.Provider>;
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+    </NotificationContext.Provider>
+  );
 }
 
 export function useNotifications() {
   const context = useContext(NotificationContext);
   if (context === undefined) {
-    throw new Error('useNotifications must be used within a NotificationProvider');
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider"
+    );
   }
   return context;
 }
