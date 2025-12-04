@@ -12,10 +12,10 @@ import { UpdateInventoryProduct } from "@/components/inventory-products/(modal)/
 import { InventoryImportModal } from "@/components/inventory-products/(modal)/InventoryImportModal";
 import { InventoryExportModal } from "@/components/inventory-products/(modal)/InventoryExportModal";
 import { formatCurrency } from "@/lib/utils";
-import { toast } from "sonner";
 import { Spinner } from "@/components/ui/spinner";
 import type { Inventory } from "@/api/inventoriesRepository";
 import { CreateInventoryProductFormData } from "@/validations/inventories/inventoryProductSchema";
+import { toast } from "@/hooks/use-toast";
 
 export interface InventoryProduct {
   ProductID: string;
@@ -77,15 +77,24 @@ export default function InventoryProductsPage() {
         );
 
         setInventories(mappedData);
-        toast.success(`Loaded ${mappedData.length} inventory items`);
+        toast({
+          title: "Inventories loaded successfully!",
+          variant: "success",
+        });
       } else {
         console.error("Failed to load inventories:", response.message);
-        toast.error(response.message || "Failed to load inventories");
+        toast({
+          title: response.message || "Failed to load inventories",
+          variant: "destructive",
+        });
         setInventories([]);
       }
     } catch (err) {
       console.error("Error loading inventories:", err);
-      toast.error("An error occurred while loading inventories");
+      toast({
+        title: "Failed to load inventories",
+        variant: "destructive",
+      });
       setInventories([]);
     } finally {
       setIsLoading(false);
@@ -162,7 +171,10 @@ export default function InventoryProductsPage() {
     try {
       // Validate product ID if it exists
       if (!data.Quantity || data.Quantity < 0) {
-        toast.error("Please enter a valid quantity");
+        toast({
+          title: "Quantity must be a positive number",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -173,17 +185,26 @@ export default function InventoryProductsPage() {
       });
 
       if (response.success) {
-        toast.success("Inventory created successfully!");
+        toast({
+          title: "Product created successfully!",
+          variant: "success",
+        });
         setIsCreateModalOpen(false);
         await loadInventories();
       } else {
-        toast.error(response.message || "Failed to create inventory");
+        toast({
+          title: response.message || "Failed to create product",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating inventory:", error);
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
-      toast.error(errorMessage);
+      toast({
+        title: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -202,7 +223,10 @@ export default function InventoryProductsPage() {
   ) => {
     try {
       if (quantity <= 0) {
-        toast.error("Quantity must be greater than 0");
+        toast({
+          title: "Quantity must be greater than 0",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -217,18 +241,27 @@ export default function InventoryProductsPage() {
       });
 
       if (response.success) {
-        toast.success(`✅ Imported ${quantity} units successfully!`);
+        toast({
+          title: `Imported ${quantity} units successfully!`,
+          variant: "success",
+        });
         setIsImportModalOpen(false);
         setSelectedProduct(null);
         await loadInventories();
       } else {
-        toast.error(response.message || "Failed to import stock");
+        toast({
+          title: response.message || "Failed to import stock",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error importing stock:", error);
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
-      toast.error(errorMessage);
+      toast({
+        title: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -239,16 +272,19 @@ export default function InventoryProductsPage() {
   ) => {
     try {
       if (quantity <= 0) {
-        toast.error("Quantity must be greater than 0");
-        return;
+        toast({
+          title: "Quantity must be greater than 0",
+          variant: "destructive",
+        });
       }
 
       const product = inventories.find((p) => p.ProductID === productId);
 
       if (product && quantity > product.Quantity) {
-        toast.error(
-          `Cannot export ${quantity} units. Only ${product.Quantity} available in stock.`
-        );
+        toast({
+          title: "Quantity exceeds available stock",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -262,18 +298,27 @@ export default function InventoryProductsPage() {
       });
 
       if (response.success) {
-        toast.success(`✅ Exported ${quantity} units successfully!`);
+        toast({
+          title: `Exported ${quantity} units successfully!`,
+          variant: "success",
+        });
         setIsExportModalOpen(false);
         setSelectedProduct(null);
         await loadInventories();
       } else {
-        toast.error(response.message || "Failed to export stock");
+        toast({
+          title: response.message || "Failed to export stock",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error exporting stock:", error);
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
-      toast.error(errorMessage);
+      toast({
+        title: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 

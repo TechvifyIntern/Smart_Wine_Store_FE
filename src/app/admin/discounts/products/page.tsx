@@ -15,7 +15,9 @@ import {
   removeProductDiscount,
 } from "@/services/discount-products/api";
 import Pagination from "@/components/admin/pagination/Pagination";
-
+import { Loader2 } from "lucide-react";
+import { Spinner } from "@/components/ui/spinner";
+import { title } from "process";
 
 export default function DiscountProductManagement() {
   // State
@@ -62,10 +64,10 @@ export default function DiscountProductManagement() {
         // Check if data is nested or direct array
         const productsData = Array.isArray(response.data)
           ? response.data
-          : (response.data.data || []);
+          : response.data.data || [];
         const total = Array.isArray(response.data)
           ? response.data.length
-          : (response.data.total || 0);
+          : response.data.total || 0;
 
         console.log("Fetched products:", productsData);
         console.log("Total products:", total);
@@ -136,14 +138,20 @@ export default function DiscountProductManagement() {
         if (response.success && response.data) {
           const productsData = Array.isArray(response.data)
             ? response.data
-            : (response.data.data || []);
+            : response.data.data || [];
           const allProductIds = productsData.map((p: Product) => p.ProductID);
           setSelectedProducts(allProductIds);
-          toast.success(`Selected ${allProductIds.length} products from all pages`);
+          toast({
+            title: `Selected ${allProductIds.length} products from all pages`,
+            variant: "success",
+          });
         }
       } catch (error) {
         console.error("Error fetching all products:", error);
-        toast.error("Failed to select all products");
+        toast({
+          title: "Failed to fetch all products",
+          variant: "destructive",
+        });
       } finally {
         setIsSelectingAll(false);
       }
@@ -155,7 +163,10 @@ export default function DiscountProductManagement() {
   // Handle add discount
   const handleAddDiscount = () => {
     if (selectedProducts.length === 0) {
-      toast.error("Please select at least one product");
+      toast({
+        title: "Please select at least one product",
+        variant: "destructive",
+      });
       return;
     }
     setShowAddModal(true);
@@ -175,7 +186,10 @@ export default function DiscountProductManagement() {
       });
 
       if (response.success) {
-        toast.success(`Discount added to ${selectedProducts.length} product(s)`);
+        toast({
+          title: `Discount added to ${selectedProducts.length} product(s)`,
+          variant: "success",
+        });
         setShowAddModal(false);
         setSelectedProducts([]);
         // Add small delay to ensure backend processes the update
@@ -183,11 +197,17 @@ export default function DiscountProductManagement() {
           fetchProducts();
         }, 300);
       } else {
-        toast.error(response.message || "Failed to add discount");
+        toast({
+          title: response.message || "Failed to add discount",
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error adding discount:", error);
-      toast.error(error.response?.data?.message || "Failed to add discount");
+      toast({
+        title: "An error occurred while adding the discount",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -214,7 +234,7 @@ export default function DiscountProductManagement() {
       );
 
       if (response.success) {
-         toast({
+        toast({
           title: "Product discount created successfully!",
           variant: "success",
         });
@@ -225,14 +245,14 @@ export default function DiscountProductManagement() {
           fetchProducts();
         }, 300);
       } else {
-         toast({
+        toast({
           title: response.message || "Failed to create product discount",
           variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Error updating discount:", error);
-     toast({
+      toast({
         title: "An error occurred while creating the product discount",
         variant: "destructive",
       });
@@ -299,9 +319,7 @@ export default function DiscountProductManagement() {
 
       {/* Loading State */}
       {isLoading && products.length === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ad8d5e]"></div>
-        </div>
+        <Spinner className="flex justify-center" size="lg" />
       ) : (
         <>
           {/* Table */}

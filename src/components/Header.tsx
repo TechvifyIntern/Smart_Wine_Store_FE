@@ -55,9 +55,8 @@ import { useCartStore } from "@/store/cart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Category } from "@/types/category";
 import { getParentCategory, getChildrenCategory } from "@/services/header/api";
-import { Notification } from "@/api/notificationsRepository";
 import { useNotifications } from "@/contexts/NotificationContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export function Header() {
   const router = useRouter();
@@ -402,9 +401,16 @@ export function Header() {
                           onClick={async () => {
                             try {
                               await markAllAsRead();
-                              toast.success("All notifications marked as read");
+                              toast({
+                                title: "All notifications marked as read",
+                                variant: "success",
+                              });
                             } catch (error) {
-                              toast.error("Failed to mark all as read");
+                              toast({
+                                title:
+                                  "Failed to mark all notifications as read",
+                                variant: "destructive",
+                              });
                             }
                           }}
                         >
@@ -509,9 +515,11 @@ export function Header() {
                                   try {
                                     await loadMore();
                                   } catch (error) {
-                                    toast.error(
-                                      "Failed to load more notifications"
-                                    );
+                                    toast({
+                                      title:
+                                        "Failed to load more notifications",
+                                      variant: "destructive",
+                                    });
                                   }
                                 }}
                                 disabled={isLoading}
