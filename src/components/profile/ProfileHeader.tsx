@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Edit, Save, X, Upload, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserProfile, UpdateProfilePayload } from "@/types/profile";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { CldUploadWidget } from "next-cloudinary";
 
 interface ProfileHeaderProps {
@@ -65,13 +65,17 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
               setIsUploading(false);
 
               const url = result?.info?.secure_url;
-              if (!url) return toast.error("Upload failed!");
+              if (!url)
+                return toast({
+                  title: "Upload failed!",
+                  variant: "destructive",
+                });
               await onSave({ ImageURL: url });
-              toast.success("Avatar updated!");
+              toast({ title: "Avatar updated!", variant: "success" });
             }}
             onError={() => {
               setIsUploading(false);
-              toast.error("Upload failed");
+              toast({ title: "Upload failed", variant: "destructive" });
             }}
           >
             {({ open }) => (

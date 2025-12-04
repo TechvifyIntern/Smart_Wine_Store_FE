@@ -16,7 +16,7 @@ import {
 import { UpdateProfilePayload } from "@/types/profile";
 import { AxiosError } from "axios";
 import { useAppStore } from "@/store/auth";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -61,21 +61,29 @@ export default function Page() {
       if (response.success && response.data) {
         // It's better to invalidate the query and let react-query refetch
         await profileResult.refetch();
-        toast.success("Profile updated successfully!");
+        toast({ title: "Profile updated successfully!", variant: "success" });
         setIsEditMode(false); // Exit edit mode after successful update
       } else {
-        toast.error(response.message || "Failed to update profile.");
+        toast({
+          title: response.message || "Failed to update profile.",
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error("Failed to update profile:", err);
       if (err instanceof AxiosError) {
-        toast.error(
-          err.response?.data?.message ||
+        toast({
+          title:
+            err.response?.data?.message ||
             err.message ||
-            "Failed to update profile."
-        );
+            "Failed to update profile.",
+          variant: "destructive",
+        });
       } else {
-        toast.error("Failed to update profile.");
+        toast({
+          title: "Failed to update profile.",
+          variant: "destructive",
+        });
       }
     }
   };

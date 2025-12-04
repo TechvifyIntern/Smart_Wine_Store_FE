@@ -325,7 +325,7 @@
       "total": "Total",
       "selectEvent": "Select an event",
       "noEvent": "None",
-      "checkout": "Checkout",
+      "checkout": "Proceed to Checkout",
       "clearCart": "Clear Cart",
       "requires": " (requires {{minValue}})"
     },

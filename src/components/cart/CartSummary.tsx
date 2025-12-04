@@ -9,9 +9,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { useLocale } from "@/contexts/LocaleContext";
 import { formatCurrency } from "@/lib/utils";
+import { useCartStore } from "@/store/cart";
 import { Cart } from "@/types/cart";
 import { Event } from "@/types/events";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 interface CartSummaryProps {
   cart: Cart;
@@ -33,6 +34,7 @@ export default function CartSummary({
   eventList,
 }: CartSummaryProps) {
   const { t } = useLocale();
+  const eventId = useCartStore((state) => state.eventId);
 
   const handleEventChange = (eventID: string) => {
     const selectedEvent = eventList.find(
@@ -45,11 +47,12 @@ export default function CartSummary({
       } else {
         setEventId(null);
         setEventDiscount(null);
-        toast.warning(
-          t("cart.toast.eventMinimumValueNotMet")
+        toast({
+          title: t("cart.toast.eventMinimumValueNotMet")
             .replace("{{eventName}}", selectedEvent.EventName)
-            .replace("{{minValue}}", formatCurrency(selectedEvent.MinimumValue))
-        );
+            .replace("{{minValue}}", formatCurrency(selectedEvent.MinimumValue)),
+          variant: "warning",
+        });
       }
     } else {
       setEventId(null);
@@ -100,7 +103,11 @@ export default function CartSummary({
           <label className="text-sm font-medium">
             {t("cart.summary.selectEvent")}
           </label>
-          <Select onValueChange={handleEventChange} disabled={isPending}>
+          <Select
+            onValueChange={handleEventChange}
+            disabled={isPending}
+            value={eventId?.toString() ?? "none"}
+          >
             <SelectTrigger>
               <SelectValue placeholder={t("cart.summary.selectEvent")} />
             </SelectTrigger>
@@ -128,14 +135,18 @@ export default function CartSummary({
         </div>
       </div>
       <div className="p-6">
-        <Button className="w-full" disabled={isPending} onClick={onCheckout}>
+        <Button
+          className="w-full"
+          disabled={isPending || cart.items.length === 0}
+          onClick={onCheckout}
+        >
           {t("cart.summary.checkout")}
         </Button>
         <Button
           variant="outline"
           className="w-full mt-2"
           onClick={clearCart}
-          disabled={isPending}
+          disabled={isPending || cart.items.length === 0}
         >
           {t("cart.summary.clearCart")}
         </Button>

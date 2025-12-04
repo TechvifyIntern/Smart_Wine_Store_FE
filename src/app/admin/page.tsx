@@ -7,9 +7,9 @@ import { UserGrowthChart } from "@/components/dashboard/UserGrowthChart";
 import { TopProductsChart } from "@/components/dashboard/TopProductsChart";
 import { RecentOrdersTable } from "@/components/dashboard/RecentOrdersTable";
 import { overviewData } from "@/data/dashboard/overview";
-import userManagementRepository from "@/api/userManagementRepository.js";
 import ordersRepository from "@/api/ordersRepository";
 import reportsRepository from "@/api/reportsRepository";
+import userManagementRepository from "@/api/userManagementRepository";
 
 export default function Dashboard() {
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
@@ -34,14 +34,17 @@ export default function Dashboard() {
         // Fetch total users
         const usersResponse = await userManagementRepository.getAll();
         if (usersResponse.success && usersResponse.data) {
-          const total = usersResponse.data.total || usersResponse.data.length || 0;
+          const total =
+            usersResponse.data.total || usersResponse.data.length || 0;
           setTotalUsers(total);
         }
 
         // Fetch new users this month from reports API
-        const newUsersResponse = await reportsRepository.getNewUsers('month');
+        const newUsersResponse = await reportsRepository.getNewUsers("month");
         if (newUsersResponse.success && newUsersResponse.data) {
-          setNewUsersThisMonth(newUsersResponse.data.count || newUsersResponse.data.total || 0);
+          setNewUsersThisMonth(
+            newUsersResponse.data.count || newUsersResponse.data.total || 0
+          );
         }
       } catch (error) {
         console.error("Error loading users:", error);

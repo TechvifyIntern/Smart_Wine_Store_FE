@@ -16,7 +16,7 @@ export default function PageClient() {
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
-  const category = searchParams.get("category") || undefined;
+  const categoryId = Number(searchParams.get("category")) || undefined;
   const origin = searchParams.get("origin") || undefined;
   const minAbv = searchParams.get("minAbv")
     ? Number(searchParams.get("minAbv"))
@@ -34,7 +34,7 @@ export default function PageClient() {
   // Reset về page 1 mỗi khi filter thay đổi
   useEffect(() => {
     setPage(1);
-  }, [category, origin, minAbv, maxAbv, minPrice, maxPrice]);
+  }, [categoryId, origin, minAbv, maxAbv, minPrice, maxPrice]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -43,7 +43,7 @@ export default function PageClient() {
   const { data, isLoading, isFetching } = useQuery({
     queryKey: [
       "products",
-      category,
+      categoryId,
       origin,
       minAbv,
       maxAbv,
@@ -53,7 +53,7 @@ export default function PageClient() {
     ],
     queryFn: () =>
       getFilteredProducts({
-        category,
+        categoryId,
         origin,
         minAbv,
         maxAbv,
@@ -72,7 +72,7 @@ export default function PageClient() {
   return (
     <main className="flex flex-col md:flex-row mt-16 sm:mt-20 md:mt-28 min-h-screen">
       <div className="hidden md:block md:w-64 lg:w-72">
-        <SidebarFilters category={category} />
+        <SidebarFilters />
       </div>
 
       <div className="md:hidden px-4 py-3 border-b">
@@ -84,10 +84,14 @@ export default function PageClient() {
       <div className="flex-1 flex flex-col">
         <div className="px-4 sm:px-6 md:px-8 lg:px-10 pt-4 sm:pt-6">
           <h1 className="font-bold text-2xl sm:text-3xl mb-2 capitalize text-primary tracking-widest">
-            Product
+            {"Product"}
           </h1>
           <p className="mb-3 sm:mb-4 dark:text-gray-400 text-xs sm:text-sm">
             Browse our collection of premium products.
+          </p>
+          <p className="mb-3 sm:mb-4 dark:text-gray-400 text-xs sm:text-sm">
+            Showing {totalItems < pageSize ? totalItems : pageSize} of{" "}
+            {totalItems} products
           </p>
         </div>
 
@@ -98,7 +102,6 @@ export default function PageClient() {
         ) : (
           <ProductsGrid products={products} />
         )}
-
         {/* Pagination */}
         {totalItems > 0 && totalPages > 1 && (
           <ShopPagination

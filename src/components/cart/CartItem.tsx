@@ -1,9 +1,13 @@
+"use client";
+
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
 import { CartItem as CartItemType } from "@/types/cart";
 import { X } from "lucide-react";
 import Link from "next/link";
+import { Loader2 } from "lucide-react"; // spinner icon
 
 interface CartItemProps {
   item: CartItemType;
@@ -16,7 +20,19 @@ export default function CartItem({
   updateQuantity,
   removeItem,
 }: CartItemProps) {
+  const [isRemoving, setIsRemoving] = useState(false);
   const price = item.product.SalePrice * (1 - item.product.DiscountValue / 100);
+
+  const handleRemove = async () => {
+    setIsRemoving(true);
+    try {
+      removeItem(item.ProductID);
+    } catch (e) {
+      console.error(e);
+      setIsRemoving(false);
+    }
+  };
+
   return (
     <TableRow>
       <TableCell className="font-medium text-xs sm:text-sm">
@@ -36,6 +52,7 @@ export default function CartItem({
           </span>
         </Link>
       </TableCell>
+
       <TableCell className="text-xs sm:text-sm">
         <div className="flex flex-col">
           <span>{formatCurrency(price)}</span>
@@ -44,6 +61,7 @@ export default function CartItem({
           </span>
         </div>
       </TableCell>
+
       <TableCell>
         <div className="flex items-center">
           <button
@@ -85,17 +103,25 @@ export default function CartItem({
           </button>
         </div>
       </TableCell>
+
       <TableCell className="text-xs sm:text-sm">
         {formatCurrency(price * item.Quantity)}
       </TableCell>
+
       <TableCell>
         <Button
           variant="ghost"
           size="icon"
           className="h-7 w-7 sm:h-9 sm:w-9"
-          onClick={() => removeItem(item.ProductID)}
+          onClick={handleRemove}
+          disabled={isRemoving}
         >
-          <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          {isRemoving ? (
+            <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+          ) : (
+            // <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
+          )}
         </Button>
       </TableCell>
     </TableRow>

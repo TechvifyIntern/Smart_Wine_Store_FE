@@ -1,24 +1,22 @@
 "use client";
 
 import React from "react";
-import { ShoppingCart } from "lucide-react";
 import { Button } from "../ui/button";
-import { useCartStore } from "@/store/cart";
-import { toast } from "sonner";
+
 import { Products } from "@/types/products";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 
 interface ProductCardProps {
   product: Products;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCartStore();
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    addToCart(product.ProductID, 1);
+  const route = useRouter();
+
+  const handleOnClick = () => {
+    route.push(`/product-detail/${product.ProductID}`);
   };
   return (
     <div
@@ -69,7 +67,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       {/* BUTTON ADD TO CART TÁCH RIÊNG → KHÔNG GÂY HYDRATION ERROR */}
       <div className="mt-2 sm:mt-3 flex justify-end">
         <Button
-          onClick={handleAddToCart}
+          onClick={handleOnClick}
           className="
             flex items-center justify-center
             bg-primary
@@ -80,7 +78,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             transition-all
           "
         >
-          <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+          View More
         </Button>
       </div>
     </div>
