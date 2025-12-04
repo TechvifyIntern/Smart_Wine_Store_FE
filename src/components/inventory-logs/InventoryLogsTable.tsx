@@ -1,29 +1,44 @@
 "use client";
 
 import InventoryLogsRow from "./InventoryLogsRow";
-import { InventoryLog } from "@/data/inventory_log";
+import { InventoryLog } from "@/services/inventory-log/api";
 
 interface InventoryLogsTableProps {
     logs: InventoryLog[];
-    formatCurrency: (amount: number) => string;
     formatDate: (dateString: string) => string;
-    selectedLogs: Set<number>;
-    onSelectLog: (logId: number, checked: boolean) => void;
-    onSelectAll: (checked: boolean) => void;
     emptyMessage?: string;
 }
 
 export default function InventoryLogsTable({
     logs,
-    formatCurrency,
     formatDate,
-    selectedLogs,
-    onSelectLog,
-    onSelectAll,
     emptyMessage = "No inventory logs found",
 }: InventoryLogsTableProps) {
-    const allSelected = logs.length > 0 && logs.every(log => selectedLogs.has(log.LogID));
-    const someSelected = logs.some(log => selectedLogs.has(log.LogID));
+    const getTransactionTypeName = (typeId: number): string => {
+        switch (typeId) {
+            case 1:
+                return "Import";
+            case 2:
+                return "Export";
+            case 3:
+                return "Sale";
+            default:
+                return "Unknown";
+        }
+    };
+
+    const getTransactionTypeColor = (typeId: number): string => {
+        switch (typeId) {
+            case 1:
+                return "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20";
+            case 2:
+                return "text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20";
+            case 3:
+                return "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20";
+            default:
+                return "text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-900/20";
+        }
+    };
 
     return (
         <div className="dark:bg-slate-900/50 dark:backdrop-blur-sm border border-[#F2F2F2] dark:border-slate-800/50 rounded-2xl">
@@ -31,43 +46,26 @@ export default function InventoryLogsTable({
                 <table className="w-full">
                     <thead className="dark:bg-slate-800/50 dark:border-b dark:border-slate-700/50 border-b border-[#F2F2F2]">
                         <tr>
-                            <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
-                                <input
-                                    type="checkbox"
-                                    checked={allSelected}
-                                    ref={(el) => {
-                                        if (el) el.indeterminate = someSelected && !allSelected;
-                                    }}
-                                    onChange={(e) => onSelectAll(e.target.checked)}
-                                    className="rounded border-gray-300 text-[#ad8d5e] focus:ring-[#ad8d5e] dark:bg-slate-700 dark:border-slate-600"
-                                />
-                            </th>
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Log ID
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
-                                Product
+                                Product Name
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
+                                Location
                             </th>
                             <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
-                                Action
+                                Transaction Type
                             </th>
                             <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
                                 Quantity
-                            </th>
-                            <th className="px-6 py-3 text-right text-xs font-regular tracking-wider">
-                                Unit Price
-                            </th>
-                            <th className="px-6 py-3 text-right text-xs font-regular tracking-wider">
-                                Total Amount
-                            </th>
-                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
-                                Reason
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Performed By
                             </th>
                             <th className="px-6 py-3 text-center text-xs font-regular tracking-wider">
-                                Timestamp
+                                Date
                             </th>
                         </tr>
                     </thead>
@@ -75,17 +73,16 @@ export default function InventoryLogsTable({
                         {logs.length > 0 ? (
                             logs.map((log) => (
                                 <InventoryLogsRow
-                                    key={log.LogID}
+                                    key={log.InventoryLogID}
                                     log={log}
-                                    formatCurrency={formatCurrency}
                                     formatDate={formatDate}
-                                    isSelected={selectedLogs.has(log.LogID)}
-                                    onSelect={(checked) => onSelectLog(log.LogID, checked)}
+                                    getTransactionTypeName={getTransactionTypeName}
+                                    getTransactionTypeColor={getTransactionTypeColor}
                                 />
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={10} className="px-6 py-16 text-center">
+                                <td colSpan={7} className="px-6 py-16 text-center">
                                     <div className="flex flex-col items-center justify-center">
                                         <svg
                                             className="w-16 h-16 dark:text-slate-700 text-gray-300 mb-4"
