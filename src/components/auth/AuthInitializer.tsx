@@ -30,7 +30,6 @@ const AuthInitializer = ({ children }: { children: React.ReactNode }) => {
 
     // Check sai quyền
     const redirectUnauthorized = () => {
-      console.log("No permisstion to access");
       router.push("/unauthorized");
     };
 

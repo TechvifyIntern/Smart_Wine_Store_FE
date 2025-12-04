@@ -42,6 +42,8 @@ const fetchCartAndSetStore = async () => {
   try {
     const cartResponse = await getCartItems();
     useCartStore.getState().setItems(cartResponse.data.items);
+    useCartStore.getState().setEventDiscount(null);
+    useCartStore.getState().setEventId(null);
   } catch (error) {
     console.error("Failed to fetch cart items:", error);
   }

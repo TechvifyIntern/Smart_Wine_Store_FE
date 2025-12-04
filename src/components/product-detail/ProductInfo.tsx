@@ -25,10 +25,6 @@ export function ProductInfo({ product }: ProductInfoProps) {
       if (error.message === "AUTH_REQUIRED") {
         setAuthMode("signin");
         setAuthOpen(true);
-        // Toast for auth required is handled by the store
-      } else {
-        // Generic error toast is handled by the store, but if you want specific component toast, uncomment below
-        // toast.error("Failed to add to cart. Please try again.");
       }
     }
   };
@@ -90,13 +86,19 @@ export function ProductInfo({ product }: ProductInfoProps) {
             {quantity}
           </span>
           <button
-            onClick={() => setQuantity(quantity + 1)}
-            className="px-4 py-2 w-10 text-muted-foreground hover:bg-primary dark:hover:text-white rounded-r-lg border border-primary"
+            onClick={() =>
+              setQuantity((prev) => Math.min(product.Quantity, prev + 1))
+            }
+            disabled={quantity >= product.Quantity}
+            className={`px-4 py-2 w-10 text-muted-foreground rounded-r-lg border border-primary 
+    ${quantity >= product.Quantity ? "opacity-50 cursor-not-allowed" : "hover:bg-primary dark:hover:text-white"}`}
           >
             +
           </button>
         </div>
-        <span className="text-sm text-muted-foreground">In stock</span>
+        <span className="text-sm text-muted-foreground">
+          {product.Quantity} In stock
+        </span>
       </div>
 
       {/* Action Buttons */}

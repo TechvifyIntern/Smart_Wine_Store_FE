@@ -22,6 +22,7 @@ export interface Product {
   DiscountTypeID: number | null;
   isActive?: boolean;
   detail?: ProductDetail;
+  Quantity: number;
 }
 
 export interface Review {

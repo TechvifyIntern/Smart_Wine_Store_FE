@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Package } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import productsRepository from "@/api/productsRepository";
 import categoriesRepository from "@/api/categoriesRepository";
 import { Category } from "@/types/category";
@@ -79,7 +79,7 @@ export default function ProductsPage() {
         setTotalItems(response.total);
       } catch (err) {
         console.error("Error loading products:", err);
-        toast.error("Failed to load products");
+        toast({ title: "Failed to load products", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
@@ -116,10 +116,16 @@ export default function ProductsPage() {
         if (response.data) {
           setProducts(response.data);
         }
-        toast.success(`Product "${product.ProductName}" deleted successfully!`);
+        toast({
+          title: `Product "${product.ProductName}" deleted successfully!`,
+          variant: "success",
+        });
       } catch (error) {
         console.error("Error deleting product:", error);
-        toast.error("Failed to delete product");
+        toast({
+          title: "Failed to delete product",
+          variant: "destructive",
+        });
       }
     }
   };
@@ -128,7 +134,10 @@ export default function ProductsPage() {
     const product = products.find((p) => p.ProductID === id);
 
     if (!product) {
-      toast.error(`Product with ID ${id} not found`);
+      toast({
+        title: `Product with ID ${id} not found`,
+        variant: "destructive",
+      });
       console.error(
         "Product not found. ID:",
         id,
@@ -152,9 +161,11 @@ export default function ProductsPage() {
 
       // Validate required fields
       if (!categoryId) {
-        toast.error(
-          "Cannot update product: CategoryID is missing and could not be determined from CategoryName"
-        );
+        toast({
+          title:
+            "Cannot update product: CategoryID is missing and could not be determined from CategoryName",
+          variant: "destructive",
+        });
         console.error(
           "Product missing CategoryID:",
           JSON.stringify(product, null, 2)
@@ -175,13 +186,15 @@ export default function ProductsPage() {
         }
 
         const statusText = isActive ? "activated" : "deactivated";
-        toast.success(
-          `Product "${product.ProductName}" ${statusText} successfully!`
-        );
+        toast({
+          title: `Product "${product.ProductName}" ${statusText} successfully!`,
+          variant: "success",
+        });
       } else {
-        toast.error(
-          `Failed to update product status: ${updateResponse.message || "Unknown error"}`
-        );
+        toast({
+          title: `Failed to update product status: ${updateResponse.message || "Unknown error"}`,
+          variant: "destructive",
+        });
       }
     } catch (error: any) {
       console.error("Error updating product status:", error);
@@ -190,9 +203,10 @@ export default function ProductsPage() {
         response: error.response?.data,
         status: error.response?.status,
       });
-      toast.error(
-        `Failed to update product status: ${error.message || "Unknown error"}`
-      );
+      toast({
+        title: `Failed to update product status: ${error.message || "Unknown error"}`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -215,9 +229,10 @@ export default function ProductsPage() {
       const createdProductResponse =
         await productsRepository.createProduct(productData);
       if (createdProductResponse.success && createdProductResponse.data) {
-        toast.success(
-          `Sản phẩm "${createdProductResponse.data.ProductName}" đã được tạo thành công!`
-        );
+        toast({
+          title: `Sản phẩm "${createdProductResponse.data.ProductName}" đã được tạo thành công!`,
+          variant: "success",
+        });
         // Auto refresh page after successful creation
         setTimeout(() => {
           router.refresh();
@@ -225,7 +240,7 @@ export default function ProductsPage() {
       }
     } catch (error) {
       console.error("Error creating product:", error);
-      toast.error("Không thể tạo sản phẩm");
+      toast({ title: "Không thể tạo sản phẩm", variant: "destructive" });
     }
   };
 

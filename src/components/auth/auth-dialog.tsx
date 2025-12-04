@@ -43,8 +43,7 @@ import {
 } from "@/services/auth/api";
 import { useState } from "react";
 import { useLocale } from "@/contexts/LocaleContext";
-import userManagementRepository from "@/api/userManagementRepository";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 type AuthMode = "signin" | "signup" | "forgot" | "otp";
 
@@ -128,7 +127,15 @@ export function AuthDialog({
 
   const onSignUpSubmit = async (data: SignUpInput) => {
     try {
-      const apiData = { ...data, RoleID: data.RoleID || 3 };
+      let phoneNumber = data.PhoneNumber;
+      if (phoneNumber.startsWith("0")) {
+        phoneNumber = "+84" + phoneNumber.slice(1);
+      }
+      const apiData = {
+        ...data,
+        phoneNumber: phoneNumber,
+        RoleID: data.RoleID || 3,
+      };
       await signUp(apiData);
       setEmailForOtp(data.Email);
       onModeChange("otp");
@@ -182,7 +189,10 @@ export function AuthDialog({
   const onForgotPasswordSubmit = async (data: ForgotPasswordInput) => {
     try {
       await forgotPassword(data);
-      toast.success("Password reset link sent to your email.");
+      toast({
+        title: "Password reset link sent to your email.",
+        variant: "success",
+      });
       onOpenChange(false);
       forgotPasswordForm.reset();
     } catch (error: any) {

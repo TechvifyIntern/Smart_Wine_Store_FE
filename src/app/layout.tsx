@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "sonner";
 import { Nunito } from "next/font/google";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { LocaleProvider } from "@/contexts/LocaleContext";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { Chatbot } from "@/components/chatbot/Chatbot";
 import AuthInitializer from "@/components/auth/AuthInitializer";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -36,7 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={nunito.className}>
-      <body>
+      <body suppressHydrationWarning>
         <QueryProvider>
           <LocaleProvider>
             <ThemeProvider
@@ -45,11 +46,13 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <ScrollToTop />
-              <AuthInitializer>{children}</AuthInitializer>
-              <Toaster />
-              <Sonner />
-              <Chatbot />
+              <NotificationProvider>
+                <ScrollToTop />
+                <AuthInitializer>{children}</AuthInitializer>
+                <Toaster />
+                <Sonner />
+                <Chatbot />
+              </NotificationProvider>
             </ThemeProvider>
           </LocaleProvider>
         </QueryProvider>

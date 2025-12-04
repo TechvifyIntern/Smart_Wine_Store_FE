@@ -11,7 +11,7 @@ import OrdersToolbar from "@/components/discount-orders/OrdersToolbar";
 import { CreateDiscountOrder } from "@/components/discount-orders/(modal)/CreateDiscountOrder";
 import { DeleteConfirmDialog } from "@/components/discount-orders/(modal)/DeleteConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 export default function DiscountOrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,7 +40,10 @@ export default function DiscountOrdersPage() {
       }
     } catch (err) {
       console.error("Error loading discount orders:", err);
-      toast.error("Failed to load discount orders");
+      toast({
+        title: "Loading failed",
+        description: "Failed to load discount orders",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -163,14 +166,25 @@ export default function DiscountOrdersPage() {
       });
 
       if (response.success) {
-        toast.success("Order discount created successfully!");
+        toast({
+          title: "Order created",
+          description: "Order discount created successfully!",
+        });
         await loadDiscountOrders();
       } else {
-        toast.error(response.message || "Failed to create order discount");
+        toast({
+          title: "Create failed",
+          description: "Failed to create order discount",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error creating order discount:", error);
-      toast.error("An error occurred while creating the order discount");
+      toast({
+        title: "Create failed",
+        description: "An error occurred while creating the order discount",
+        variant: "destructive",
+      });
     }
   };
 
@@ -185,14 +199,25 @@ export default function DiscountOrdersPage() {
       });
 
       if (response.success) {
-        toast.success("Order discount updated successfully!");
+        toast({
+          title: "Order updated",
+          description: "Order discount updated successfully!",
+        });
         await loadDiscountOrders();
       } else {
-        toast.error(response.message || "Failed to update order discount");
+        toast({
+          title: "Update failed",
+          description: "Failed to update order discount",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error updating order discount:", error);
-      toast.error("An error occurred while updating the order discount");
+      toast({
+        title: "Update failed",
+        description: "An error occurred while updating the order discount",
+        variant: "destructive",
+      });
     }
   };
 

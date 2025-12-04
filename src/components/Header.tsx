@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   ShoppingCart,
   Search,
@@ -47,15 +47,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter, usePathname } from "next/navigation";
 import { useAppStore } from "@/store/auth";
 import { useCartStore } from "@/store/cart";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Category } from "@/types/category";
 import { getParentCategory, getChildrenCategory } from "@/services/header/api";
-import notificationsRepository, {
-  Notification,
-} from "@/api/notificationsRepository";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { toast } from "@/hooks/use-toast";
 
 export function Header() {
   const router = useRouter();
@@ -63,13 +64,29 @@ export function Header() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [searchText, setSearchText] = useState("");
-
   const [parentCategories, setParentCategories] = useState<Category[]>([]);
   const [childrenCategories, setChildrenCategories] = useState<
     Record<number, Category[]>
   >({});
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, logout, authOpen, authMode, setAuthOpen, setAuthMode } =
+    useAppStore();
+  const isAuthenticated = !!user;
+  const { locale, setLocale, t } = useLocale();
+
+  // Use NotificationContext for notifications and SSE
+  const {
+    notifications,
+    unreadCount,
+    sseStatus,
+    hasMore,
+    isLoading,
+    markAsRead,
+    markAllAsRead,
+    loadMore,
+  } = useNotifications();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchText(e.target.value);
@@ -89,13 +106,6 @@ export function Header() {
     ? items.reduce((total, item) => total + item.Quantity, 0)
     : 0;
 
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout, authOpen, authMode, setAuthOpen, setAuthMode } =
-    useAppStore();
-  const isAuthenticated = !!user;
-  const { locale, setLocale, t } = useLocale();
-
   // Kiểm tra role: admin (roleId: 1), seller (roleId: 2), user (roleId: 3)
   const userRoleId = user?.roleId ? parseInt(user.roleId) : undefined;
   const isAdmin = userRoleId === 1;
@@ -103,8 +113,8 @@ export function Header() {
   const isInAdminPage = pathname?.startsWith("/admin");
 
   const handleLogout = () => {
-    logout();
     router.push("/");
+    logout();
   };
 
   const handleAuthModeChange = (mode: "signin" | "signup" | "forgot" | "otp") =>
@@ -145,38 +155,21 @@ export function Header() {
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      if (!isAuthenticated) {
-        setNotifications([]);
-        setUnreadCount(0);
-        return;
-      }
+  // Format notification time
+  const formatNotificationTime = (createdAt: string) => {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
 
-      try {
-        const response = await notificationsRepository.getNotifications();
-        if (response.success && response.data) {
-          // Ensure response.data is an array
-          const notificationsArray = Array.isArray(response.data)
-            ? response.data
-            : [];
-          setNotifications(notificationsArray);
-          setUnreadCount(notificationsArray.filter((n) => !n.IsRead).length);
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-        setNotifications([]);
-        setUnreadCount(0);
-      }
-      console.log(notifications);
-    };
-
-    fetchNotifications();
-    // Optionally, set up polling or WebSocket for real-time updates
-    const interval = setInterval(fetchNotifications, 60000); // Refresh every minute
-
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString("vi-VN");
+  };
 
   if (!mounted) return null;
 
@@ -251,19 +244,21 @@ export function Header() {
                 return (
                   <div key={link.label} className="relative group">
                     {hasDropdown ? (
-                      <div
-                        className={`text-sm font-medium cursor-pointer flex items-center transition relative ${
-                          isActive
-                            ? "text-primary font-semibold"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {t(`navigation.${link.key}`)}
-                        <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
-                        {isActive && (
-                          <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
-                        )}
-                      </div>
+                      <Link href={link.href}>
+                        <div
+                          className={`text-sm font-medium cursor-pointer flex items-center transition relative ${
+                            isActive
+                              ? "text-primary font-semibold"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {t(`navigation.${link.key}`)}
+                          <ChevronDown className="ml-1 w-4 h-4 transition-transform duration-200 group-hover:rotate-180" />
+                          {isActive && (
+                            <span className="absolute -bottom-[21px] left-0 right-0 h-0.5 bg-primary" />
+                          )}
+                        </div>
+                      </Link>
                     ) : (
                       <Link
                         href={link.href}
@@ -300,7 +295,7 @@ export function Header() {
                               className="relative group/sub"
                             >
                               <Link
-                                href={`/products?category=${cat.CategoryName}`}
+                                href={`/products?category=${cat.CategoryID}`}
                                 className="flex items-center justify-between px-4 py-2 hover:bg-muted text-sm text-foreground transition-colors"
                               >
                                 {cat.CategoryName}
@@ -320,7 +315,7 @@ export function Header() {
                                   {subChildren.map((sub) => (
                                     <Link
                                       key={sub.CategoryID}
-                                      href={`/products?category=${sub.CategoryName}`}
+                                      href={`/products?category=${sub.CategoryID}`}
                                       className="block px-4 py-2 hover:bg-muted text-sm text-foreground transition-colors"
                                     >
                                       {sub.CategoryName}
@@ -377,81 +372,167 @@ export function Header() {
                           {unreadCount > 9 ? "9+" : unreadCount}
                         </span>
                       )}
+                      {/* {sseStatus.isConnected && (
+                        <span className="absolute bottom-0 right-0 h-2 w-2 rounded-full bg-green-500 border border-background" />
+                      )} */}
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-80" align="end">
-                    <div className="flex items-center justify-between px-4 py-2 border-b">
-                      <h3 className="font-semibold text-sm">
-                        {t("header.notifications") || "Notifications"}
-                      </h3>
-                      {unreadCount > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          {unreadCount} {t("header.unread") || "unread"}
-                        </span>
-                      )}
-                    </div>
-                    <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
-                        <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                          {t("header.noNotifications") || "No notifications"}
-                        </div>
-                      ) : (
-                        notifications.map((notification) => (
-                          <div
-                            key={notification.NotificationID}
-                            className={`px-4 py-3 border-b hover:bg-muted cursor-pointer transition-colors ${
-                              !notification.IsRead
-                                ? "bg-blue-50 dark:bg-blue-950/20"
-                                : ""
-                            }`}
-                            onClick={async () => {
-                              if (!notification.IsRead) {
-                                try {
-                                  await notificationsRepository.markAsRead(
-                                    notification.NotificationID
-                                  );
-                                  setNotifications((prev) =>
-                                    prev.map((n) =>
-                                      n.NotificationID ===
-                                      notification.NotificationID
-                                        ? { ...n, IsRead: true }
-                                        : n
-                                    )
-                                  );
-                                  setUnreadCount((prev) =>
-                                    Math.max(0, prev - 1)
-                                  );
-                                } catch (error) {
-                                  console.error(
-                                    "Error marking notification as read:",
-                                    error
-                                  );
-                                }
-                              }
-                            }}
+                  <DropdownMenuContent className="w-80 sm:w-96" align="end">
+                    {/* Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-sm">
+                          {t("header.notifications") || "Notifications"}
+                        </h3>
+                        {unreadCount > 0 && (
+                          <Badge
+                            variant="destructive"
+                            className="h-5 px-1.5 text-xs"
                           >
-                            <div className="flex items-start gap-2">
-                              {!notification.IsRead && (
-                                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 flex-shrink-0" />
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground">
-                                  {notification.Title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {notification.Message}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {new Date(
-                                    notification.CreatedAt
-                                  ).toLocaleString()}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                        ))
+                            {unreadCount}
+                          </Badge>
+                        )}
+                      </div>
+                      {unreadCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs"
+                          onClick={async () => {
+                            try {
+                              await markAllAsRead();
+                              toast({
+                                title: "All notifications marked as read",
+                                variant: "success",
+                              });
+                            } catch (error) {
+                              toast({
+                                title:
+                                  "Failed to mark all notifications as read",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          Mark all read
+                        </Button>
                       )}
                     </div>
+
+                    {/* SSE Status */}
+                    {!sseStatus.isConnected &&
+                      sseStatus.reconnectAttempts > 0 && (
+                        <div className="px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border-b text-xs">
+                          <p className="text-yellow-800 dark:text-yellow-300">
+                            Reconnecting... (Attempt{" "}
+                            {sseStatus.reconnectAttempts})
+                          </p>
+                        </div>
+                      )}
+
+                    {/* Notifications List */}
+                    {notifications.length === 0 ? (
+                      <div className="px-4 py-12 text-center">
+                        <Bell className="w-12 h-12 mx-auto text-muted-foreground/40 mb-3" />
+                        <p className="text-sm text-muted-foreground">
+                          {t("header.noNotifications") ||
+                            "No notifications yet"}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col max-h-[400px]">
+                        <ScrollArea className="max-h-[400px]">
+                          <div className="divide-y">
+                            {notifications.map((notification) => (
+                              <div
+                                key={notification.NotificationID}
+                                className={`px-4 py-3 hover:bg-muted cursor-pointer transition-colors ${
+                                  !(notification.IsRead ?? notification.isRead)
+                                    ? "bg-blue-50 dark:bg-blue-950/20"
+                                    : ""
+                                }`}
+                                onClick={async () => {
+                                  if (
+                                    !(
+                                      notification.IsRead ?? notification.isRead
+                                    )
+                                  ) {
+                                    try {
+                                      await markAsRead(
+                                        notification.NotificationID
+                                      );
+                                    } catch (error) {
+                                      console.error(
+                                        "Failed to mark as read:",
+                                        error
+                                      );
+                                    }
+                                  }
+                                }}
+                              >
+                                <div className="flex items-start gap-3">
+                                  {!(
+                                    notification.IsRead ?? notification.isRead
+                                  ) && (
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-start justify-between gap-2">
+                                      <p className="text-sm font-medium text-foreground line-clamp-1">
+                                        {notification.Title}
+                                      </p>
+                                      {notification.Type && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-xs shrink-0"
+                                        >
+                                          {notification.Type}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                      {notification.Message ||
+                                        notification.Content}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground/70 mt-1.5">
+                                      {formatNotificationTime(
+                                        notification.CreatedAt
+                                      )}
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            {/* Footer - Fixed at bottom */}
+                          </div>
+                          {hasMore && (
+                            <div className="sticky px-4 py-2 mt-3 border-t bg-primary bottom-0 w-full">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full text-xs"
+                                onClick={async () => {
+                                  try {
+                                    await loadMore();
+                                  } catch (error) {
+                                    toast({
+                                      title:
+                                        "Failed to load more notifications",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                                disabled={isLoading}
+                              >
+                                {isLoading
+                                  ? "Loading..."
+                                  : "Load more notifications"}
+                              </Button>
+                            </div>
+                          )}
+                        </ScrollArea>
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -748,7 +829,7 @@ function MobileMenu({
                                           key={sub.CategoryID}
                                           onClick={() =>
                                             handleNavigation(
-                                              `/products?category=${sub.CategoryName}`
+                                              `/products?category=${sub.CategoryID}`
                                             )
                                           }
                                           className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"
@@ -767,7 +848,7 @@ function MobileMenu({
                                 key={cat.CategoryID}
                                 onClick={() =>
                                   handleNavigation(
-                                    `/products?category=${cat.CategoryName}`
+                                    `/products?category=${cat.CategoryID}`
                                   )
                                 }
                                 className="w-full text-left py-2 px-2 text-sm hover:bg-muted rounded-md"

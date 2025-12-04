@@ -8,7 +8,7 @@ import { ArrowLeft, Percent, Edit2, Save, Trash2 } from "lucide-react";
 import { DiscountEvent } from "@/data/discount_event";
 import discountEventsRepository from "@/api/discountEventsRepository";
 import PageHeader from "@/components/discount-events/PageHeader";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,14 +47,33 @@ export default function EventDetailPage() {
         setIsLoading(true);
         const response = await discountEventsRepository.getDiscountEvents();
         if (response.success && response.data) {
-          const foundEvent = (response.data as any[]).find(
-            (e: any) => e.DiscountEventID === eventId
+          const apiEvent = response.data.data.find(
+            (e: any) => e.EventID === eventId
           );
-          setEvent(foundEvent || null);
+          if (apiEvent) {
+            // Map API response to local DiscountEvent format
+            const foundEvent: DiscountEvent = {
+              EventID: apiEvent.EventID,
+              EventName: apiEvent.EventName,
+              Description: apiEvent.Description || "",
+              DiscountValue: apiEvent.DiscountValue,
+              TimeStart: apiEvent.TimeStart,
+              TimeEnd: apiEvent.TimeEnd,
+              CreatedAt: apiEvent.CreatedAt,
+              UpdatedAt: apiEvent.UpdatedAt,
+            };
+            setEvent(foundEvent);
+          } else {
+            setEvent(null);
+          }
         }
       } catch (error) {
         console.error("Error loading event:", error);
-        toast.error("Failed to load event data");
+        toast({
+          title: "Failed to load event data",
+          description: "An error occurred while loading event data.",
+          variant: "destructive",
+        });
       } finally {
         setIsLoading(false);
       }
@@ -110,7 +129,7 @@ export default function EventDetailPage() {
       const formData = getValues();
 
       const response = await discountEventsRepository.updateDiscountEvent(
-        event.DiscountEventID,
+        event.EventID,
         {
           EventName: formData.EventName,
           DiscountPercentage: formData.DiscountValue,
@@ -131,15 +150,22 @@ export default function EventDetailPage() {
         setShowSaveDialog(false);
         reset();
 
-        toast.success(
-          `Event "${formData.EventName}" has been updated successfully.`
-        );
+        toast({
+          title: "Event updated",
+          description: `Event "${formData.EventName}" has been updated successfully.`,
+        });
       } else {
-        toast.error(response.message || "Failed to update event");
+        toast({
+          title: "Event update failed",
+          description: "Failed to update event",
+        });
       }
     } catch (error) {
       console.error("Error saving event:", error);
-      toast.error("Failed to update event. Please try again.");
+      toast({
+        title: "Event update failed",
+        description: "Failed to update event",
+      });
     }
   };
 
@@ -151,18 +177,39 @@ export default function EventDetailPage() {
     setShowDeleteDialog(true);
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!event || !canDelete) return;
 
-    // TODO: Implement DELETE API call
-    // await discountEventsRepository.deleteDiscountEvent(event.DiscountEventID);
+    try {
+      const response = await discountEventsRepository.deleteDiscountEvent(
+        event.EventID
+      );
 
-    setShowDeleteDialog(false);
+      if (response.success) {
+        toast({
+          title: "Event deleted",
+          description: `Event "${event.EventName}" has been deleted successfully.`,
+        });
 
-    toast.success(`Event "${event.EventName}" has been deleted successfully.`);
-
-    // Navigate back to events page
-    router.push("/admin/discounts/events");
+        // Navigate back to events page
+        router.push("/admin/discounts/events");
+      } else {
+        toast({
+          title: "Delete failed",
+          description: `Failed to delete event: ${response.message}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete event due to an error.",
+        variant: "destructive",
+      });
+    } finally {
+      setShowDeleteDialog(false);
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -319,7 +366,7 @@ export default function EventDetailPage() {
                       Event ID
                     </p>
                     <p className="font-medium text-gray-900 dark:text-slate-100">
-                      #{event.DiscountEventID}
+                      #{event.EventID}
                     </p>
                   </div>
                 </div>

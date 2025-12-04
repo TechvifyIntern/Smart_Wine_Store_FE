@@ -4,7 +4,7 @@ import type { Product } from "@/types/product-detail";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { useCartStore } from "@/store/cart";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductCardProps {
@@ -15,7 +15,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCartStore();
   const handleAddToCart = () => {
     addToCart(product.ProductID, 1);
-    toast.success("Added to cart!");
+    toast({ title: "Added to cart!", variant: "success" });
   };
 
   return (

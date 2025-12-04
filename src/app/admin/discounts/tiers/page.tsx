@@ -7,7 +7,7 @@ import { Users, Edit2, Crown, Gem, Medal, Info } from "lucide-react";
 import { DiscountTier } from "@/data/discount_tier";
 import { discountTiers } from "@/data/discount_tier";
 import discountTiersRepository from "@/api/discountTiersRepository";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { Spinner } from "@/components/ui/spinner";
 
 const tierStyles: Record<string, any> = {
@@ -50,13 +50,19 @@ export default function TierPage() {
           );
           // Use fallback sample data
           setTiersData(discountTiers);
-          toast.warning("Using sample data as API is unavailable");
+            toast({
+            title: "Using sample data as API is unavailable",
+            variant: "warning",
+          });
         }
       } catch (err) {
         console.error("Error loading discount tiers from API:", err);
         // Use fallback sample data
         setTiersData(discountTiers);
-        toast.warning("Using sample data as API is unavailable");
+          toast({
+            title: "Using sample data as API is unavailable",
+            variant: "warning",
+          });
       } finally {
         setIsLoading(false);
       }

@@ -47,10 +47,10 @@ export default function Header({ onMenuClick }: HeaderProps) {
       }
 
       try {
-        const response = await notificationsRepository.getNotifications();
-        if (response.success && response.data) {
-          const notificationsArray = Array.isArray(response.data)
-            ? response.data
+        const notifications = await notificationsRepository.getNotifications();
+        if (notifications) {
+          const notificationsArray = Array.isArray(notifications)
+            ? notifications
             : [];
           setNotifications(notificationsArray);
           setUnreadCount(notificationsArray.filter((n) => !n.IsRead).length);
