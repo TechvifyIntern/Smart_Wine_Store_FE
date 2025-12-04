@@ -57,8 +57,6 @@ export default function EventsTable({
             {events.length > 0 ? (
               events.map((event) => {
                 const status = getEventStatus(event.TimeStart, event.TimeEnd);
-                console.log(event);
-
                 return (
                   <EventRow
                     key={event.EventID}

@@ -53,7 +53,7 @@ export interface Order {
   DiscountTierID: number | null; // Assuming it can be null
   DiscountTierValue: number | null; // Assuming it can be null
   DiscountID: number | null; // Assuming it can be null
-  DiscountValue: number;
+  DiscountEventValue: number;
   FinalTotal: number;
   StatusID: number;
   Details: OrderDetail[];

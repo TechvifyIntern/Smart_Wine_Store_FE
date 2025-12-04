@@ -118,7 +118,7 @@ export const resetPasswordSchema = z
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
-    path: ["confirmNewPassword"],
+    path: ["confirmPassword"],
   });
 
 // Type exports

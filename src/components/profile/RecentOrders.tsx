@@ -204,7 +204,7 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
                 selectedOrder.Details.length > 0 && (
                   <p>
                     <strong>Discount:</strong>{" "}
-                    {formatCurrency(selectedOrder.DiscountValue)}
+                    {formatCurrency(selectedOrder.DiscountEventValue)}
                   </p>
                 )}
               {selectedOrder.Details.length > 0 && (

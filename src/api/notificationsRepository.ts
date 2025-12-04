@@ -1,19 +1,23 @@
+// notificationsRepository.ts
 import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
   acknowledgeNotification,
   checkSSEStatus,
+  createNotification,
 } from "@/services/notification/api";
+
+import { CreateNotificationFormData } from "@/validations/notifications/notificationSchema";
 
 export interface Notification {
   NotificationID: number;
   UserID: number;
   Title: string;
-  Content: string; // Backend uses 'Content' not 'Message'
-  Message?: string; // Keep for backward compatibility
-  isRead: boolean; // Backend uses 'isRead' (lowercase)
-  IsRead?: boolean; // Keep for backward compatibility
+  Content: string;
+  Message?: string;
+  isRead: boolean;
+  IsRead?: boolean;
   CreatedAt: string;
   LinkURL?: string;
   Type?: string;
@@ -21,51 +25,58 @@ export interface Notification {
   ReadAt?: string;
 }
 
-export interface GetNotificationsResponse {
+export interface CreateNotificationResponse {
   success: boolean;
-  data: Notification[];
-  message?: string;
-}
-
-export interface AckNotificationRequest {
-  notificationId: number;
+  notificationsCreated: number;
+  scheduledJobId?: string;
+  deliveryStatus: {
+    sent: number;
+    pendingOffline: number;
+    failed: number;
+  };
 }
 
 class NotificationsRepository {
   /**
-   * Get all notifications for the current user
+   * Get notifications for the current user
    */
   async getNotifications(limit: number = 10, offset: number = 0) {
-    const notifications = await getNotifications(limit, offset);
-    return notifications;
+    return await getNotifications(limit, offset);
   }
 
   /**
    * Mark a notification as read
    */
-  async markAsRead(id: number): Promise<any> {
+  async markAsRead(id: number) {
     return await markNotificationAsRead(id);
   }
 
   /**
    * Mark all notifications as read
    */
-  async markAllAsRead(): Promise<any> {
+  async markAllAsRead() {
     return await markAllNotificationsAsRead();
   }
 
   /**
-   * Acknowledge notification receipt (SSE)
+   * Acknowledge SSE notification (client received)
    */
-  async acknowledgeNotification(notificationId: number): Promise<void> {
-    await acknowledgeNotification(notificationId);
+  async acknowledgeNotification(notificationId: number) {
+    return await acknowledgeNotification(notificationId);
   }
 
   /**
-   * Check SSE connection status
+   * Check SSE status
    */
-  async checkSSEStatus(): Promise<any> {
+  async checkSSEStatus() {
     return await checkSSEStatus();
+  }
+
+  /**
+   * Create system notification (Admin)
+   */
+  async createNotification(data: CreateNotificationFormData) {
+    return await createNotification(data);
   }
 }
 

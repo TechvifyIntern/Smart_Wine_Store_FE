@@ -228,7 +228,6 @@ class UserManagementRepository extends BaseRepository {
   async createAccount(data: Partial<CreateAccountFormData>): Promise<any> {
     try {
       const response = await api.post(`auth/register`, data);
-      console.log(response);
 
       return response.data;
     } catch (error: any) {

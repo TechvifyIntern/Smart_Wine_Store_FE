@@ -45,20 +45,17 @@ export default function DiscountProductManagement() {
     try {
       let response;
       if (searchTerm.trim()) {
-        console.log("Searching products with term:", searchTerm);
         response = await searchProductsForDiscount({
           name: searchTerm,
           page: currentPage,
           size: itemsPerPage,
         });
       } else {
-        console.log("Fetching products, page:", currentPage - 1);
         response = await getProductsForDiscount({
           page: currentPage - 1,
           size: itemsPerPage,
         });
       }
-      console.log("API Response:", response);
 
       if (response.success && response.data) {
         // Check if data is nested or direct array
@@ -68,15 +65,10 @@ export default function DiscountProductManagement() {
         const total = Array.isArray(response.data)
           ? response.data.length
           : response.data.total || 0;
-
-        console.log("Fetched products:", productsData);
-        console.log("Total products:", total);
-
         setProducts(productsData);
         setTotalItems(total);
         setTotalPages(Math.ceil(total / itemsPerPage));
       } else {
-        console.log("No data in response");
         setProducts([]);
         setTotalPages(1);
       }
