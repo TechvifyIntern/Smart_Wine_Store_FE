@@ -21,7 +21,6 @@ export default function AccountsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isStatusChangeDialogOpen, setIsStatusChangeDialogOpen] =
     useState(false);
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
@@ -34,7 +33,7 @@ export default function AccountsPage() {
   const [selectedStatuses, setSelectedStatuses] = useState<number[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [totalItems, setTotalItems] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAccounts = useCallback(async () => {

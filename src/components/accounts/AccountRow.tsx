@@ -29,6 +29,8 @@ export default function AccountRow({
       case "Active":
         return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400";
       case "Inactive":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400";
+      case "Banned":
         return "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400";
       default:
         return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
@@ -65,7 +67,7 @@ export default function AccountRow({
     <tr
       className={`transition-all duration-200 group cursor-pointer ${
         isLoyalCustomer
-          ? "hover:bg-gradient-to-r hover:from-yellow-50 hover:to-yellow-100/50 dark:hover:from-yellow-900/20 dark:hover:to-yellow-900/30 hover:shadow-md hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/20 hover:scale-[1.01] hover:border-l-4 hover:border-l-yellow-400"
+          ? "hover:bg-linear-to-r hover:from-yellow-50 hover:to-yellow-100/50 dark:hover:from-yellow-900/20 dark:hover:to-yellow-900/30 hover:shadow-md hover:shadow-yellow-200/50 dark:hover:shadow-yellow-900/20 hover:scale-[1.01] hover:border-l-4 hover:border-l-yellow-400"
           : "hover:bg-gray-50 dark:hover:bg-slate-800/30 hover:shadow-sm"
       }`}
       onClick={() => router.push(`/admin/accounts/${account.UserID}`)}
@@ -134,6 +136,12 @@ export default function AccountRow({
                 className="text-xs dark:text-slate-200 dark:focus:bg-slate-700"
               >
                 Inactive
+              </SelectItem>
+              <SelectItem
+                value="3"
+                className="text-xs dark:text-slate-200 dark:focus:bg-slate-700"
+              >
+                Banned
               </SelectItem>
             </SelectContent>
           </Select>

@@ -293,7 +293,7 @@ export default function CheckoutPage() {
         <h2 className="text-2xl font-bold">
           {hasError
             ? "An Error Occurred - You must be login first!"
-            : "Your Cart is Empty"}
+            : "Your order is processing, please check shipment in profile"}
         </h2>
         <Button className="mt-4 mr-10" onClick={() => router.push("/products")}>
           Back to Shop
