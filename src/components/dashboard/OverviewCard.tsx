@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { OverviewCardType } from "@/types/dashboard";
-import { TrendingUp, TrendingDown } from "lucide-react";
 
 interface OverviewCardProps {
   data: OverviewCardType;
@@ -8,7 +7,7 @@ interface OverviewCardProps {
 }
 
 export function OverviewCard({ data, isLoading = false }: OverviewCardProps) {
-  const { title, value, trend, trendPercentage, icon: Icon, iconColor } = data;
+  const { title, value, icon: Icon, iconColor } = data;
 
   return (
     <Card className="rounded-xl shadow-sm  bg-card text-card-foreground border-[#F2F2F2] dark:border-slate-800/50">

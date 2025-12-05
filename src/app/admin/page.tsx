@@ -11,133 +11,160 @@ import ordersRepository from "@/api/ordersRepository";
 import reportsRepository from "@/api/reportsRepository";
 import userManagementRepository from "@/api/userManagementRepository";
 
-export default function Dashboard() {
-  const [totalUsers, setTotalUsers] = useState<number | null>(null);
-  const [newUsersThisMonth, setNewUsersThisMonth] = useState<number | null>(
-    null
-  );
-  const [totalOrdersThisMonth, setTotalOrdersThisMonth] = useState<
-    number | null
-  >(null);
-  const [totalRevenueThisMonth, setTotalRevenueThisMonth] = useState<
-    number | null
-  >(null);
-  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
-  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+interface ApiData {
+  totalUsers: number | null;
+  newUsersThisMonth: number | null;
+  totalOrdersThisMonth: number | null;
+  totalRevenueThisMonth: number | null;
+}
 
-  // Fetch total users and new users this month from API
-  useEffect(() => {
-    const loadUsersData = async () => {
-      try {
-        setIsLoadingUsers(true);
-
-        // Fetch total users
-        const usersResponse = await userManagementRepository.getAll();
-        if (usersResponse.success && usersResponse.data) {
-          const total =
-            usersResponse.data.total || usersResponse.data.length || 0;
-          setTotalUsers(total);
-        }
-
-        // Fetch new users this month from reports API
-        const newUsersResponse = await reportsRepository.getNewUsers("month");
-        if (newUsersResponse.success && newUsersResponse.data) {
-          setNewUsersThisMonth(
-            newUsersResponse.data.count || newUsersResponse.data.total || 0
-          );
-        }
-      } catch (error) {
-        console.error("Error loading users:", error);
-      } finally {
-        setIsLoadingUsers(false);
-      }
-    };
-    loadUsersData();
-  }, []);
-
-  // Fetch orders data and calculate this month's orders and revenue
-  useEffect(() => {
-    const loadOrdersData = async () => {
-      try {
-        setIsLoadingOrders(true);
-        const response = await ordersRepository.getOrders();
-        if (response.success && response.data) {
-          // Calculate orders and revenue for this month
-          if (Array.isArray(response.data)) {
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const currentYear = now.getFullYear();
-
-            const ordersThisMonth = response.data.filter((order: any) => {
-              if (order.CreatedAt) {
-                const orderDate = new Date(order.CreatedAt);
-                return (
-                  orderDate.getMonth() === currentMonth &&
-                  orderDate.getFullYear() === currentYear
-                );
-              }
-              return false;
-            });
-
-            setTotalOrdersThisMonth(ordersThisMonth.length);
-
-            // Calculate total revenue this month
-            const revenueThisMonth = ordersThisMonth.reduce(
-              (sum: number, order: any) => {
-                return sum + (order.FinalTotal || 0);
-              },
-              0
-            );
-            setTotalRevenueThisMonth(revenueThisMonth);
-          } else {
-            // If data is not array or empty, set to 0
-            setTotalOrdersThisMonth(0);
-            setTotalRevenueThisMonth(0);
-          }
-        } else {
-          // If response is not successful, set to 0
-          setTotalOrdersThisMonth(0);
-          setTotalRevenueThisMonth(0);
-        }
-      } catch (error) {
-        console.error("Error loading orders:", error);
-        setTotalOrdersThisMonth(0);
-        setTotalRevenueThisMonth(0);
-      } finally {
-        setIsLoadingOrders(false);
-      }
-    };
-    loadOrdersData();
-  }, []);
-
-  // Update overview data with real total users and new users this month
-  const updatedOverviewData = overviewData.map((data, index) => {
-    if (index === 0 && totalUsers !== null) {
-      return {
-        ...data,
-        value: totalUsers.toLocaleString(),
-      };
+function calculateUpdatedOverviewData(
+  staticData: typeof overviewData,
+  apiData: ApiData
+) {
+  return staticData.map((data, index) => {
+    switch (index) {
+      case 0: // Total Users
+        return {
+          ...data,
+          value:
+            apiData.totalUsers !== null
+              ? apiData.totalUsers.toLocaleString()
+              : data.value,
+        };
+      case 1: // New Users This Month
+        return {
+          ...data,
+          value:
+            apiData.newUsersThisMonth !== null
+              ? apiData.newUsersThisMonth.toLocaleString()
+              : data.value,
+        };
+      case 2: // Total Orders This Month
+        return {
+          ...data,
+          value:
+            apiData.totalOrdersThisMonth !== null
+              ? apiData.totalOrdersThisMonth.toLocaleString()
+              : data.value,
+        };
+      case 3: // Total Revenue This Month
+        return {
+          ...data,
+          value:
+            apiData.totalRevenueThisMonth !== null
+              ? `${apiData.totalRevenueThisMonth.toLocaleString()}đ`
+              : data.value,
+        };
+      default:
+        return data;
     }
-    if (index === 1 && newUsersThisMonth !== null) {
-      return {
-        ...data,
-        value: newUsersThisMonth.toLocaleString(),
-      };
-    }
-    if (index === 2 && totalOrdersThisMonth !== null) {
-      return {
-        ...data,
-        value: totalOrdersThisMonth.toLocaleString(),
-      };
-    }
-    if (index === 3 && totalRevenueThisMonth !== null) {
-      return {
-        ...data,
-        value: `${totalRevenueThisMonth.toLocaleString()}đ`,
-      };
-    }
-    return data;
   });
+}
+
+function calculateOrdersAndRevenueThisMonth(orders: any[]): ApiData {
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  const ordersThisMonth = orders.filter((order: any) => {
+    if (order.CreatedAt) {
+      const orderDate = new Date(order.CreatedAt);
+      return (
+        orderDate.getMonth() === currentMonth &&
+        orderDate.getFullYear() === currentYear
+      );
+    }
+    return false;
+  });
+
+  const totalOrdersThisMonth = ordersThisMonth.length;
+  const totalRevenueThisMonth = ordersThisMonth.reduce(
+    (sum: number, order: any) => sum + (order.FinalTotal || 0),
+    0
+  );
+
+  return {
+    totalUsers: null,
+    newUsersThisMonth: null,
+    totalOrdersThisMonth,
+    totalRevenueThisMonth,
+  };
+}
+
+export default function Dashboard() {
+  const [apiData, setApiData] = useState<ApiData>({
+    totalUsers: null,
+    newUsersThisMonth: null,
+    totalOrdersThisMonth: null,
+    totalRevenueThisMonth: null,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Parallel API calls
+        const [usersResponse, newUsersResponse, ordersResponse] =
+          await Promise.all([
+            userManagementRepository.getAll(),
+            reportsRepository.getNewUsers("month"),
+            ordersRepository.getOrders(),
+          ]);
+
+        let updatedData: ApiData = {
+          totalUsers: null,
+          newUsersThisMonth: null,
+          totalOrdersThisMonth: 0,
+          totalRevenueThisMonth: 0,
+        };
+
+        // Process users data
+        if (usersResponse.success && usersResponse.data.data) {
+          updatedData.totalUsers =
+            usersResponse.data.total || usersResponse.data.length || 0;
+        }
+
+        // Process new users data
+        if (newUsersResponse.success && newUsersResponse.data.data) {
+          updatedData.newUsersThisMonth =
+            newUsersResponse.data.count || newUsersResponse.data.total || 0;
+        }
+
+        // Process orders data
+        if (ordersResponse.data && Array.isArray(ordersResponse.data.data)) {
+          const ordersAndRevenue = calculateOrdersAndRevenueThisMonth(
+            ordersResponse.data.data
+          );
+          updatedData.totalOrdersThisMonth =
+            ordersAndRevenue.totalOrdersThisMonth;
+          updatedData.totalRevenueThisMonth =
+            ordersAndRevenue.totalRevenueThisMonth;
+        }
+
+        setApiData(updatedData);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+        setApiData({
+          totalUsers: null,
+          newUsersThisMonth: null,
+          totalOrdersThisMonth: 0,
+          totalRevenueThisMonth: 0,
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadDashboardData();
+  }, []);
+
+  const updatedOverviewData = calculateUpdatedOverviewData(
+    overviewData,
+    apiData
+  );
 
   return (
     <div className="space-y-6">
@@ -152,17 +179,7 @@ export default function Dashboard() {
       {/* Row 1: Overview Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         {updatedOverviewData.map((data, index) => (
-          <OverviewCard
-            key={index}
-            data={data}
-            isLoading={
-              index === 0 || index === 1
-                ? isLoadingUsers
-                : index === 2 || index === 3
-                  ? isLoadingOrders
-                  : false
-            }
-          />
+          <OverviewCard key={index} data={data} isLoading={isLoading} />
         ))}
       </div>
 
