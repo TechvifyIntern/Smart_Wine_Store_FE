@@ -52,12 +52,12 @@ export const ProfileHeader: React.FC<ProfileHeaderProps> = ({
         <div className="flex flex-col sm:flex-row items-start sm:items-end gap-6">
           {/* Avatar */}
           <CldUploadWidget
-            uploadPreset="wine_store_avatars"
+            uploadPreset="wine_store_products"
             options={{
               cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
               maxFiles: 1,
               resourceType: "image",
-              folder: "wine-store/avatars",
+              folder: "wine-store/products",
             }}
             onOpen={() => setIsHovering(false)}
             onUploadAdded={() => setIsUploading(true)}
