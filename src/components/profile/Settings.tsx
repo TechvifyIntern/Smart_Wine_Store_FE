@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Lock, Eye, Trash2 } from "lucide-react";
+import { Lock, Eye, Trash2, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +25,10 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod"; // Import z
-import { changePasswordSchema, ChangePasswordFormValues } from "@/validations/auth/passwordSchema"; // Import schema
+import {
+  changePasswordSchema,
+  ChangePasswordFormValues,
+} from "@/validations/auth/passwordSchema"; // Import schema
 import { changePassword } from "@/services/auth/api"; // Import API function
 import { AxiosError } from "axios"; // Import AxiosError
 
@@ -48,7 +51,7 @@ export const Settings: React.FC = () => {
     const { name, value } = e.target;
     setPasswordData((prev) => ({ ...prev, [name]: value }));
     // Clear error for the current field as user types
-    setErrors((prev) => prev.filter(err => err.path[0] !== name));
+    setErrors((prev) => prev.filter((err) => err.path[0] !== name));
   };
 
   const handlePasswordChange = async () => {
@@ -74,7 +77,11 @@ export const Settings: React.FC = () => {
           title: "Success",
           description: "Your password has been successfully changed.",
         });
-        setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+        setPasswordData({
+          oldPassword: "",
+          newPassword: "",
+          confirmNewPassword: "",
+        });
         setIsPasswordDialogOpen(false);
       } else {
         toast({
@@ -107,7 +114,11 @@ export const Settings: React.FC = () => {
   };
 
   const handleClosePasswordDialog = () => {
-    setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+    setPasswordData({
+      oldPassword: "",
+      newPassword: "",
+      confirmNewPassword: "",
+    });
     setErrors([]);
     setIsPasswordDialogOpen(false);
   };
@@ -128,7 +139,7 @@ export const Settings: React.FC = () => {
   };
 
   const findError = (fieldName: string) => {
-    return errors.find(err => err.path[0] === fieldName)?.message;
+    return errors.find((err) => err.path[0] === fieldName)?.message;
   };
 
   return (
@@ -203,7 +214,9 @@ export const Settings: React.FC = () => {
                 disabled={isChangingPassword}
               />
               {findError("oldPassword") && (
-                <p className="text-sm text-destructive mt-1">{findError("oldPassword")}</p>
+                <p className="text-sm text-destructive mt-1">
+                  {findError("oldPassword")}
+                </p>
               )}
             </div>
             <div>
@@ -221,25 +234,41 @@ export const Settings: React.FC = () => {
                 disabled={isChangingPassword}
               />
               {findError("newPassword") && (
-                <p className="text-sm text-destructive mt-1">{findError("newPassword")}</p>
+                <p className="text-sm text-destructive mt-1">
+                  {findError("newPassword")}
+                </p>
               )}
             </div>
             <div>
               <Label htmlFor="confirmNewPassword" className="mb-2">
                 Confirm New Password
               </Label>
-              <Input
-                id="confirmNewPassword"
-                name="confirmNewPassword"
-                type="password"
-                value={passwordData.confirmNewPassword}
-                onChange={handleInputChange}
-                placeholder="Confirm new password"
-                className={`${findError("confirmNewPassword") ? "border-destructive" : ""}`}
-                disabled={isChangingPassword}
-              />
+              <div className="relative">
+                <Input
+                  id="confirmNewPassword"
+                  name="confirmNewPassword"
+                  type="password"
+                  value={passwordData.confirmNewPassword}
+                  onChange={handleInputChange}
+                  placeholder="Confirm new password"
+                  className={`${findError("confirmNewPassword") ? "border-destructive" : ""} pr-10`}
+                  disabled={isChangingPassword}
+                />
+                {passwordData.confirmNewPassword.length > 0 && (
+                  <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                    {passwordData.confirmNewPassword ===
+                    passwordData.newPassword ? (
+                      <Check className="w-5 h-5 text-green-600" />
+                    ) : (
+                      <X className="w-5 h-5 text-red-600" />
+                    )}
+                  </div>
+                )}
+              </div>
               {findError("confirmNewPassword") && (
-                <p className="text-sm text-destructive mt-1">{findError("confirmNewPassword")}</p>
+                <p className="text-sm text-destructive mt-1">
+                  {findError("confirmNewPassword")}
+                </p>
               )}
             </div>
           </div>
@@ -251,7 +280,10 @@ export const Settings: React.FC = () => {
             >
               Cancel
             </Button>
-            <Button onClick={handlePasswordChange} disabled={isChangingPassword}>
+            <Button
+              onClick={handlePasswordChange}
+              disabled={isChangingPassword}
+            >
               {isChangingPassword ? "Changing..." : "Change Password"}
             </Button>
           </div>

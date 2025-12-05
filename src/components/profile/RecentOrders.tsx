@@ -29,8 +29,12 @@ export const RecentOrders: React.FC<RecentOrdersProps> = ({ userOrders }) => {
       case 1:
         return "Pending";
       case 2:
-        return "Delivered";
+        return "Paid";
       case 3:
+        return "Shipped";
+      case 4:
+        return "Completed";
+      case 5:
         return "Cancelled";
       default:
         return "Unknown";

@@ -62,6 +62,8 @@ export const ContactInfo: React.FC<ContactInfoProps> = ({
     }
     setErrors([]);
     try {
+      console.log(parsed.data);
+
       await onSave(parsed.data);
       setIsEditMode(false); // Exit edit mode on successful save
     } catch (error) {
