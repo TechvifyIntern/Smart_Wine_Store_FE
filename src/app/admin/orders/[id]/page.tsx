@@ -10,7 +10,8 @@ import ordersRepository, { Order } from "@/api/ordersRepository";
 import { useAppStore } from "@/store/auth";
 import { Spinner } from "@/components/ui/spinner";
 import { getOrderPermissions } from "@/lib/permissions";
-import jsPDF from "jspdf";
+import { toast } from "@/hooks/use-toast";
+import { createPdfWithVietnameseText, downloadPdf } from "@/utils/pdf-utils";
 
 export default function OrderDetailPage() {
     const params = useParams();
@@ -50,10 +51,11 @@ export default function OrderDetailPage() {
     const getStatusText = (statusID: number): string => {
         const statusMap: Record<number, string> = {
             1: "pending",
-            2: "processing",
+            2: "paid",
             3: "shipped",
-            4: "delivered",
+            4: "completed",
             5: "cancelled",
+            6: "failed",
         };
         return statusMap[statusID] || "unknown";
     };
@@ -62,12 +64,22 @@ export default function OrderDetailPage() {
     const getStatusId = (statusText: string): number => {
         const statusMap: Record<string, number> = {
             pending: 1,
-            processing: 2,
+            paid: 2,
             shipped: 3,
-            delivered: 4,
+            completed: 4,
             cancelled: 5,
+            failed: 6,
         };
         return statusMap[statusText] || 1;
+    };
+
+    // Helper function to get payment method text
+    const getPaymentMethodText = (paymentMethodID?: number): string => {
+        const paymentMap: Record<number, string> = {
+            1: "COD (Cash on Delivery)",
+            2: "VNPay",
+        };
+        return paymentMap[paymentMethodID || 0] || "Unknown";
     };
 
     // Helper function to format address
@@ -80,6 +92,14 @@ export default function OrderDetailPage() {
         return parts.join(", ");
     };
 
+    // Function to update order status
+    const updateOrderStatus = async (orderId: number, statusId: number) => {
+        const response = await ordersRepository.updateOrderStatus(orderId, statusId);
+        if (!response.success) {
+            throw new Error(response.message || "Failed to update order status");
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!order || !permissions.canEdit) return;
@@ -87,75 +107,33 @@ export default function OrderDetailPage() {
         try {
             setSaving(true);
             const formData = new FormData(e.currentTarget);
+            const statusId = getStatusId(formData.get("Status") as string);
 
-            await ordersRepository.updateOrder(orderId, {
-                StatusID: getStatusId(formData.get("Status") as string),
-            });
+            await updateOrderStatus(orderId, statusId);
 
-            alert("Order updated successfully!");
-            router.push("/admin/orders");
+            toast({ title: "Order updated successfully!" });
         } catch (error) {
-            console.error("Error updating order:", error);
-            alert("Failed to update order");
+            toast({ title: "Failed to update order", variant: "destructive" });
         } finally {
             setSaving(false);
         }
     };
 
-    const handleExportPDF = () => {
+    const handleExportPDF = async () => {
         if (!order) return;
 
-        const doc = new jsPDF();
-
-        // Title
-        doc.setFontSize(20);
-        doc.text(`Order Invoice #${order.OrderID}`, 20, 30);
-
-        // Order Information
-        doc.setFontSize(12);
-        doc.text(`Order ID: ${order.OrderID}`, 20, 50);
-        doc.text(`Customer ID: ${order.UserID}`, 20, 60);
-        doc.text(`Customer Name: ${order.UserName || "N/A"}`, 20, 70);
-        doc.text(`Email: ${order.Email || "N/A"}`, 20, 80);
-        doc.text(`Status: ${getStatusText(order.StatusID)}`, 20, 90);
-        doc.text(
-            `Order Date: ${new Date(order.CreatedAt).toLocaleDateString()}`,
-            20,
-            100
-        );
-        doc.text(`Total Amount: $${order.FinalTotal.toFixed(2)}`, 20, 110);
-
-        // Shipping Address
-        doc.text("Shipping Address:", 20, 130);
-        const address = getFormattedAddress(order);
-        const addressLines = doc.splitTextToSize(address, 170);
-        doc.text(addressLines, 20, 140);
-
-        // Order Items
-        let yPosition = 160;
-        doc.text("Order Items:", 20, yPosition);
-        yPosition += 10;
-
-        if (order.Details && order.Details.length > 0) {
-            order.Details.forEach((detail, index) => {
-                if (yPosition > 270) {
-                    // Check if we need a new page
-                    doc.addPage();
-                    yPosition = 30;
-                }
-
-                doc.text(`${index + 1}. ${detail.ProductName}`, 20, yPosition);
-                doc.text(
-                    `Quantity: ${detail.Quantity} × $${detail.UnitPrice.toFixed(2)} = $${detail.FinalItemPrice.toFixed(2)}`,
-                    30,
-                    yPosition + 8
-                );
-                yPosition += 20;
+        try {
+            toast({ title: "Generating PDF..." });
+            const pdfBytes = await createPdfWithVietnameseText(order);
+            downloadPdf(pdfBytes, `order-${order.OrderID}.pdf`);
+            toast({ title: "PDF exported successfully!" });
+        } catch (error) {
+            console.error("Error exporting PDF:", error);
+            toast({
+                title: "Failed to export PDF",
+                variant: "destructive",
             });
         }
-
-        // Save the PDF
-        doc.save(`order-${order.OrderID}.pdf`);
     };
 
     if (loading) {
@@ -225,7 +203,7 @@ export default function OrderDetailPage() {
                         <div>
                             <Label>Total Amount</Label>
                             <Input
-                                value={`$${order.FinalTotal.toFixed(2)}`}
+                                value={`${order.FinalTotal.toFixed(2)}`}
                                 disabled
                                 className="mt-2"
                             />
@@ -242,17 +220,18 @@ export default function OrderDetailPage() {
                                 className="mt-2 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white disabled:opacity-50"
                             >
                                 <option value="pending">Pending</option>
-                                <option value="processing">Processing</option>
+                                <option value="paid">Paid</option>
                                 <option value="shipped">Shipped</option>
-                                <option value="delivered">Delivered</option>
+                                <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
+                                <option value="failed">Failed</option>
                             </select>
                         </div>
 
                         {/* Payment Method */}
                         <div>
                             <Label>Payment Method</Label>
-                            <Input value="N/A" disabled className="mt-2" />
+                            <Input value={getPaymentMethodText(order.PaymentMethodID)} disabled className="mt-2" />
                         </div>
 
                         {/* Created At */}
@@ -312,7 +291,7 @@ export default function OrderDetailPage() {
                                                 </p>
                                             </div>
                                             <p className="font-semibold">
-                                                ${detail.FinalItemPrice.toFixed(2)}
+                                                {detail.FinalItemPrice.toFixed(2)}
                                             </p>
                                         </div>
                                     </div>

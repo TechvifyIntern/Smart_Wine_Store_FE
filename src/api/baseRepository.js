@@ -140,6 +140,19 @@ class BaseRepository {
       );
     }
   }
+
+  async updateStatus(id, statusId) {
+    try {
+      const response = await api.patch(
+        `${this.endpoint}/${id}/status?statusId=${statusId}`
+      );
+      return response.data;
+    } catch (error) {
+      throw new Error(
+        `Failed to update ${this.endpoint.slice(1)} status: ${error.message}`
+      );
+    }
+  }
 }
 
 export default BaseRepository;

@@ -357,10 +357,11 @@
       },
       "status": {
         "pending": "Pending",
-        "processing": "Processing",
+        "paid": "Paid",
         "shipped": "Shipped",
-        "delivered": "Delivered",
-        "cancelled": "Cancelled"
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "failed": "Failed"
       },
       "filterStatus": {
         "all": "All Status",

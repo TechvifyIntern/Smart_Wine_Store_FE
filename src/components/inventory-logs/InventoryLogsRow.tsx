@@ -1,12 +1,15 @@
 "use client";
 
 import { InventoryLog } from "@/services/inventory-log/api";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface InventoryLogsRowProps {
     log: InventoryLog;
     formatDate: (dateString: string) => string;
     getTransactionTypeName: (typeId: number) => string;
     getTransactionTypeColor: (typeId: number) => string;
+    isSelected: boolean;
+    onSelect: (checked: boolean) => void;
 }
 
 export default function InventoryLogsRow({
@@ -14,9 +17,18 @@ export default function InventoryLogsRow({
     formatDate,
     getTransactionTypeName,
     getTransactionTypeColor,
+    isSelected,
+    onSelect,
 }: InventoryLogsRowProps) {
     return (
         <tr className="dark:hover:bg-slate-800/30 transition-colors group">
+            <td className="px-6 py-4 whitespace-nowrap" data-checkbox>
+                <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={onSelect}
+                    data-checkbox
+                />
+            </td>
             <td className="px-6 py-4 whitespace-nowrap">
                 <div className="dark:text-slate-400 text-sm font-regular">
                     #{log.InventoryLogID}

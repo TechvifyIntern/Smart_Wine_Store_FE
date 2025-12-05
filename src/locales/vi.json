@@ -353,10 +353,11 @@
       },
       "status": {
         "pending": "Chờ Xử Lý",
-        "processing": "Đang Xử Lý",
-        "shipped": "Đã Gửi",
-        "delivered": "Đã Giao",
-        "cancelled": "Đã Hủy"
+        "paid": "Đã Thanh Toán",
+        "shipped": "Đang Giao",
+        "completed": "Hoàn Thành",
+        "cancelled": "Đã Hủy",
+        "failed": "Thất Bại"
       },
       "filterStatus": {
         "all": "Tất cả trạng thái",
