@@ -31,6 +31,11 @@ import {
 } from "@/services/profile/api"; // Import addAddress API call
 import { useToast } from "@/hooks/use-toast"; // Import useToast
 import { AxiosError } from "axios"; // Import AxiosError
+import { ZodError } from "zod"; // Import ZodError
+import {
+  addAddressSchema,
+  editAddressSchema,
+} from "@/validations/profile/addressSchema"; // Import Zod schemas
 
 interface SavedAddressesProps {
   userAddresses: UserAddress[] | null;
@@ -50,6 +55,14 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
     number | null
   >(null);
   const [isLoading, setIsLoading] = useState(false); // Loading state
+
+  // Form validation errors
+  const [addValidationErrors, setAddValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [editValidationErrors, setEditValidationErrors] = useState<
+    Record<string, string>
+  >({});
 
   // Form add
   const [newAddress, setNewAddress] = useState<AddAddressPayload>({
@@ -76,19 +89,29 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
     }
   }, [userAddresses]);
 
+  // Helper function to get validation errors from Zod
+  const getValidationErrors = (error: ZodError): Record<string, string> => {
+    const errors: Record<string, string> = {};
+    error.errors.forEach((err) => {
+      const path = err.path.join(".");
+      errors[path] = err.message;
+    });
+    return errors;
+  };
+
+  // Helper function to render error messages
+  const renderError = (error: string | undefined) => {
+    if (!error) return null;
+    return <p className="text-sm text-destructive mt-1">{error}</p>;
+  };
+
   // Add new address
   const handleAddAddress = async () => {
-    if (!newAddress.StreetAddress || !newAddress.Ward || !newAddress.Province) {
-      toast({
-        title: "Validation Error",
-        description: "Street Address, Ward, and Province are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
     try {
+      // Validate new address data with Zod schema
+      setAddValidationErrors({}); // Clear previous errors
+      const validatedData = addAddressSchema.parse(newAddress);
+      setIsLoading(true);
       const response = await addAddress(newAddress);
       if (response.success) {
         // If the new address is default, ensure others are not
@@ -108,6 +131,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
           Province: "",
           IsDefault: false,
         });
+        setAddValidationErrors({});
         setIsAddModalOpen(false);
       } else {
         toast({
@@ -118,7 +142,10 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
       }
     } catch (err) {
       console.error("API Error - addAddress:", err);
-      if (err instanceof AxiosError) {
+      if (err instanceof ZodError) {
+        setAddValidationErrors(getValidationErrors(err));
+        return;
+      } else if (err instanceof AxiosError) {
         toast({
           title: "Error",
           description:
@@ -150,21 +177,11 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
   const handleSaveEdit = async () => {
     if (!editingAddress) return;
 
-    if (
-      !editAddress.StreetAddress ||
-      !editAddress.Ward ||
-      !editAddress.Province
-    ) {
-      toast({
-        title: "Validation Error",
-        description: "Street Address, Ward, and Province are required.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
     try {
+      // Validate edit address data with Zod schema
+      setEditValidationErrors({}); // Clear previous errors
+      const validatedData = editAddressSchema.parse(editAddress);
+      setIsLoading(true);
       const response = await updateAddress(
         {
           StreetAddress: editAddress.StreetAddress,
@@ -195,6 +212,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
           description: "Address updated successfully!",
           variant: "default",
         });
+        setEditValidationErrors({});
         setIsEditModalOpen(false);
         setEditingAddress(null);
       } else {
@@ -206,7 +224,10 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
       }
     } catch (err) {
       console.error("API Error - updateAddress:", err);
-      if (err instanceof AxiosError) {
+      if (err instanceof ZodError) {
+        setEditValidationErrors(getValidationErrors(err));
+        return;
+      } else if (err instanceof AxiosError) {
         toast({
           title: "Error",
           description:
@@ -439,7 +460,9 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                   })
                 }
                 disabled={isLoading}
+                style={{ resize: "vertical" }}
               />
+              {renderError(addValidationErrors.StreetAddress)}
             </div>
 
             <div>
@@ -452,6 +475,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                 }
                 disabled={isLoading}
               />
+              {renderError(addValidationErrors.Ward)}
             </div>
 
             <div>
@@ -464,6 +488,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                 }
                 disabled={isLoading}
               />
+              {renderError(addValidationErrors.Province)}
             </div>
 
             <div className="flex items-center gap-2">
@@ -514,7 +539,9 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                   })
                 }
                 disabled={isLoading}
+                style={{ resize: "vertical" }}
               />
+              {renderError(editValidationErrors.StreetAddress)}
             </div>
 
             <div>
@@ -526,6 +553,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                 }
                 disabled={isLoading}
               />
+              {renderError(editValidationErrors.Ward)}
             </div>
 
             <div>
@@ -537,6 +565,7 @@ export const SavedAddresses: React.FC<SavedAddressesProps> = ({
                 }
                 disabled={isLoading}
               />
+              {renderError(editValidationErrors.Province)}
             </div>
 
             <div className="flex items-center gap-2">

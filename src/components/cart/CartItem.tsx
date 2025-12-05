@@ -103,6 +103,7 @@ export default function CartItem({
                 toast({
                   title: "Cannot increase further",
                   description: "The maximum quantity is 99.",
+                  variant: "destructive",
                 });
                 return;
               }

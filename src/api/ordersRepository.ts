@@ -18,6 +18,7 @@ export interface Order {
   FinalTotal: number;
   StatusID: number;
   DiscountID?: number;
+  PaymentMethodID?: number;
   Details?: OrderDetail[];
 }
 
@@ -72,6 +73,14 @@ class OrdersRepository extends BaseRepository {
   // Delete order
   async deleteOrder(id: number): Promise<ApiResponse<void>> {
     return this.delete(id) as Promise<ApiResponse<void>>;
+  }
+
+  // Update order status
+  async updateOrderStatus(
+    id: number,
+    statusId: number
+  ): Promise<ApiResponse<Order>> {
+    return this.updateStatus(id, statusId) as Promise<ApiResponse<Order>>;
   }
 }
 

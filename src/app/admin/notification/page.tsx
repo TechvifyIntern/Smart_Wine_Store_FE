@@ -193,7 +193,7 @@ export default function NotificationPage() {
           // CASE 3: Sent, but no detailed stats returned
           toast({
             title: "Notification Sent",
-            description: "The notification request was accepted by the server.",
+            description: "The notification request was accepted.",
             duration: 3000,
           });
         }

@@ -2,17 +2,24 @@
 
 import InventoryLogsRow from "./InventoryLogsRow";
 import { InventoryLog } from "@/services/inventory-log/api";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface InventoryLogsTableProps {
     logs: InventoryLog[];
     formatDate: (dateString: string) => string;
     emptyMessage?: string;
+    selectedLogs: number[];
+    onSelectLog: (logId: number, checked: boolean) => void;
+    onSelectAll: (checked: boolean) => void;
 }
 
 export default function InventoryLogsTable({
     logs,
     formatDate,
     emptyMessage = "No inventory logs found",
+    selectedLogs,
+    onSelectLog,
+    onSelectAll,
 }: InventoryLogsTableProps) {
     const getTransactionTypeName = (typeId: number): string => {
         switch (typeId) {
@@ -47,6 +54,16 @@ export default function InventoryLogsTable({
                     <thead className="dark:bg-slate-800/50 dark:border-b dark:border-slate-700/50 border-b border-[#F2F2F2]">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
+                                <Checkbox
+                                    checked={
+                                        selectedLogs.length === logs.length &&
+                                        logs.length > 0
+                                    }
+                                    onCheckedChange={onSelectAll}
+                                    data-checkbox
+                                />
+                            </th>
+                            <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
                                 Log ID
                             </th>
                             <th className="px-6 py-3 text-left text-xs font-regular tracking-wider">
@@ -78,11 +95,13 @@ export default function InventoryLogsTable({
                                     formatDate={formatDate}
                                     getTransactionTypeName={getTransactionTypeName}
                                     getTransactionTypeColor={getTransactionTypeColor}
+                                    isSelected={selectedLogs.includes(log.InventoryLogID)}
+                                    onSelect={(checked) => onSelectLog(log.InventoryLogID, checked)}
                                 />
                             ))
                         ) : (
                             <tr>
-                                <td colSpan={7} className="px-6 py-16 text-center">
+                                <td colSpan={8} className="px-6 py-16 text-center">
                                     <div className="flex flex-col items-center justify-center">
                                         <svg
                                             className="w-16 h-16 dark:text-slate-700 text-gray-300 mb-4"
