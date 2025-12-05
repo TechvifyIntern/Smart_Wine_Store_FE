@@ -30,8 +30,6 @@ export default function AccountRow({
         return "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400";
       case "Inactive":
         return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400";
-      case "Banned":
-        return "bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400";
       default:
         return "bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400";
     }
@@ -136,12 +134,6 @@ export default function AccountRow({
                 className="text-xs dark:text-slate-200 dark:focus:bg-slate-700"
               >
                 Inactive
-              </SelectItem>
-              <SelectItem
-                value="3"
-                className="text-xs dark:text-slate-200 dark:focus:bg-slate-700"
-              >
-                Banned
               </SelectItem>
             </SelectContent>
           </Select>
