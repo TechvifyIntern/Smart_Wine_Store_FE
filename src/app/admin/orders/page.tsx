@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -19,11 +12,11 @@ import {
 import { Search, Download, ClipboardList, Filter } from "lucide-react";
 import ordersRepository, { Order } from "@/api/ordersRepository";
 import { useRouter } from "next/navigation";
-import jsPDF from "jspdf";
 import PageHeader from "@/components/discount-events/PageHeader";
 import Pagination from "@/components/admin/pagination/Pagination";
 import { useLocale } from "@/contexts/LocaleContext";
 import { Spinner } from "@/components/ui/spinner";
+import { createPdfWithVietnameseText, downloadPdf } from "@/utils/pdf-utils";
 
 export default function OrdersManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -58,12 +51,22 @@ export default function OrdersManagementPage() {
   const getStatusText = (statusID: number): string => {
     const statusMap: Record<number, string> = {
       1: t("admin.orders.status.pending"),
-      2: t("admin.orders.status.processing"),
+      2: t("admin.orders.status.paid"),
       3: t("admin.orders.status.shipped"),
-      4: t("admin.orders.status.delivered"),
+      4: t("admin.orders.status.completed"),
       5: t("admin.orders.status.cancelled"),
+      6: t("admin.orders.status.failed"),
     };
     return statusMap[statusID] || t("admin.orders.status.pending");
+  };
+
+  // Helper function to get payment method text
+  const getPaymentMethodText = (paymentMethodID: number): string => {
+    const paymentMap: Record<number, string> = {
+      1: "COD",
+      2: "VNPay",
+    };
+    return paymentMap[paymentMethodID] || "N/A";
   };
 
   // Helper function to format address
@@ -138,355 +141,34 @@ export default function OrdersManagementPage() {
     window.location.href = `/admin/orders/${orderId}`;
   };
 
-  const handleExportPDFs = () => {
+  const handleExportPDFs = async () => {
     const ordersToExport =
       selectedOrders.length > 0 ? selectedOrders : orders.map((o) => o.OrderID);
 
-    ordersToExport.forEach((orderId) => {
+    for (const orderId of ordersToExport) {
       const order = orders.find((o) => o.OrderID === orderId);
       if (order) {
-        exportSingleOrderPDF(order);
-      }
-    });
-  };
-
-  const exportSingleOrderPDF = (order: Order) => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.width;
-    const pageHeight = doc.internal.pageSize.height;
-    let yPosition = 20;
-
-    // Color palette based on the page theme
-    const primaryColor = [124, 101, 62]; // #7C653E - brown/gold
-    const secondaryColor = [139, 115, 85]; // lighter brown
-    const accentColor = [184, 134, 11]; // gold
-    const lightBg = [250, 248, 245]; // cream background
-    const darkText = [51, 51, 51]; // dark gray
-
-    // Helper function to add centered text
-    const addCenteredText = (
-      text: string,
-      fontSize: number,
-      y: number,
-      color: number[] = darkText
-    ) => {
-      doc.setFontSize(fontSize);
-      doc.setTextColor(color[0], color[1], color[2]);
-      const textWidth = doc.getTextWidth(text);
-      const x = (pageWidth - textWidth) / 2;
-      doc.text(text, x, y);
-    };
-
-    // Helper function to add left-right aligned text
-    const addLeftRightText = (
-      leftText: string,
-      rightText: string,
-      y: number,
-      fontSize: number = 10,
-      color: number[] = darkText
-    ) => {
-      doc.setFontSize(fontSize);
-      doc.setTextColor(color[0], color[1], color[2]);
-      doc.text(leftText, 20, y);
-      const rightTextWidth = doc.getTextWidth(rightText);
-      doc.text(rightText, pageWidth - 20 - rightTextWidth, y);
-    };
-
-    // Background gradient effect
-    doc.setFillColor(lightBg[0], lightBg[1], lightBg[2]);
-    doc.rect(0, 0, pageWidth, pageHeight, "F");
-
-    // Top accent bar
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(0, 0, pageWidth, 8, "F");
-
-    yPosition = 25;
-
-    // Header - Company Info with modern styling
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setFontSize(28);
-    doc.text("🍷 SMART WINE STORE", pageWidth / 2, yPosition, {
-      align: "center",
-    });
-    yPosition += 10;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(14);
-    doc.setTextColor(100, 100, 100);
-    doc.text("Premium Wine Collection & Events", pageWidth / 2, yPosition, {
-      align: "center",
-    });
-    yPosition += 8;
-
-    doc.setFontSize(10);
-    doc.setTextColor(120, 120, 120);
-    doc.text(
-      "123 Wine Street, Vineyard City, VC 12345",
-      pageWidth / 2,
-      yPosition,
-      { align: "center" }
-    );
-    yPosition += 5;
-    doc.text(
-      "Phone: (555) 123-4567 | Email: info@smartwinestore.com",
-      pageWidth / 2,
-      yPosition,
-      { align: "center" }
-    );
-    yPosition += 15;
-
-    // Decorative line
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(1);
-    doc.line(20, yPosition, pageWidth - 20, yPosition);
-    yPosition += 20;
-
-    // Invoice Title with modern styling
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(20, yPosition - 8, pageWidth - 40, 16, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(`INVOICE #${order.OrderID}`, pageWidth / 2, yPosition + 2, {
-      align: "center",
-    });
-    yPosition += 25;
-
-    // Order Details Box with modern styling
-    doc.setDrawColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.setLineWidth(0.5);
-    doc.setFillColor(255, 255, 255);
-    doc.rect(20, yPosition, pageWidth - 40, 55, "FD");
-    yPosition += 12;
-
-    // Order Information with icons
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    addLeftRightText("🆔 Order ID:", `#${order.OrderID}`, yPosition);
-    yPosition += 9;
-    addLeftRightText(
-      "📅 Order Date:",
-      new Date(order.CreatedAt).toLocaleDateString(),
-      yPosition
-    );
-    yPosition += 9;
-    addLeftRightText(
-      "📊 Status:",
-      getStatusText(order.StatusID).toUpperCase(),
-      yPosition
-    );
-    yPosition += 9;
-    addLeftRightText("💳 Payment:", "Credit Card", yPosition);
-    yPosition += 20;
-
-    // Customer Information Box
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 8, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.text("👤 CUSTOMER INFORMATION", 25, yPosition);
-    yPosition += 15;
-
-    doc.setFillColor(248, 248, 248);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 25, "F");
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.2);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 25);
-
-    doc.setTextColor(darkText[0], darkText[1], darkText[2]);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`ID: ${order.UserID}`, 25, yPosition + 2);
-    doc.text(`Name: ${order.UserName || "N/A"}`, 25, yPosition + 9);
-    doc.text(`Email: ${order.Email || "N/A"}`, 25, yPosition + 16);
-    yPosition += 30;
-
-    // Shipping Address Box
-    doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 8, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(12);
-    doc.text("📍 SHIPPING ADDRESS", 25, yPosition);
-    yPosition += 15;
-
-    doc.setFillColor(248, 248, 248);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 20, "F");
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.2);
-    doc.rect(20, yPosition - 5, pageWidth - 40, 20);
-
-    doc.setTextColor(darkText[0], darkText[1], darkText[2]);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    const address = getFormattedAddress(order);
-    const addressLines = doc.splitTextToSize(address, 160);
-    doc.text(addressLines, 25, yPosition + 2);
-    yPosition += Math.max(25, addressLines.length * 6 + 10);
-
-    // Order Items Table
-    if (order.Details && order.Details.length > 0) {
-      // Check if we need a new page
-      if (yPosition > 200) {
-        doc.addPage();
-        yPosition = 30;
-      }
-
-      // Table Header with modern styling
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(20, yPosition - 5, pageWidth - 40, 15, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(12);
-      doc.text("🛒 ORDER ITEMS", 25, yPosition + 3);
-      yPosition += 18;
-
-      // Table Header Row
-      doc.setFillColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
-      doc.rect(20, yPosition - 5, pageWidth - 40, 12, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      doc.text("#", 25, yPosition + 2);
-      doc.text("Product", 40, yPosition + 2);
-      doc.text("Qty", 135, yPosition + 2);
-      doc.text("Unit Price", 150, yPosition + 2);
-      doc.text("Total", 180, yPosition + 2);
-      yPosition += 15;
-
-      // Table Rows
-      doc.setFont("helvetica", "normal");
-      order.Details.forEach((detail, index) => {
-        if (yPosition > 250) {
-          // Check if we need a new page
-          doc.addPage();
-          yPosition = 30;
-
-          // Redraw table header on new page
-          doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-          doc.rect(20, yPosition - 5, pageWidth - 40, 15, "F");
-          doc.setTextColor(255, 255, 255);
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(12);
-          doc.text("🛒 ORDER ITEMS (continued)", 25, yPosition + 3);
-          yPosition += 18;
-
-          doc.setFillColor(
-            secondaryColor[0],
-            secondaryColor[1],
-            secondaryColor[2]
-          );
-          doc.rect(20, yPosition - 5, pageWidth - 40, 12, "F");
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(10);
-          doc.text("#", 25, yPosition + 2);
-          doc.text("Product", 40, yPosition + 2);
-          doc.text("Qty", 135, yPosition + 2);
-          doc.text("Unit Price", 150, yPosition + 2);
-          doc.text("Total", 180, yPosition + 2);
-          yPosition += 15;
-          doc.setFont("helvetica", "normal");
+        try {
+          const pdfBytes = await createPdfWithVietnameseText(order);
+          downloadPdf(pdfBytes, `invoice-${order.OrderID}.pdf`);
+        } catch (error) {
+          console.error(`Error generating PDF for order ${orderId}:`, error);
         }
-
-        // Row background (modern alternating)
-        if (index % 2 === 0) {
-          doc.setFillColor(252, 252, 252);
-        } else {
-          doc.setFillColor(245, 245, 245);
-        }
-        doc.rect(20, yPosition - 5, pageWidth - 40, 12, "F");
-
-        // Row border
-        doc.setDrawColor(230, 230, 230);
-        doc.setLineWidth(0.1);
-        doc.rect(20, yPosition - 5, pageWidth - 40, 12);
-
-        doc.setTextColor(darkText[0], darkText[1], darkText[2]);
-        doc.setFontSize(9);
-        doc.text(`${index + 1}`, 25, yPosition + 2);
-
-        // Product name (truncate if too long)
-        const productName =
-          detail.ProductName.length > 25
-            ? detail.ProductName.substring(0, 22) + "..."
-            : detail.ProductName;
-        doc.text(productName, 40, yPosition + 2);
-
-        doc.text(`${detail.Quantity}`, 140, yPosition + 2);
-        doc.text(`$${detail.UnitPrice.toFixed(2)}`, 155, yPosition + 2);
-        doc.text(`$${detail.FinalItemPrice.toFixed(2)}`, 180, yPosition + 2);
-
-        yPosition += 12;
-      });
-
-      // Total Section with modern styling
-      yPosition += 5;
-      doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-      doc.rect(120, yPosition, 70, 15, "F");
-      doc.setTextColor(255, 255, 255);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(14);
-      doc.text(`TOTAL: $${order.FinalTotal.toFixed(2)}`, 155, yPosition + 10, {
-        align: "center",
-      });
-      yPosition += 25;
+      }
     }
-
-    // Footer with modern styling
-    const footerY = pageHeight - 35;
-
-    // Footer background
-    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2]);
-    doc.rect(0, footerY - 5, pageWidth, 40, "F");
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    addCenteredText(
-      "🎉 Thank you for choosing Smart Wine Store!",
-      10,
-      footerY + 5,
-      [255, 255, 255]
-    );
-    addCenteredText(
-      "For questions about this order, please contact us at info@smartwinestore.com",
-      8,
-      footerY + 12,
-      [255, 255, 255]
-    );
-    addCenteredText(
-      `Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`,
-      7,
-      footerY + 18,
-      [255, 255, 255]
-    );
-
-    // Bottom accent
-    doc.setFillColor(accentColor[0], accentColor[1], accentColor[2]);
-    doc.rect(0, pageHeight - 3, pageWidth, 3, "F");
-
-    // Reset text color
-    doc.setTextColor(0, 0, 0);
-
-    // Save the PDF
-    doc.save(`order-invoice-${order.OrderID}.pdf`);
   };
 
-  const getStatusColor = (status: string) => {
-    const statusMap: Record<string, string> = {
-      pending:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
-      processing:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
-      shipped:
-        "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
-      delivered:
-        "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
-      cancelled: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+  const getStatusColor = (statusID: number) => {
+    const statusMap: Record<number, string> = {
+      1: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400", // Pending
+      2: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400", // Paid
+      3: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400", // Shipped
+      4: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400", // Completed
+      5: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400", // Cancelled
+      6: "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400", // Failed
     };
     return (
-      statusMap[status.toLowerCase()] ||
+      statusMap[statusID] ||
       "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400"
     );
   };
@@ -527,11 +209,10 @@ export default function OrdersManagementPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={`${
-                  statusFilter !== "all"
-                    ? "bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white border-[#ad8d5e]"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`${statusFilter !== "all"
+                  ? "bg-[#ad8d5e] hover:bg-[#8c6b3e] text-white border-[#ad8d5e]"
+                  : "border-gray-300 text-gray-700 hover:bg-gray-100"
+                  }`}
               >
                 <Filter className="w-4 h-4" />
               </Button>
@@ -543,11 +224,10 @@ export default function OrdersManagementPage() {
                     setStatusFilter("all");
                     setCurrentPage(1);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                    statusFilter === "all"
-                      ? "bg-[#ad8d5e] text-white"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "all"
+                    ? "bg-[#ad8d5e] text-white"
+                    : "hover:bg-gray-100 text-gray-700"
+                    }`}
                 >
                   {t("admin.orders.filterStatus.all") || "All Status"}
                 </button>
@@ -556,11 +236,10 @@ export default function OrdersManagementPage() {
                     setStatusFilter("pending");
                     setCurrentPage(1);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                    statusFilter === "pending"
-                      ? "bg-[#ad8d5e] text-white"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "pending"
+                    ? "bg-[#ad8d5e] text-white"
+                    : "hover:bg-gray-100 text-gray-700"
+                    }`}
                 >
                   {t("admin.orders.filterStatus.pending") || "Pending"}
                 </button>
@@ -569,11 +248,10 @@ export default function OrdersManagementPage() {
                     setStatusFilter("done");
                     setCurrentPage(1);
                   }}
-                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
-                    statusFilter === "done"
-                      ? "bg-[#ad8d5e] text-white"
-                      : "hover:bg-gray-100 text-gray-700"
-                  }`}
+                  className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${statusFilter === "done"
+                    ? "bg-[#ad8d5e] text-white"
+                    : "hover:bg-gray-100 text-gray-700"
+                    }`}
                 >
                   {t("admin.orders.filterStatus.done") || "Done (Delivered)"}
                 </button>
@@ -620,9 +298,6 @@ export default function OrdersManagementPage() {
                   {t("admin.orders.tableHeaders.status")}
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  {t("admin.orders.tableHeaders.paymentMethod")}
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   {t("admin.orders.tableHeaders.createdAt")}
                 </th>
               </tr>
@@ -663,19 +338,16 @@ export default function OrdersManagementPage() {
                       {order.UserID}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white font-semibold">
-                      ${order.FinalTotal.toFixed(2)}
+                      {order.FinalTotal.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                          getStatusText(order.StatusID)
+                          order.StatusID
                         )}`}
                       >
                         {getStatusText(order.StatusID)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      N/A
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                       {new Date(order.CreatedAt).toLocaleDateString()}
